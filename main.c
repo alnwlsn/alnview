@@ -1,11 +1,14 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include <dirent.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+
+TTF_Font *font = NULL;
 
 char img_dir[512] = ".";
 
@@ -15,6 +18,10 @@ typedef struct {
   int height;
   int x;
   int y;
+  float r;
+  int sel_index;
+  int draw_layer;
+  char filename[512];
 } Image;
 
 Image *images = NULL;
@@ -101,78 +108,14 @@ void load_images(SDL_Renderer *renderer, const char *directory) {
   free(file_list);
 }
 
-void arrange_images_in_grid() {
-  int columns = ceil(sqrt(image_count));
-  int spacing = 20;
-
-  int x = 0, y = 0;
-  int max_row_height = 0;
-
-  for (int i = 0; i < image_count; ++i) {
-    images[i].x = x;
-    images[i].y = y;
-
-    x += images[i].width + spacing;
-    if (images[i].height > max_row_height) max_row_height = images[i].height;
-
-    if ((i + 1) % columns == 0) {
-      x = 0;
-      y += max_row_height + spacing;
-      max_row_height = 0;
-    }
-  }
-}
-
-void get_image_bounds(int *min_x, int *min_y, int *max_x, int *max_y) {
-  if (image_count == 0) {
-    *min_x = *min_y = *max_x = *max_y = 0;
-    return;
-  }
-
-  *min_x = images[0].x;
-  *min_y = images[0].y;
-  *max_x = images[0].x + images[0].width;
-  *max_y = images[0].y + images[0].height;
-
-  for (int i = 1; i < image_count; ++i) {
-    int x1 = images[i].x;
-    int y1 = images[i].y;
-    int x2 = x1 + images[i].width;
-    int y2 = y1 + images[i].height;
-
-    if (x1 < *min_x) *min_x = x1;
-    if (y1 < *min_y) *min_y = y1;
-    if (x2 > *max_x) *max_x = x2;
-    if (y2 > *max_y) *max_y = y2;
-  }
-}
-
-void move_image_to_front(int index) {
-  if (index < 0 || index >= image_count - 1) return;
-  Image temp = images[index];
-  memmove(&images[index], &images[index + 1], sizeof(Image) * (image_count - index - 1));
-  images[image_count - 1] = temp;
-}
-
-void move_image_to_back(int index) {
-  if (index <= 0 || index >= image_count) return;
-  Image temp = images[index];
-  memmove(&images[1], &images[0], sizeof(Image) * index);
-  images[0] = temp;
-}
-
-void center_on_image(int index, int window_width, int window_height, float zoom, float *offsetX, float *offsetY) {
-  if (index < 0 || index >= image_count) return;
-
-  Image *img = &images[index];
-  float center_x = img->x + img->width / 2.0f;
-  float center_y = img->y + img->height / 2.0f;
-
-  *offsetX = (window_width / 2.0f) / zoom - center_x;
-  *offsetY = (window_height / 2.0f) / zoom - center_y;
-}
-
 int main(int argc, char *argv[]) {
+  TTF_Init();
+  font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16);
+  if (!font) {
+    fprintf(stderr, "Failed to load font: %s\n", TTF_GetError());
+    exit(1);
+  }
+
   // Use command-line argument or default to current dir
   if (argc > 1) {
     strncpy(img_dir, argv[1], sizeof(img_dir) - 1);
@@ -182,13 +125,13 @@ int main(int argc, char *argv[]) {
   SDL_Init(SDL_INIT_VIDEO);
   IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
 
-  SDL_Window *window =
-      SDL_CreateWindow("alnview", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED);
+  SDL_Window *window = SDL_CreateWindow("alnview", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
+                                        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);  //| SDL_WINDOW_MAXIMIZED);
 
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
   load_images(renderer, img_dir);
-  arrange_images_in_grid();
+  //   arrange_images_in_grid();
   float zoom = 1.0f;
   float offsetX = 0, offsetY = 0;
   int dragging = 0;
@@ -210,219 +153,9 @@ int main(int argc, char *argv[]) {
         case SDL_QUIT:
           quit = 1;
           break;
-        case SDL_WINDOWEVENT:
-          if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
-            int new_width = e.window.data1;
-            int new_height = e.window.data2;
-
-            // Compute center change in logical coordinates
-            float dx = (new_width - window_width) / (2.0f * zoom);
-            float dy = (new_height - window_height) / (2.0f * zoom);
-
-            offsetX += dx;
-            offsetY += dy;
-
-            window_width = new_width;
-            window_height = new_height;
-            if (!viewport_initialized) {
-              window_width = e.window.data1;
-              window_height = e.window.data2;
-
-              int min_x, min_y, max_x, max_y;
-              get_image_bounds(&min_x, &min_y, &max_x, &max_y);
-
-              int content_width = max_x - min_x;
-              int content_height = max_y - min_y;
-
-              float margin = 40.0f;
-              float scale_x = (window_width - margin) / (float)content_width;
-              float scale_y = (window_height - margin) / (float)content_height;
-              zoom = fmin(scale_x, scale_y);
-
-              offsetX = (window_width / 2.0f) / zoom - (min_x + content_width / 2.0f);
-              offsetY = (window_height / 2.0f) / zoom - (min_y + content_height / 2.0f);
-
-              viewport_initialized = 1;
-            }
-          }
-          break;
-        case SDL_MOUSEBUTTONDOWN:
-          if (e.button.button == SDL_BUTTON_LEFT) {
-            dragging = 1;
-            lastX = e.button.x;
-            lastY = e.button.y;
-
-            float world_x = e.button.x / zoom - offsetX;
-            float world_y = e.button.y / zoom - offsetY;
-
-            for (int i = 0; i < image_count; ++i) {
-              int x = images[i].x;
-              int y = images[i].y;
-              int w = images[i].width;
-              int h = images[i].height;
-
-              if (world_x >= x && world_x <= x + w && world_y >= y && world_y <= y + h) {
-                current_image = i;
-                break;
-              }
-            }
-            dragging = 1;
-            lastX = e.button.x;
-            lastY = e.button.y;
-          } else if (e.button.button == SDL_BUTTON_RIGHT) {
-            // Convert mouse position to world coordinates
-            float world_x = e.button.x / zoom - offsetX;
-            float world_y = e.button.y / zoom - offsetY;
-
-            // Check if mouse is over any image
-            for (int i = image_count - 1; i >= 0; --i) {  // check from top image down
-              int x = images[i].x;
-              int y = images[i].y;
-              int w = images[i].width;
-              int h = images[i].height;
-              if (world_x >= x && world_x <= x + w && world_y >= y && world_y <= y + h) {
-                image_dragging = i;
-                drag_offset_x = world_x - x;
-                drag_offset_y = world_y - y;
-                break;
-              }
-            }
-          }
-          break;
-        case SDL_MOUSEBUTTONUP:
-          if (e.button.button == SDL_BUTTON_LEFT) {
-            dragging = 0;
-          } else if (e.button.button == SDL_BUTTON_RIGHT) {
-            image_dragging = -1;
-          }
-          break;
-        case SDL_MOUSEMOTION:
-          if (dragging) {
-            offsetX += (e.motion.x - lastX) / zoom;
-            offsetY += (e.motion.y - lastY) / zoom;
-            lastX = e.motion.x;
-            lastY = e.motion.y;
-          }
-
-          if (image_dragging != -1) {
-            float world_x = e.motion.x / zoom - offsetX;
-            float world_y = e.motion.y / zoom - offsetY;
-
-            images[image_dragging].x = world_x - drag_offset_x;
-            images[image_dragging].y = world_y - drag_offset_y;
-          }
-          break;
-        case SDL_MOUSEWHEEL: {
-          int mx, my;
-          SDL_GetMouseState(&mx, &my);
-          float world_x = mx / zoom - offsetX;
-          float world_y = my / zoom - offsetY;
-
-          if (shift_held) {
-            // Shift is held — zoom only image under cursor
-            for (int i = image_count - 1; i >= 0; --i) {
-              Image *img = &images[i];
-              int x = img->x;
-              int y = img->y;
-              int w = img->width;
-              int h = img->height;
-
-              if (world_x >= x && world_x <= x + w && world_y >= y && world_y <= y + h) {
-                float factor = (e.wheel.y > 0) ? 1.1f : 1.0f / 1.1f;
-
-                // Zoom around mouse point relative to image
-                float rel_x = (world_x - x) / w;
-                float rel_y = (world_y - y) / h;
-
-                int new_w = img->width * factor;
-                int new_h = img->height * factor;
-
-                // Adjust position so the point under cursor remains stable
-                img->x = world_x - rel_x * new_w;
-                img->y = world_y - rel_y * new_h;
-
-                img->width = new_w;
-                img->height = new_h;
-                break;
-              }
-            }
-          } else {
-            // Regular canvas zoom
-            float before_x = mx / zoom - offsetX;
-            float before_y = my / zoom - offsetY;
-
-            if (e.wheel.y > 0)
-              zoom *= 1.1f;
-            else if (e.wheel.y < 0)
-              zoom /= 1.1f;
-
-            // Clamp if desired
-            // if (zoom < 0.05f) zoom = 0.05f;
-            // if (zoom > 10.0f) zoom = 10.0f;
-
-            float after_x = mx / zoom - offsetX;
-            float after_y = my / zoom - offsetY;
-
-            offsetX += (after_x - before_x);
-            offsetY += (after_y - before_y);
-          }
-          break;
-        }
-        case SDL_KEYDOWN:
-          switch (e.key.keysym.sym) {
-            case SDLK_PERIOD:
-            case SDLK_COMMA: {
-              int mx, my;
-              SDL_GetMouseState(&mx, &my);
-              float world_x = mx / zoom - offsetX;
-              float world_y = my / zoom - offsetY;
-
-              for (int i = image_count - 1; i >= 0; --i) {
-                int x = images[i].x;
-                int y = images[i].y;
-                int w = images[i].width;
-                int h = images[i].height;
-
-                if (world_x >= x && world_x <= x + w && world_y >= y && world_y <= y + h) {
-                  if (e.key.keysym.sym == SDLK_PERIOD)
-                    move_image_to_front(i);
-                  else
-                    move_image_to_back(i);
-
-                  break;
-                }
-              }
-            } break;
-            case SDLK_PAGEDOWN:
-              current_image = (current_image + 1) % image_count;
-              center_on_image(current_image, window_width, window_height, zoom, &offsetX, &offsetY);
-              break;
-            case SDLK_PAGEUP:
-              current_image = (current_image - 1 + image_count) % image_count;
-              center_on_image(current_image, window_width, window_height, zoom, &offsetX, &offsetY);
-              break;
-            case SDLK_SPACE:
-              center_on_image(current_image, window_width, window_height, zoom, &offsetX, &offsetY);
-              break;
-            case SDLK_LSHIFT:
-            case SDLK_RSHIFT:
-              shift_held = 1;
-              break;
-          }
-          break;
-        case SDL_KEYUP:
-          switch (e.key.keysym.sym) {
-            case SDLK_LSHIFT:
-            case SDLK_RSHIFT:
-              shift_held = 0;
-              break;
-          }
-          break;
       }
     }
-    SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
     SDL_RenderClear(renderer);
-
     for (int i = 0; i < image_count; ++i) {
       SDL_Rect dst;
       dst.x = (int)((images[i].x + offsetX) * zoom);
@@ -432,13 +165,35 @@ int main(int argc, char *argv[]) {
       SDL_RenderCopy(renderer, images[i].texture, NULL, &dst);
     }
 
+    int mouseX, mouseY;
+    SDL_GetMouseState(&mouseX, &mouseY);
+
+    // Convert to world coordinates
+    float worldX = mouseX / zoom - offsetX;
+    float worldY = mouseY / zoom - offsetY;
+
+    char coordText[64];
+    snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", worldX, worldY);
+
+    // Render text
+    SDL_Color textColor = {255, 255, 255, 255};
+    SDL_Surface *textSurface = TTF_RenderText_Blended(font, coordText, textColor);
+    SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+    SDL_Rect textRect = {2, 2, textSurface->w, textSurface->h};
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+    SDL_FreeSurface(textSurface);
+    SDL_DestroyTexture(textTexture);
+    SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
+
     SDL_RenderPresent(renderer);
     SDL_Delay(16);  // ~60fps
   }
 
   for (int i = 0; i < image_count; ++i) SDL_DestroyTexture(images[i].texture);
   free(images);
-
+  TTF_CloseFont(font);
+  TTF_Quit();
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   IMG_Quit();
