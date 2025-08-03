@@ -17,6 +17,12 @@ TTF_Font *font = NULL;
 #define FILEPATHLEN 512
 #define MAX_IMAGES 50000
 
+// global vars that control the world view
+float world_r = 0;                             // angle to rotate world (clockwise)
+float world_rx = 0, world_ry = 0;              // point on canvas to rotate about
+float world_zoom = 1.0f;                       // zoom on window
+float window_offsetX = 0, window_offsetY = 0;  // window position on canvas
+
 char img_dir[FILEPATHLEN] = ".";
 
 typedef struct {
@@ -172,6 +178,25 @@ void render_text(SDL_Renderer *renderer, char *coordText, int x, int y) {
   SDL_DestroyTexture(textTexture);
 }
 
+void screen_to_canvas(float *x_out, float *y_out, float x_in, float y_in) {  // converts from mouse (screen) to canvas coords
+  float lX = (x_in / world_zoom) - window_offsetX - world_rx;
+  float lY = (y_in / world_zoom) - window_offsetY - world_ry;
+  *x_out = lX * cos(-world_r * M_PI / 180) - lY * sin(-world_r * M_PI / 180);
+  *y_out = lY * cos(-world_r * M_PI / 180) + lX * sin(-world_r * M_PI / 180);
+  *x_out += world_rx;  // mouse_rX and mouse_rY is canvas coords
+  *y_out += world_ry;
+}
+void canvas_to_screen(float *x_out, float *y_out, float x_in, float y_in) {  // converts from canvas to screen coords
+  float lX = (x_in - world_rx);                                              // remove rotation point offset
+  float lY = (y_in - world_ry);
+  *x_out = lX * cos(world_r * M_PI / 180) - lY * sin(world_r * M_PI / 180);
+  *y_out = lY * cos(world_r * M_PI / 180) + lX * sin(world_r * M_PI / 180);
+  *x_out += window_offsetX + world_rx;  // add rotation offset back
+  *y_out += window_offsetY + world_ry;
+  *x_out *= world_zoom;  // scale the whole thing
+  *y_out *= world_zoom;
+}
+
 int main(int argc, char *argv[]) {
   TTF_Init();
   font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16);
@@ -179,20 +204,15 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Failed to load font: %s\n", TTF_GetError());
     exit(1);
   }
-
-  // Use command-line argument or default to current dir
   if (argc > 1) {
     strncpy(img_dir, argv[1], sizeof(img_dir) - 1);
     img_dir[sizeof(img_dir) - 1] = '\0';
   }
-
   SDL_Init(SDL_INIT_VIDEO);
   IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
   // SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ); //antialiasing
-
   SDL_Window *window = SDL_CreateWindow("alnview", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
                                         SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);  //| SDL_WINDOW_MAXIMIZED);
-
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
   // later, do this if not saved
@@ -210,22 +230,10 @@ int main(int argc, char *argv[]) {
     images[images[i].sort_index].draw_order = i;
     images[images[i].sort_index].sel_order = i;
   }
-
   arrange_images_in_grid();
   int window_width = 800, window_height = 600;
-
-  float world_r = 15;                            // angle to rotate world (clockwise)
-  float world_rx = 0, world_ry = 0;              // point on canvas to rotate about
-  float world_zoom = 1.0f;                       // zoom on window
-  float window_offsetX = 0, window_offsetY = 0;  // window position on canvas
-
   int drag_mouse_x = 0, drag_mouse_y = 0;
   int dragging = 0;
-  // int image_dragging = -1;  // index of the image being dragged, -1 if none
-  // int shift_held = 0;
-  // int viewport_initialized = 0;
-  // int current_image = 0;
-
   int quit = 0;
   SDL_Event e;
 
@@ -234,15 +242,11 @@ int main(int argc, char *argv[]) {
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
 
-    float mouse_lX = (mouseX / world_zoom) - window_offsetX - world_rx;
-    float mouse_lY = (mouseY / world_zoom) - window_offsetY - world_ry;
-    float mouse_rX = mouse_lX * cos(-world_r * M_PI / 180) - mouse_lY * sin(-world_r * M_PI / 180);
-    float mouse_rY = mouse_lY * cos(-world_r * M_PI / 180) + mouse_lX * sin(-world_r * M_PI / 180);
-    mouse_rX += world_rx;  // mouse_rX and mouse_rY is canvas coords
-    mouse_rY += world_ry;
+    float mouse_rY = 0, mouse_rX = 0;
+    screen_to_canvas(&mouse_rX, &mouse_rY, mouseX, mouseY);
 
     while (SDL_PollEvent(&e)) {
-      switch (e.type) {
+      switch (e.type) {  // input loop
         case SDL_QUIT:
           quit = 1;
           break;
@@ -298,9 +302,7 @@ int main(int argc, char *argv[]) {
               window_offsetY += (after_y - before_y);
               break;
             case SDLK_q:
-              world_r += -15.0f;
-              world_rx = mouse_rX;
-              world_ry = mouse_rY;
+
               break;
             case SDLK_w:
               world_r = 0.0f;
@@ -309,6 +311,10 @@ int main(int argc, char *argv[]) {
               world_zoom = 1.0;
               world_rx = 0;
               world_ry = 0;
+              break;
+            case SDLK_r: //pick new point to rotate world around
+              world_rx = mouse_rX;
+              world_ry = mouse_rY;
               break;
             case SDLK_e:
               world_r += 15.0f;
@@ -357,18 +363,12 @@ int main(int argc, char *argv[]) {
     }
     sort_images_by(compare_draw_order);
     SDL_RenderClear(renderer);
-    for (int i = 0; i < images_count; ++i) {
+    for (int i = 0; i < images_count; ++i) { //render all images onto the canvas
       SDL_Rect dst;
       int si = images[i].sort_index;  // sorted index
 
-      float lX = (images[si].x - world_rx);  // remove rotation point offset
-      float lY = (images[si].y - world_ry);
-      float rX = lX * cos(world_r * M_PI / 180) - lY * sin(world_r * M_PI / 180);
-      float rY = lY * cos(world_r * M_PI / 180) + lX * sin(world_r * M_PI / 180);
-      rX += window_offsetX + world_rx;  // add rotation offset back
-      rY += window_offsetY + world_ry;
-      rX *= world_zoom;  // scale the whole thing
-      rY *= world_zoom;
+      float rY = 0, rX = 0;
+      canvas_to_screen(&rX, &rY, images[si].x, images[si].y);
 
       dst.x = (int)rX;
       dst.y = (int)rY;
@@ -379,12 +379,15 @@ int main(int argc, char *argv[]) {
       //  SDL_RenderCopyEx(renderer, images[si].texture, NULL, &dst, world_r, NULL, SDL_FLIP_NONE);
     }
 
+    //debugging text
     char coordText[128];
-    snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mouse_rX, mouse_rY);
+    snprintf(coordText, sizeof(coordText), "X: %d  Y: %d", mouseX, mouseY);
     render_text(renderer, coordText, 2, 0);
-    snprintf(coordText, sizeof(coordText), "X: %.1f Y: %.1f", mouse_lX, mouse_lY);
+    snprintf(coordText, sizeof(coordText), "X: %.1f Y: %.1f", mouse_rX, mouse_rY);
     render_text(renderer, coordText, 2, 16);
-    snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", window_offsetX, window_offsetY);
+    float mY = 0, mX = 0;
+    canvas_to_screen(&mX, &mY, mouse_rX, mouse_rY);
+    snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mX, mY);
     render_text(renderer, coordText, 2, 32);
 
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
