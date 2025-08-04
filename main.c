@@ -17,19 +17,14 @@ TTF_Font *font = NULL;
 #define FILEPATHLEN 512
 #define MAX_IMAGES 50000
 
-// // global vars that control the world view
-// float world_r = 0;                             // angle to rotate world (clockwise)
-float world_rx = 0, world_ry = 0;  // point on canvas to rotate about
-// float world_zoom = 1.0f;                       // zoom on window
-float window_offsetX = 0, window_offsetY = 0;  // window position on canvas
-
+// global vars that control the world view
+float canvas_rx = 0, canvas_ry = 0;  // point on canvas to rotate about
 typedef struct {
   float r;  // angle to rotate world (clockwise)
   float x;  // center of window in canvas coords
   float y;
   float z;  // zoom on window
 } CanvasView;
-
 CanvasView cv;
 CanvasView waypt[2];
 
@@ -177,8 +172,7 @@ void arrange_images_in_grid() {  // arranges all images into grid by selection o
     }
   }
 }
-
-void render_text(SDL_Renderer *renderer, char *coordText, int x, int y) {
+void render_text(SDL_Renderer *renderer, char *coordText, int x, int y) {  // for rendering text on screen
   SDL_Color textColor = {255, 255, 255, 255};
   SDL_Surface *textSurface = TTF_RenderText_Blended(font, coordText, textColor);
   SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
@@ -187,25 +181,6 @@ void render_text(SDL_Renderer *renderer, char *coordText, int x, int y) {
   SDL_FreeSurface(textSurface);
   SDL_DestroyTexture(textTexture);
 }
-
-// void screen_to_canvas(float *x_out, float *y_out, float x_in, float y_in) {  // converts from mouse (screen) to canvas coords
-//   float lX = (x_in / cv.world_zoom) - cv.window_offsetX - cv.world_rx;
-//   float lY = (y_in / cv.world_zoom) - cv.window_offsetY - cv.world_ry;
-//   *x_out = lX * cos(-cv.world_r * M_PI / 180) - lY * sin(-cv.world_r * M_PI / 180);
-//   *y_out = lY * cos(-cv.world_r * M_PI / 180) + lX * sin(-cv.world_r * M_PI / 180);
-//   *x_out += cv.world_rx;  // mouse_rX and mouse_rY is canvas coords
-//   *y_out += cv.world_ry;
-// }
-// void canvas_to_screen(float *x_out, float *y_out, float x_in, float y_in) {  // converts from canvas to screen coords
-//   float lX = (x_in - cv.world_rx);                                           // remove rotation point offset
-//   float lY = (y_in - cv.world_ry);
-//   *x_out = lX * cos(cv.world_r * M_PI / 180) - lY * sin(cv.world_r * M_PI / 180);
-//   *y_out = lY * cos(cv.world_r * M_PI / 180) + lX * sin(cv.world_r * M_PI / 180);
-//   *x_out += cv.window_offsetX + cv.world_rx;  // add rotation offset back
-//   *y_out += cv.window_offsetY + cv.world_ry;
-//   *x_out *= cv.world_zoom;  // scale the whole thing
-//   *y_out *= cv.world_zoom;
-// }
 
 int main(int argc, char *argv[]) {
   TTF_Init();
@@ -246,7 +221,6 @@ int main(int argc, char *argv[]) {
   cv.r = 0;
   cv.z = 1;
 
-  int window_width = 800, window_height = 600;
   int drag_mouse_x = 0, drag_mouse_y = 0;
   int dragging = 0;
   int quit = 0;
@@ -258,17 +232,16 @@ int main(int argc, char *argv[]) {
     // calculate mouse coordinates first
     int mouseX_raw, mouseY_raw;
     SDL_GetMouseState(&mouseX_raw, &mouseY_raw);
-
     int screenX, screenY;
     SDL_GetWindowSize(window, &screenX, &screenY);
 
-    float mouseX = mouseX_raw - (screenX / 2.0f);
-    float mouseY = -mouseY_raw + (screenY / 2.0f);
+    float mouse_screen_x = mouseX_raw - (screenX / 2.0f);  // mouse screen coords, with 0 at center on screen
+    float mouse_screen_y = -mouseY_raw + (screenY / 2.0f);
 
-    // float mouse_rY = 0, mouse_rX = 0;
-    // screen_to_canvas(&mouse_rX, &mouse_rY, mouseX, mouseY);
-    // float rX = mouseX;
-    // float rY = mouseY;
+    float mouse_canvas_x = (mouse_screen_x / cv.z) * cos(-cv.r * M_PI / 180) - (mouse_screen_y / cv.z) * sin(-cv.r * M_PI / 180); //convert mouse to canvas coords
+    float mouse_canvas_y = (mouse_screen_y / cv.z) * cos(-cv.r * M_PI / 180) + (mouse_screen_x / cv.z) * sin(-cv.r * M_PI / 180);
+    mouse_canvas_x += cv.x;
+    mouse_canvas_y += cv.y;
 
     while (SDL_PollEvent(&e)) {
       switch (e.type) {  // input loop
@@ -301,39 +274,28 @@ int main(int argc, char *argv[]) {
           }
           break;
         case SDL_MOUSEWHEEL: {
-          float scx1 = (mouseX / cv.z);
-          float scy1 = (mouseY / cv.z);
+          // zoom adjustment centered on mouse
+          // find old and new position; offset view accordingly
+          float scx1 = (mouse_screen_x / cv.z);
+          float scy1 = (mouse_screen_y / cv.z);
           if (e.wheel.y > 0)
             cv.z *= 1.1f;
           else if (e.wheel.y < 0)
             cv.z /= 1.1f;
-          float scx2 = (mouseX / cv.z);
-          float scy2 = (mouseY / cv.z);
+          float scx2 = (mouse_screen_x / cv.z);
+          float scy2 = (mouse_screen_y / cv.z);
           float sdx = scx2 - scx1;
           float sdy = scy2 - scy1;
           float cdx = sdx * cos(-cv.r * M_PI / 180) - sdy * sin(-cv.r * M_PI / 180);  // proper coordinate rotation
           float cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
           cv.x -= cdx;
           cv.y -= cdy;
-          printf("x: %.1f y: %.1f\n", sdx, sdy);
-          // Clamp if desired
-          // if (zoom < 0.05f) zoom = 0.05f;
-          // if (zoom > 10.0f) zoom = 10.0f;
         } break;
         case SDL_KEYDOWN:
           switch (e.key.keysym.sym) {
             case SDLK_BACKSLASH:
-              // reset zoom
-              // float before_x = (mouseX / cv.z) - window_offsetX;
-              // float before_y = (mouseY / cv.z) - window_offsetY;
-              cv.z = 1;
-              // Clamp if desired
-              // if (zoom < 0.05f) zoom = 0.05f;
-              // if (zoom > 10.0f) zoom = 10.0f;
-              // float after_x = (mouseX / cv.z) - window_offsetX;
-              // float after_y = (mouseY / cv.z) - window_offsetY;
-              // window_offsetX += (after_x - before_x);
-              // window_offsetY += (after_y - before_y);
+              animation = 1;
+              animation_step = 0;
               break;
             case SDLK_5:
               cv.r = 0;
@@ -372,13 +334,13 @@ int main(int argc, char *argv[]) {
               cv = waypt[1];
               break;
             case SDLK_1:
+              
               cv.r -= 15.0f;
               break;
             case SDLK_2:
               cv.r += 15.0f;
               break;
             case SDLK_q:
-
               break;
             case SDLK_w:
               cv.r = 0.0f;
@@ -388,14 +350,8 @@ int main(int argc, char *argv[]) {
               break;
             case SDLK_r:  // pick new point to rotate world around
             {
-              // cv.r = mouse_rX;
-              // cv.r = mouse_rY;
-              // float mouse_rX_new = 0, mouse_rY_new = 0;
-              // screen_to_canvas(&mouse_rX_new, &mouse_rY_new, mouseX, mouseY);
-              // float diff_lX = (mouse_rX_new - cv.r);  // move on canvas
-              // float diff_lY = (mouse_rY_new - cv.r);
-              // window_offsetX += diff_lX * cos(cv.world_r * M_PI / 180) - diff_lY * sin(cv.world_r * M_PI / 180);  // derotate offset correction
-              // window_offsetY += diff_lY * cos(cv.world_r * M_PI / 180) + diff_lX * sin(cv.world_r * M_PI / 180);
+              canvas_rx = mouse_canvas_x;
+              canvas_ry = mouse_canvas_y;
             } break;
             case SDLK_e:
               break;
@@ -415,6 +371,19 @@ int main(int argc, char *argv[]) {
           break;
       }
     }
+
+    if (animation == 1) {  // animation test
+      if (animation_step >= 50) {
+        animation = 0;
+      }
+      cv.r = waypt[0].r + (animation_step / 50.0) * (waypt[1].r - waypt[0].r);
+      cv.z = waypt[0].z + (animation_step / 50.0) * (waypt[1].z - waypt[0].z);
+      cv.x = waypt[0].x + (animation_step / 50.0) * (waypt[1].x - waypt[0].x);
+      cv.y = waypt[0].y + (animation_step / 50.0) * (waypt[1].y - waypt[0].y);
+      // printf("X: %.1f Y: %.1f R: %.1f Z: %.1f\n", cv.x, cv.y, cv.r, cv.z);
+      animation_step += 1;
+    }
+
     sort_images_by(compare_draw_order);
     SDL_RenderClear(renderer);
     for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
@@ -423,11 +392,11 @@ int main(int argc, char *argv[]) {
 
       float lX = images[si].x * cv.z;
       float lY = -images[si].y * cv.z;
-      float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);
+      float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);  // rotate image into place
       float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
       tX += screenX / 2.0f;
       tY += screenY / 2.0f;
-      tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);
+      tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);  // add in the rotated centroid point
       tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
 
       dst.x = (int)tX;
@@ -443,12 +412,26 @@ int main(int argc, char *argv[]) {
     char coordText[128];
     snprintf(coordText, sizeof(coordText), "X: %.1f Y: %.1f R: %.1f Z: %.1f", cv.x, cv.y, cv.r, cv.z);
     render_text(renderer, coordText, 2, 0);
-    snprintf(coordText, sizeof(coordText), "X: %.1fY: %.1f", mouseX, mouseY);
+    snprintf(coordText, sizeof(coordText), "X: %.1fY: %.1f", mouse_screen_x, mouse_screen_y);
     render_text(renderer, coordText, 2, 16);
-    // float mY = 0, mX = 0;
-    // canvas_to_screen(&mX, &mY, mouse_rX, mouse_rY);
-    snprintf(coordText, sizeof(coordText), "sX: %d  sY: %d", screenX, screenY);
+    snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mouse_canvas_x, mouse_canvas_y);
     render_text(renderer, coordText, 2, 32);
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    {  // draw small dot on canvas for testing mouse
+      float lX = mouse_canvas_x * cv.z;
+      float lY = -mouse_canvas_y * cv.z;
+      float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);
+      float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
+      tX += screenX / 2.0f;
+      tY += screenY / 2.0f;
+      tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);
+      tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
+      SDL_Rect dot = {(int)(tX), (int)(tY), (int)fmax(1, 4),  // scale dot size
+                      (int)fmax(1, 4)};
+      SDL_RenderFillRect(renderer, &dot);
+    }
 
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
 
