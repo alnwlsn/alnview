@@ -18,7 +18,7 @@ TTF_Font *font = NULL;
 #define MAX_IMAGES 50000
 
 // global vars that control the world view
-float canvas_rx = 0, canvas_ry = 0;  // point on canvas to rotate about
+float canvas_rx = 128, canvas_ry = -128;  // point on canvas to rotate about
 typedef struct {
   float r;  // angle to rotate world (clockwise)
   float x;  // center of window in canvas coords
@@ -27,6 +27,8 @@ typedef struct {
 } CanvasView;
 CanvasView cv;
 CanvasView waypt[2];
+
+float ax=0, ay=0, bx=0, by=0;
 
 char img_dir[FILEPATHLEN] = ".";
 
@@ -238,7 +240,8 @@ int main(int argc, char *argv[]) {
     float mouse_screen_x = mouseX_raw - (screenX / 2.0f);  // mouse screen coords, with 0 at center on screen
     float mouse_screen_y = -mouseY_raw + (screenY / 2.0f);
 
-    float mouse_canvas_x = (mouse_screen_x / cv.z) * cos(-cv.r * M_PI / 180) - (mouse_screen_y / cv.z) * sin(-cv.r * M_PI / 180); //convert mouse to canvas coords
+    float mouse_canvas_x =
+        (mouse_screen_x / cv.z) * cos(-cv.r * M_PI / 180) - (mouse_screen_y / cv.z) * sin(-cv.r * M_PI / 180);  // convert mouse to canvas coords
     float mouse_canvas_y = (mouse_screen_y / cv.z) * cos(-cv.r * M_PI / 180) + (mouse_screen_x / cv.z) * sin(-cv.r * M_PI / 180);
     mouse_canvas_x += cv.x;
     mouse_canvas_y += cv.y;
@@ -334,8 +337,23 @@ int main(int argc, char *argv[]) {
               cv = waypt[1];
               break;
             case SDLK_1:
+              float dr = 15.0f;
+
+              cv.r -= dr;
+              float sdx = canvas_rx-cv.x;
+              float sdy = canvas_ry-cv.y;
+              float cx = sdx * cos(dr * M_PI / 180) - sdy * sin(dr * M_PI / 180) + cv.x; 
+              float cy = sdy * cos(dr * M_PI / 180) + sdx * sin(dr * M_PI / 180) + cv.y;
+              // float cdx = -canvas_rx+cv.x;
+              // float cdy = -canvas_ry+cv.y;
+              ax = cx;
+              ay = cy;
+              bx = cv.x-(cx-canvas_rx);
+              by = cv.y-(cy-canvas_ry);
+              printf("%.1f, %.1f\n", ax, ay);
               
-              cv.r -= 15.0f;
+              cv.x = bx;
+              cv.y = by;
               break;
             case SDLK_2:
               cv.r += 15.0f;
@@ -420,8 +438,34 @@ int main(int argc, char *argv[]) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
     {  // draw small dot on canvas for testing mouse
-      float lX = mouse_canvas_x * cv.z;
-      float lY = -mouse_canvas_y * cv.z;
+      float lX = canvas_rx * cv.z;
+      float lY = -canvas_ry * cv.z;
+      float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);
+      float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
+      tX += screenX / 2.0f;
+      tY += screenY / 2.0f;
+      tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);
+      tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
+      SDL_Rect dot = {(int)(tX), (int)(tY), (int)fmax(1, 4),  // scale dot size
+                      (int)fmax(1, 4)};
+      SDL_RenderFillRect(renderer, &dot);
+    }
+    {  // draw small dot on canvas for testing mouse
+      float lX = ax * cv.z;
+      float lY = -ay * cv.z;
+      float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);
+      float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
+      tX += screenX / 2.0f;
+      tY += screenY / 2.0f;
+      tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);
+      tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
+      SDL_Rect dot = {(int)(tX), (int)(tY), (int)fmax(1, 4),  // scale dot size
+                      (int)fmax(1, 4)};
+      SDL_RenderFillRect(renderer, &dot);
+    }
+    {  // draw small dot on canvas for testing mouse
+      float lX = bx * cv.z;
+      float lY = -by * cv.z;
       float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);
       float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
       tX += screenX / 2.0f;
