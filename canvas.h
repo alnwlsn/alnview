@@ -1,6 +1,6 @@
 #pragma once
 //makes the SDL window and handles the canvas
-
+#include "defines.h"
 #include <SDL2/SDL.h>
 
 //view of the canvas in the window

@@ -1,9 +1,6 @@
 #include "canvas.h"
-
 #include <math.h>
 #include <stdio.h>
-
-#include "defines.h"
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
