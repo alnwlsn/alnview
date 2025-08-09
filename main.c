@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
   SDL_Event e;
 
   while (!quit) {
+    canvas_update_cursor();
     while (SDL_PollEvent(&e)) {
       switch (e.type) {  // input loop
         case SDL_QUIT:
@@ -57,7 +58,8 @@ int main(int argc, char *argv[]) {
     // // snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mouse_canvas_x, mouse_canvas_y);
     // render_text(renderer, coordText, 2, 32);
 
-    canvas_render_marker(0,0);
+    canvas_render_pin(0,0);
+    canvas_render_pin(-100,-100);
 
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
     SDL_RenderPresent(renderer);

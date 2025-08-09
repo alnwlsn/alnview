@@ -132,8 +132,6 @@ void images_load_dir(const char *directory) {  // load all images from directory
 }
 
 void images_render() {
-  int screenX, screenY;
-  SDL_GetWindowSize(window, &screenX, &screenY);  // needed because center of screen is canvas center
   sort_images_by(compare_draw_order);
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
     SDL_Rect dst;
@@ -143,8 +141,8 @@ void images_render() {
     float lY = -images[si].y * cv.z;
     float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);  // rotate image into place
     float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
-    tX += screenX / 2.0f;
-    tY += screenY / 2.0f;
+    tX += screen_size_x / 2.0f;
+    tY += screen_size_y / 2.0f;
     tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);  // add in the rotated centroid point
     tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
 

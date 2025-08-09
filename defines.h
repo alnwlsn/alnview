@@ -4,3 +4,5 @@
 #define FILEPATHLEN 512
 #define MAX_IMAGES 50000
 #define MAX_CANVAS 512
+#define WINDOW_INIT_X 800
+#define WINDOW_INIT_Y 600

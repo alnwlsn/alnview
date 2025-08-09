@@ -14,12 +14,19 @@ typedef struct {
 extern SDL_Window *window;
 extern SDL_Renderer *renderer;
 extern CanvasView cv;
+extern int screen_size_x;
+extern int screen_size_y;
+extern float mouse_screen_x;
+extern float mouse_screen_y;
+extern float mouse_canvas_x;
+extern float mouse_canvas_y;
+void canvas_update_cursor(); //update window size and mouse cursor
 
 // extern float canvas_rx, canvas_ry;
 // extern float ax, ay, bx, by;
 
 void canvas_init();
-void canvas_render_marker(float x, float y);
+void canvas_render_pin(float x, float y); //put pin marker on canvas here
 // void canvas_set_rotation_center(float cx, float cy);
 // void canvas_apply_rotation(float dr);
 // void canvas_reset();
