@@ -1,14 +1,7 @@
 #include "images.h"
 
-SDL_Window *window = NULL;
-SDL_Renderer *renderer = NULL;
 Image *images = NULL;
 int images_count = 0;
-
-void images_init(SDL_Window *window_v, SDL_Renderer *renderer_v){
-  window = window_v;
-  renderer = renderer_v;
-}
 
 // sorting options
 // call sort_images_by(compare_some_option)
@@ -138,7 +131,7 @@ void images_load_dir(const char *directory) {  // load all images from directory
   images_arrange_in_grid();
 }
 
-void images_render(CanvasView rv) {
+void images_render() {
   int screenX, screenY;
   SDL_GetWindowSize(window, &screenX, &screenY);  // needed because center of screen is canvas center
   sort_images_by(compare_draw_order);
@@ -146,21 +139,21 @@ void images_render(CanvasView rv) {
     SDL_Rect dst;
     int si = images[i].sort_index;  // sorted index
 
-    float lX = images[si].x * rv.z;
-    float lY = -images[si].y * rv.z;
-    float tX = lX * cos(-rv.r * M_PI / 180) - lY * sin(-rv.r * M_PI / 180);  // rotate image into place
-    float tY = lY * cos(-rv.r * M_PI / 180) + lX * sin(-rv.r * M_PI / 180);
+    float lX = images[si].x * cv.z;
+    float lY = -images[si].y * cv.z;
+    float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);  // rotate image into place
+    float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
     tX += screenX / 2.0f;
     tY += screenY / 2.0f;
-    tX -= rv.x * rv.z * cos(-rv.r * M_PI / 180) + rv.y * rv.z * sin(-rv.r * M_PI / 180);  // add in the rotated centroid point
-    tY -= -rv.y * rv.z * cos(-rv.r * M_PI / 180) + rv.x * rv.z * sin(-rv.r * M_PI / 180);
+    tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);  // add in the rotated centroid point
+    tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
 
     dst.x = (int)tX;
     dst.y = (int)tY;
-    dst.w = (int)(images[si].width * rv.z);
-    dst.h = (int)(images[si].height * rv.z);
+    dst.w = (int)(images[si].width * cv.z);
+    dst.h = (int)(images[si].height * cv.z);
     SDL_Point rp = {0, 0};
-    SDL_RenderCopyEx(renderer, images[si].texture, NULL, &dst, -rv.r, &rp, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(renderer, images[si].texture, NULL, &dst, -cv.r, &rp, SDL_FLIP_NONE);
     //  SDL_RenderCopyEx(renderer, images[si].texture, NULL, &dst, world_r, NULL, SDL_FLIP_NONE);
   }
 }

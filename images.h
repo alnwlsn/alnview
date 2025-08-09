@@ -26,9 +26,8 @@ typedef struct {
   char filepath[FILEPATHLEN];
 } Image;
 
-void images_init(SDL_Window *window_v, SDL_Renderer *renderer_v);
 void images_free(); //to be called when program exits
 void images_load_dir(const char *directory);  // load all images from directory
 void images_arrange_in_grid();
 
-void images_render(CanvasView rv);
+void images_render();

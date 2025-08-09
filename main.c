@@ -24,13 +24,10 @@ int main(int argc, char *argv[]) {
   SDL_Init(SDL_INIT_VIDEO);
   IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
   // SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ); //antialiasing
-  SDL_Window *window = SDL_CreateWindow("alnview", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
-                                        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);  //| SDL_WINDOW_MAXIMIZED);
-  SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-  images_init(window,renderer);
+
+  canvas_init(); //this actually makes the window
 
   images_load_dir(img_dir); //load all the images
-  canvas_init();
 
   
 
@@ -48,7 +45,7 @@ int main(int argc, char *argv[]) {
 
     SDL_RenderClear(renderer);
 
-    images_render(canvas_current());
+    images_render();
 
     // debugging text
     // char coordText[128];
@@ -60,47 +57,7 @@ int main(int argc, char *argv[]) {
     // // snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mouse_canvas_x, mouse_canvas_y);
     // render_text(renderer, coordText, 2, 32);
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
-    // {  // draw small dot on canvas for testing mouse
-    //   float lX = canvas_rx * cv.z;
-    //   float lY = -canvas_ry * cv.z;
-    //   float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);
-    //   float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
-    //   tX += screenX / 2.0f;
-    //   tY += screenY / 2.0f;
-    //   tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);
-    //   tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
-      SDL_Rect dot = {(int)(100), (int)(100), (int)fmax(1, 4),  // scale dot size
-                      (int)fmax(1, 4)};
-      SDL_RenderFillRect(renderer, &dot);
-    // }
-    // {  // draw small dot on canvas for testing mouse
-    //   float lX = ax * cv.z;
-    //   float lY = -ay * cv.z;
-    //   float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);
-    //   float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
-    //   tX += screenX / 2.0f;
-    //   tY += screenY / 2.0f;
-    //   tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);
-    //   tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
-    //   SDL_Rect dot = {(int)(tX), (int)(tY), (int)fmax(1, 4),  // scale dot size
-    //                   (int)fmax(1, 4)};
-    //   SDL_RenderFillRect(renderer, &dot);
-    // }
-    // {  // draw small dot on canvas for testing mouse
-    //   float lX = bx * cv.z;
-    //   float lY = -by * cv.z;
-    //   float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);
-    //   float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
-    //   tX += screenX / 2.0f;
-    //   tY += screenY / 2.0f;
-    //   tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);
-    //   tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
-    //   SDL_Rect dot = {(int)(tX), (int)(tY), (int)fmax(1, 4),  // scale dot size
-    //                   (int)fmax(1, 4)};
-    //   SDL_RenderFillRect(renderer, &dot);
-    // }
+    canvas_render_marker(0,0);
 
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
     SDL_RenderPresent(renderer);
