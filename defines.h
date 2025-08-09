@@ -1,0 +1,6 @@
+#pragma once
+
+#define M_PI 3.14159265358979323846
+#define FILEPATHLEN 512
+#define MAX_IMAGES 50000
+#define MAX_CANVAS 512
