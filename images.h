@@ -34,6 +34,10 @@ extern float imrefAx;
 extern float imrefAy;
 extern float imrefBx;
 extern float imrefBy;
+extern float imrefCx;
+extern float imrefCy;
+extern float imrefDx;
+extern float imrefDy;
 
 void images_free(); //to be called when program exits
 void images_load_dir(const char *directory);  // load all images from directory

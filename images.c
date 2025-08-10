@@ -8,6 +8,10 @@ float imrefAx = 0;
 float imrefAy = 0;
 float imrefBx = 0;
 float imrefBy = 0;
+float imrefCx = 0;
+float imrefCy = 0;
+float imrefDx = 0;
+float imrefDy = 0;
 
 // sorting options
 // call sort_images_by(compare_some_option)
@@ -140,6 +144,32 @@ void images_load_dir(const char *directory) {  // load all images from directory
   images_arrange_in_grid();
 }
 
+void image_find_corners(int si) {  // finds canvas coords for 4 corners of image
+  float corner_a_x = 0;
+  float corner_a_y = 0;
+  float corner_b_x = 0;
+  float corner_b_y = 0;
+  float corner_c_x = 0;
+  float corner_c_y = 0;
+  float corner_d_x = 0;
+  float corner_d_y = 0;
+
+  float aX = (images[si].rx * images[si].z) * cos(images[si].r * M_PI / 180) - (images[si].ry * images[si].z) * sin(images[si].r * M_PI / 180);
+  float aY = (images[si].ry * images[si].z) * cos(images[si].r * M_PI / 180) + (images[si].rx * images[si].z) * sin(images[si].r * M_PI / 180);
+  // float bY = 
+  corner_a_x = (images[si].x-aX)+images[si].rx;
+  corner_a_y = (images[si].y-aY)+images[si].ry;
+
+  imrefAx = corner_a_x;
+  imrefAy = corner_a_y;
+  imrefBx = corner_b_x;
+  imrefBy = corner_b_y;
+  imrefCx = corner_c_x;
+  imrefCy = corner_c_y;
+  imrefDx = corner_d_x;
+  imrefDy = corner_d_y;
+}
+
 void images_render() {
   sort_images_by(compare_draw_order);
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
@@ -152,19 +182,12 @@ void images_render() {
       images[si].crop_left = global_testC;
       images[si].r = global_testA;
       images[si].z = (1.0f + global_testB / 10.0);
-
-      imrefBx = images[si].x + images[si].rx * images[si].z;
-      imrefBy = images[si].y + images[si].ry * images[si].z;
+      image_find_corners(si);
     }
 
-    float lrX = (images[si].rx * images[si].z) * cos(images[si].r * M_PI / 180) -
-                (images[si].ry * images[si].z) * sin(images[si].r * M_PI / 180);  // rotate image into place
+    // rotation from image
+    float lrX = (images[si].rx * images[si].z) * cos(images[si].r * M_PI / 180) - (images[si].ry * images[si].z) * sin(images[si].r * M_PI / 180);
     float lrY = (images[si].ry * images[si].z) * cos(images[si].r * M_PI / 180) + (images[si].rx * images[si].z) * sin(images[si].r * M_PI / 180);
-
-    if (images[si].draw_order == 1) {
-      imrefAx = lrX;
-      imrefAy = lrY;
-    }
 
     float lX = (images[si].x - lrX) * cv.z;
     float lY = -(images[si].y - lrY) * cv.z;
@@ -179,24 +202,20 @@ void images_render() {
     float tY = (lY + (cv.y - images[si].ry) * cv.z) * cos(-cv.r * M_PI / 180) + (lX + (-cv.x + images[si].rx) * cv.z) * sin(-cv.r * M_PI / 180) +
                (screen_size_y / 2.0f);
 
-    // Calculate the source rectangle (what part of the texture to take)
+    // apply crop
     SDL_Rect src;
     src.x = images[si].crop_left;
     src.y = images[si].crop_top;
     src.w = images[si].width - images[si].crop_left - images[si].crop_right;
     src.h = images[si].height - images[si].crop_top - images[si].crop_bottom;
 
-    // Calculate the destination rectangle (scaled + positioned)
     SDL_Rect dst;
     dst.x = (int)(tX);
     dst.y = (int)(tY);
-    dst.w = (int)(src.w * cv.z * images[si].z);  // scale after cropping
+    dst.w = (int)(src.w * cv.z * images[si].z);
     dst.h = (int)(src.h * cv.z * images[si].z);
 
-    // Rotation pivot (relative to destination rect's top-left)
     SDL_Point rp = {0, 0};
-
-    // Render
     SDL_RenderCopyEx(renderer, images[si].texture, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
   }
 }

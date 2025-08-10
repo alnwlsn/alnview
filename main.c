@@ -81,6 +81,8 @@ int main(int argc, char *argv[]) {
 
     canvas_render_pin(imrefAx, imrefAy);
     canvas_render_pin(imrefBx, imrefBy);
+    canvas_render_pin(imrefCx, imrefCy);
+    canvas_render_pin(imrefDx, imrefDy);
 
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
     SDL_RenderPresent(renderer);
