@@ -27,7 +27,7 @@ void canvas_update_cursor() {
   mouse_canvas_x += cv.x;
   mouse_canvas_y += cv.y;
 
-  mouse_angle_about_center = (180/M_PI)*atan2(mouse_screen_y, mouse_screen_x);
+  mouse_angle_about_center = (180 / M_PI) * atan2(mouse_screen_y, mouse_screen_x);
 }
 
 void canvas_init() {

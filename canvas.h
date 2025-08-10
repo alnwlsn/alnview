@@ -32,7 +32,3 @@ void canvas_render_pin(float x, float y);  // put pin marker on canvas here
 void canvas_drag_screen_by(int dx, int dy);                          // pan canvas on screen by change in mouse screen coords
 void canvas_zoom_by(float zoom_factor);                           // zoom canvas, centered on cursor.
 void canvas_rotate_about_point_by(float rx, float ry, float angle);  // rotate canvas by angle by point on canvas
-
-void canvas_rotate_point_pick(float x, float y);  // pick point on canvas to rotate about
-void canvas_rotate_point(float angle);            // rotate canvas centered on picked rotation point
-void canvas_rotate_cursor(float angle);           // rotate canvas centered on cursor

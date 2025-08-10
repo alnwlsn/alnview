@@ -64,12 +64,14 @@ int main(int argc, char *argv[]) {
     render_text(renderer, coordText, 2, 32);
 
     canvas_render_pin(0, 0);
-    canvas_render_pin(-100, -100);
 
     if(show_center_mark){
       canvas_render_pin(cv.x, cv.y);
     }
-    
+
+    if(show_reference_mark){
+      canvas_render_pin(reference_mark_x, reference_mark_y);
+    }
 
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
     SDL_RenderPresent(renderer);
