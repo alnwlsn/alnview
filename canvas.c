@@ -30,6 +30,15 @@ void canvas_update_cursor() {
   mouse_angle_about_center = (180 / M_PI) * atan2(mouse_screen_y, mouse_screen_x);
 }
 
+void canvas_to_screen(float canvas_x, float canvas_y, float *screen_x, float *screen_y){
+  float sdx = canvas_x - cv.x;
+  float sdy = canvas_y - cv.y;
+  float cx = sdx * cos(cv.r * M_PI / 180) - sdy * sin(cv.r * M_PI / 180);
+  float cy = sdy * cos(cv.r * M_PI / 180) + sdx * sin(cv.r * M_PI / 180);
+  *screen_x = cx*cv.z;
+  *screen_y = cy*cv.z;
+}
+
 void canvas_init() {
   window = SDL_CreateWindow("alnview", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_INIT_X, WINDOW_INIT_Y,
                             SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);  //| SDL_WINDOW_MAXIMIZED);

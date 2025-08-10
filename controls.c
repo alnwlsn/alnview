@@ -30,6 +30,10 @@ void controls_process(SDL_Event e) {
         mouse_dragging = 1;
         mouse_last_x = e.button.x;
         mouse_last_y = e.button.y;
+        if(ctrl_held){
+            reference_mark_x = mouse_canvas_x;
+            reference_mark_y = mouse_canvas_y;
+        }
       } else if (e.button.button == SDL_BUTTON_MIDDLE) {
         if (shift_held) {
           if (tab_held) {  // middle click and drag to rotate canvas about point first middle clicked
@@ -94,6 +98,7 @@ void controls_process(SDL_Event e) {
         case SDLK_LCTRL:
         case SDLK_RCTRL:
           ctrl_held = 0;
+          show_reference_mark = 0;
           break;
         case SDLK_TAB:
           tab_held = 0;
@@ -110,6 +115,7 @@ void controls_process(SDL_Event e) {
         case SDLK_LCTRL:
         case SDLK_RCTRL:
           ctrl_held = 1;
+          show_reference_mark = 1;
           break;
         case SDLK_TAB:
           tab_held = 1;
