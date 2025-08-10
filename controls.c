@@ -1,57 +1,52 @@
 #include "controls.h"
 
-int mouse_last_x = 0, mouse_last_y = 0;  // for mouse dragging positioning
-
+// modes
 int canvas_rotating_center = 0;  // for rotation of canvas about center of screen
 int canvas_rotating_point = 0;
-float canvas_initial_rotation = 0;
-float mouse_initial_angle = 0;
-int mouse_initial_x = 0;  // for comparison with e.button.x/y
-int mouse_initial_y = 0;
 int mouse_dragging = 0;  // for panning
 
-int animation = 0;
-int animation_step = 0;
-
+// states
 int shift_held = 0;  // shift key held
 int ctrl_held = 0;   // control key held
 int tab_held = 0;
 
-int show_center_mark = 0;     // for rendering, show a center mark if true
-int show_reference_mark = 0;  // for renderer to show another reference mark
+// move references
+int mouse_raw_last_x = 0, mouse_raw_last_y = 0;          // for mouse dragging positioning
+float mouse_screen_last_x = 0, mouse_screen_last_y = 0;  // for mouse dragging rotation
+float canvas_initial_rotation = 0;
+float mouse_initial_angle = 0;
+
+int animation = 0;
+int animation_step = 0;
+
+// globals
 float reference_mark_x = 0;
 float reference_mark_y = 0;
-CanvasView cv_last;
+int show_center_mark = 0;     // for rendering, show a center mark if true
+int show_reference_mark = 0;  // for renderer to show another reference mark
 
 void controls_process(SDL_Event e) {
   switch (e.type) {
     case SDL_MOUSEBUTTONDOWN:
       if (e.button.button == SDL_BUTTON_LEFT) {
         mouse_dragging = 1;
-        mouse_last_x = e.button.x;
-        mouse_last_y = e.button.y;
-        if(ctrl_held){
-            reference_mark_x = mouse_canvas_x;
-            reference_mark_y = mouse_canvas_y;
+        mouse_raw_last_x = e.button.x;
+        mouse_raw_last_y = e.button.y;
+        mouse_screen_last_x = mouse_screen_x;
+        mouse_screen_last_y = mouse_screen_y;
+        if (ctrl_held) {
+          reference_mark_x = mouse_canvas_x;
+          reference_mark_y = mouse_canvas_y;
         }
       } else if (e.button.button == SDL_BUTTON_MIDDLE) {
-        if (shift_held) {
-          if (tab_held) {  // middle click and drag to rotate canvas about point first middle clicked
-            reference_mark_x = mouse_canvas_x;
-            reference_mark_y = mouse_canvas_y;
-            show_reference_mark = 1;
-            mouse_initial_x = e.button.x;
-            mouse_initial_y = e.button.y;
-            mouse_last_x = e.button.x;
-            mouse_last_y = e.button.y;
-            canvas_initial_rotation = cv.r;
-            canvas_rotating_point = 1;
-          } else {  // middle click and drag to rotate canvas about center
-            mouse_initial_angle = mouse_angle_about_center;
-            canvas_initial_rotation = cv.r;
-            canvas_rotating_center = 1;
-          }
-        } else if (ctrl_held) {
+        if (shift_held) {  // middle click and drag to rotate canvas about center
+          mouse_initial_angle = mouse_angle_about_center;
+          canvas_initial_rotation = cv.r;
+          canvas_rotating_center = 1;
+        } else if (ctrl_held) {  // middle click and drag to rotate canvas about reference
+          canvas_rotating_point = 1;
+          mouse_screen_last_x = mouse_screen_x;
+          mouse_screen_last_y = mouse_screen_y;
         }
       }
       break;
@@ -66,19 +61,19 @@ void controls_process(SDL_Event e) {
       break;
     case SDL_MOUSEMOTION:
       if (mouse_dragging) {
-        canvas_drag_screen_by(e.motion.x - mouse_last_x, mouse_last_y - e.motion.y);
-        mouse_last_x = e.motion.x;
-        mouse_last_y = e.motion.y;
+        canvas_drag_screen_by(e.motion.x - mouse_raw_last_x, mouse_raw_last_y - e.motion.y);
+        mouse_raw_last_x = e.motion.x;
+        mouse_raw_last_y = e.motion.y;
       }
       if (canvas_rotating_center) {
         cv.r = canvas_initial_rotation + (mouse_angle_about_center - mouse_initial_angle);
-      } else if (canvas_rotating_point) {
-        float dAngle = (180 / M_PI) * (atan2(mouse_initial_y - e.motion.y, mouse_initial_x - e.motion.x) -
-                                       atan2(mouse_initial_y - mouse_last_y, mouse_initial_x - mouse_last_x));
-        mouse_last_x = e.motion.x;
-        mouse_last_y = e.motion.y;
-        printf("%1f\n", dAngle);
-        // cv.r = canvas_initial_rotation - angle;
+      } else if (canvas_rotating_point) {  // canvas rotation about reference point
+        float screen_reference_x, screen_reference_y;
+        canvas_to_screen(reference_mark_x, reference_mark_y, &screen_reference_x, &screen_reference_y);
+        float dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
+                                       atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
+        mouse_screen_last_x = mouse_screen_x;
+        mouse_screen_last_y = mouse_screen_y;
         canvas_rotate_about_point_by(reference_mark_x, reference_mark_y, dAngle);
       }
       break;
