@@ -19,7 +19,7 @@ typedef struct {
   float r;  // rotation angle, and rotation points
   float rx;
   float ry;
-  float zoom;
+  float z;
   int crop_top;
   int crop_right;
   int crop_bottom;

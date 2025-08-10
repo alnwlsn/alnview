@@ -54,7 +54,7 @@ void images_arrange_in_grid() {  // arranges all images into grid by selection o
     images[si].r = 0;
     images[si].rx = 0;
     images[si].ry = 0;
-    images[si].zoom = 1;
+    images[si].z = 1;
     images[si].crop_top = 0;
     images[si].crop_right = 0;
     images[si].crop_bottom = 0;
@@ -129,7 +129,7 @@ void images_load_dir(const char *directory) {  // load all images from directory
     images[i].r = 0;
     images[i].rx = 0;
     images[i].ry = 0;
-    images[i].zoom = 1;
+    images[i].z = 1;
     images[images[i].sort_index].draw_order = i;
     images[images[i].sort_index].sel_order = i;
   }
@@ -144,16 +144,22 @@ void images_render() {
     // test override
     if (images[si].draw_order == 1) {
       images[si].crop_left = global_testA;
-      images[si].r = global_testB;
+      images[si].r = 30;
+      images[si].z = (1.0f + global_testB / 10.0);
     }
 
     float lX = (images[si].x) * cv.z;
     float lY = -(images[si].y) * cv.z;
     // lX += (images[si].crop_left * cv.z);
     // lY += (images[si].crop_top * cv.z);
-    lX += (images[si].crop_left * cv.z) * cos(-images[si].r * M_PI / 180) - (images[si].crop_top * cv.z) * sin(-images[si].r * M_PI / 180);
-    lY += (images[si].crop_top * cv.z) * cos(-images[si].r * M_PI / 180) + (images[si].crop_left * cv.z) * sin(-images[si].r * M_PI / 180);
 
+    // rotation from crop offset
+    lX += (images[si].crop_left * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) -
+          (images[si].crop_top * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
+    lY += (images[si].crop_top * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) +
+          (images[si].crop_left * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
+
+    // rotation from canvas
     float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);  // rotate image into place
     float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
     tX += screen_size_x / 2.0f;
@@ -180,8 +186,8 @@ void images_render() {
     SDL_Rect dst;
     dst.x = (int)(tX);
     dst.y = (int)(tY);
-    dst.w = (int)(src.w * cv.z);  // scale after cropping
-    dst.h = (int)(src.h * cv.z);
+    dst.w = (int)(src.w * cv.z * images[si].z);  // scale after cropping
+    dst.h = (int)(src.h * cv.z * images[si].z);
 
     // Rotation pivot (relative to destination rect's top-left)
     SDL_Point rp = {0, 0};
