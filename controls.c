@@ -1,12 +1,19 @@
 #include "controls.h"
 
-int mouse_last_x = 0, mouse_last_y = 0;
-int mouse_dragging = 0;
+int mouse_last_x = 0, mouse_last_y = 0;  // for mouse dragging positioning
+
+int canvas_rotating_center = 0;  // for rotation of canvas about center of screen
+float canvas_initial_rotation = 0;
+float mouse_initial_angle = 0;
+int mouse_dragging = 0;  // for panning
+
 int animation = 0;
 int animation_step = 0;
 
-int shift_held = 0;
-int ctrl_held = 0;
+int shift_held = 0;  // shift key held
+int ctrl_held = 0;   // control key held
+
+int show_center_mark = 0;  // for rendering, show a center mark if true
 
 void controls_process(SDL_Event e) {
   switch (e.type) {
@@ -15,11 +22,19 @@ void controls_process(SDL_Event e) {
         mouse_dragging = 1;
         mouse_last_x = e.button.x;
         mouse_last_y = e.button.y;
+      } else if (e.button.button = SDL_BUTTON_MIDDLE) {
+        if (shift_held) {
+          mouse_initial_angle = mouse_angle_about_center;
+          canvas_initial_rotation = cv.r;
+          canvas_rotating_center = 1;
+        }
       }
       break;
     case SDL_MOUSEBUTTONUP:
       if (e.button.button == SDL_BUTTON_LEFT) {
         mouse_dragging = 0;
+      } else if (e.button.button = SDL_BUTTON_MIDDLE) {
+        canvas_rotating_center = 0;
       }
       break;
     case SDL_MOUSEMOTION:
@@ -27,6 +42,9 @@ void controls_process(SDL_Event e) {
         canvas_drag_screen_by(e.motion.x - mouse_last_x, mouse_last_y - e.motion.y);
         mouse_last_x = e.motion.x;
         mouse_last_y = e.motion.y;
+      }
+      if (canvas_rotating_center) {
+        cv.r = canvas_initial_rotation + (mouse_angle_about_center - mouse_initial_angle);
       }
       break;
     case SDL_MOUSEWHEEL: {
@@ -40,6 +58,7 @@ void controls_process(SDL_Event e) {
         case SDLK_LSHIFT:
         case SDLK_RSHIFT:
           shift_held = 0;
+          show_center_mark = 0;
           break;
         case SDLK_LCTRL:
         case SDLK_RCTRL:
@@ -52,6 +71,7 @@ void controls_process(SDL_Event e) {
         case SDLK_LSHIFT:
         case SDLK_RSHIFT:
           shift_held = 1;
+          show_center_mark = 1;
           break;
         case SDLK_LCTRL:
         case SDLK_RCTRL:
@@ -66,8 +86,8 @@ void controls_process(SDL_Event e) {
       }
       if (shift_held) {  // shift held (overrides ctrl)
         switch (e.key.keysym.sym) {
-          case SDLK_LEFTBRACKET: 
-            cv.r += ROTATE_STEP; // canvas rotation about center of window
+          case SDLK_LEFTBRACKET:
+            cv.r += ROTATE_STEP;  // canvas rotation about center of window
             break;
           case SDLK_RIGHTBRACKET:
             cv.r -= ROTATE_STEP;
@@ -76,7 +96,7 @@ void controls_process(SDL_Event e) {
       } else if (ctrl_held) {  // control held
         switch (e.key.keysym.sym) {
           case SDLK_LEFTBRACKET:
-            canvas_rotate_about_point_by(mouse_canvas_x, mouse_canvas_y, ROTATE_STEP); // canvas rotation about cursor position
+            canvas_rotate_about_point_by(mouse_canvas_x, mouse_canvas_y, ROTATE_STEP);  // canvas rotation about cursor position
             break;
           case SDLK_RIGHTBRACKET:
             canvas_rotate_about_point_by(mouse_canvas_x, mouse_canvas_y, -ROTATE_STEP);

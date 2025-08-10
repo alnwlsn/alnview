@@ -66,6 +66,11 @@ int main(int argc, char *argv[]) {
     canvas_render_pin(0, 0);
     canvas_render_pin(-100, -100);
 
+    if(show_center_mark){
+      canvas_render_pin(cv.x, cv.y);
+    }
+    
+
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
     SDL_RenderPresent(renderer);
     SDL_Delay(16);  // ~60fps
