@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     char coordText[128];
     snprintf(coordText, sizeof(coordText), "X: %.1f Y: %.1f R: %.1f Z: %.1f", cv.x, cv.y, cv.r, cv.z);
     render_text(renderer, coordText, 2, 0);
-    snprintf(coordText, sizeof(coordText), "X: %.1fY: %.1f", mouse_screen_x, mouse_screen_y);
+    snprintf(coordText, sizeof(coordText), "X: %.1f Y: %.1f A: %.1f", mouse_screen_x, mouse_screen_y, mouse_angle_about_center);
     render_text(renderer, coordText, 2, 16);
     snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mouse_canvas_x, mouse_canvas_y);
     render_text(renderer, coordText, 2, 32);

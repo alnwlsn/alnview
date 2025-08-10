@@ -6,3 +6,5 @@
 #define MAX_CANVAS 512
 #define WINDOW_INIT_X 800
 #define WINDOW_INIT_Y 600
+#define ZOOM_FACTOR 1.1f
+#define ROTATE_STEP 15.0f
