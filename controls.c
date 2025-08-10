@@ -20,10 +20,10 @@ int animation = 0;
 int animation_step = 0;
 
 // globals
-float reference_mark_x = 0;
-float reference_mark_y = 0;
+float canvas_rotation_point_x = 0;
+float canvas_rotation_point_y = 0;
 int show_center_mark = 0;     // for rendering, show a center mark if true
-int show_reference_mark = 0;  // for renderer to show another reference mark
+int show_canvas_rotation_point = 0;  // for renderer to show another reference mark
 
 void controls_process(SDL_Event e) {
   switch (e.type) {
@@ -35,8 +35,8 @@ void controls_process(SDL_Event e) {
         mouse_screen_last_x = mouse_screen_x;
         mouse_screen_last_y = mouse_screen_y;
         if (ctrl_held) {
-          reference_mark_x = mouse_canvas_x;
-          reference_mark_y = mouse_canvas_y;
+          canvas_rotation_point_x = mouse_canvas_x;
+          canvas_rotation_point_y = mouse_canvas_y;
         }
       } else if (e.button.button == SDL_BUTTON_MIDDLE) {
         if (shift_held) {  // middle click and drag to rotate canvas about center
@@ -55,7 +55,7 @@ void controls_process(SDL_Event e) {
         mouse_dragging = 0;
       } else if (e.button.button == SDL_BUTTON_MIDDLE) {
         canvas_rotating_center = 0;
-        show_reference_mark = 0;
+        show_canvas_rotation_point = 0;
         canvas_rotating_point = 0;
       }
       break;
@@ -69,12 +69,12 @@ void controls_process(SDL_Event e) {
         cv.r = canvas_initial_rotation + (mouse_angle_about_center - mouse_initial_angle);
       } else if (canvas_rotating_point) {  // canvas rotation about reference point
         float screen_reference_x, screen_reference_y;
-        canvas_to_screen(reference_mark_x, reference_mark_y, &screen_reference_x, &screen_reference_y);
+        canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &screen_reference_x, &screen_reference_y);
         float dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
                                        atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
         mouse_screen_last_x = mouse_screen_x;
         mouse_screen_last_y = mouse_screen_y;
-        canvas_rotate_about_point_by(reference_mark_x, reference_mark_y, dAngle);
+        canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, dAngle);
       }
       break;
     case SDL_MOUSEWHEEL: {
@@ -93,7 +93,7 @@ void controls_process(SDL_Event e) {
         case SDLK_LCTRL:
         case SDLK_RCTRL:
           ctrl_held = 0;
-          show_reference_mark = 0;
+          show_canvas_rotation_point = 0;
           break;
         case SDLK_TAB:
           tab_held = 0;
@@ -110,7 +110,7 @@ void controls_process(SDL_Event e) {
         case SDLK_LCTRL:
         case SDLK_RCTRL:
           ctrl_held = 1;
-          show_reference_mark = 1;
+          show_canvas_rotation_point = 1;
           break;
         case SDLK_TAB:
           tab_held = 1;
@@ -135,10 +135,10 @@ void controls_process(SDL_Event e) {
       } else if (ctrl_held) {  // control held
         switch (e.key.keysym.sym) {
           case SDLK_LEFTBRACKET:
-            canvas_rotate_about_point_by(mouse_canvas_x, mouse_canvas_y, ROTATE_STEP);  // canvas rotation about cursor position
+            canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, ROTATE_STEP);  // canvas rotation about cursor position
             break;
           case SDLK_RIGHTBRACKET:
-            canvas_rotate_about_point_by(mouse_canvas_x, mouse_canvas_y, -ROTATE_STEP);
+            canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, -ROTATE_STEP);
             break;
         }
       }

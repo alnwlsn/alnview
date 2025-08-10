@@ -63,8 +63,8 @@ int main(int argc, char *argv[]) {
     snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mouse_canvas_x, mouse_canvas_y);
     render_text(renderer, coordText, 2, 32);
     float ax, ay;
-    canvas_to_screen(reference_mark_x, reference_mark_y, &ax, &ay);
-    snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f sX: %.1f  sY: %.1f",reference_mark_x, reference_mark_y, ax, ay);
+    canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &ax, &ay);
+    snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f sX: %.1f  sY: %.1f",canvas_rotation_point_x, canvas_rotation_point_y, ax, ay);
     render_text(renderer, coordText, 2, 48);
 
     canvas_render_pin(0, 0);
@@ -73,8 +73,8 @@ int main(int argc, char *argv[]) {
       canvas_render_pin(cv.x, cv.y);
     }
 
-    if(show_reference_mark){
-      canvas_render_pin(reference_mark_x, reference_mark_y);
+    if(show_canvas_rotation_point){
+      canvas_render_pin(canvas_rotation_point_x, canvas_rotation_point_y);
     }
 
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
