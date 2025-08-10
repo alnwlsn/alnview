@@ -79,6 +79,9 @@ int main(int argc, char *argv[]) {
       canvas_render_pin(canvas_rotation_point_x, canvas_rotation_point_y);
     }
 
+    canvas_render_pin(imrefAx, imrefAy);
+    canvas_render_pin(imrefBx, imrefBy);
+
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
     SDL_RenderPresent(renderer);
     SDL_Delay(16);  // ~60fps

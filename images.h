@@ -30,6 +30,11 @@ typedef struct {
   char filepath[FILEPATHLEN];
 } Image;
 
+extern float imrefAx;
+extern float imrefAy;
+extern float imrefBx;
+extern float imrefBy;
+
 void images_free(); //to be called when program exits
 void images_load_dir(const char *directory);  // load all images from directory
 void images_arrange_in_grid();

@@ -4,6 +4,10 @@
 
 Image *images = NULL;
 int images_count = 0;
+float imrefAx = 0;
+float imrefAy = 0;
+float imrefBx = 0;
+float imrefBy = 0;
 
 // sorting options
 // call sort_images_by(compare_some_option)
@@ -143,22 +147,36 @@ void images_render() {
 
     // test override
     if (images[si].draw_order == 1) {
-      images[si].crop_left = global_testA;
-      images[si].r = 30;
+      images[si].rx = 50;
+      images[si].ry = -50;
+      // images[si].crop_left = 0;
+      images[si].r = global_testA;
       images[si].z = (1.0f + global_testB / 10.0);
+
+      imrefBx = images[si].x + images[si].rx * images[si].z;
+      imrefBy = images[si].y + images[si].ry * images[si].z;
     }
 
-    float lX = (images[si].x) * cv.z;
-    float lY = -(images[si].y) * cv.z;
-    // lX += (images[si].crop_left * cv.z);
-    // lY += (images[si].crop_top * cv.z);
+    // float lrX = (images[si].rx*images[si].z);
+    // float lrY = (images[si].ry*images[si].z);
+    float lrX = (images[si].rx * images[si].z) * cos(images[si].r * M_PI / 180) -
+                (images[si].ry * images[si].z) * sin(images[si].r * M_PI / 180);  // rotate image into place
+    float lrY = (images[si].ry * images[si].z) * cos(images[si].r * M_PI / 180) + (images[si].rx * images[si].z) * sin(images[si].r * M_PI / 180);
+    // imrefAx = lrdX + images[si].x;
+    // imrefAy = lrdY + images[si].y;
 
+    if (images[si].draw_order == 1) {
+      imrefAx = lrX;
+      imrefAy = lrY;
+    }
+
+    float lX = (images[si].x - lrX) * cv.z;
+    float lY = -(images[si].y - lrY) * cv.z;
     // rotation from crop offset
     lX += (images[si].crop_left * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) -
           (images[si].crop_top * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
     lY += (images[si].crop_top * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) +
           (images[si].crop_left * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
-
     // rotation from canvas
     float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);  // rotate image into place
     float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
@@ -166,6 +184,9 @@ void images_render() {
     tY += screen_size_y / 2.0f;
     tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);  // add in the rotated centroid point
     tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
+    tX += images[si].rx * cv.z * cos(-cv.r * M_PI / 180) + images[si].ry * cv.z * sin(-cv.r * M_PI / 180);  // add in the rotated 
+    tY += -images[si].ry * cv.z * cos(-cv.r * M_PI / 180) + images[si].rx * cv.z * sin(-cv.r * M_PI / 180);
+
 
     // dst.x = (int)tX;
     // dst.y = (int)tY;
