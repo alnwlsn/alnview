@@ -20,6 +20,10 @@ typedef struct {
   float rx;
   float ry;
   float zoom;
+  int crop_top;
+  int crop_right;
+  int crop_bottom;
+  int crop_left;
   int sel_order;
   int draw_order;
   int sort_index;  // when sorted, this points to images[index] of sorted list

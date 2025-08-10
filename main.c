@@ -64,16 +64,18 @@ int main(int argc, char *argv[]) {
     render_text(renderer, coordText, 2, 32);
     float ax, ay;
     canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &ax, &ay);
-    snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f sX: %.1f  sY: %.1f",canvas_rotation_point_x, canvas_rotation_point_y, ax, ay);
+    snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f sX: %.1f  sY: %.1f", canvas_rotation_point_x, canvas_rotation_point_y, ax, ay);
     render_text(renderer, coordText, 2, 48);
+    snprintf(coordText, sizeof(coordText), "TA: %d TB: %d", global_testA, global_testB);
+    render_text(renderer, coordText, 2, 64);
 
     canvas_render_pin(0, 0);
 
-    if(show_center_mark){
+    if (show_center_mark) {
       canvas_render_pin(cv.x, cv.y);
     }
 
-    if(show_canvas_rotation_point){
+    if (show_canvas_rotation_point) {
       canvas_render_pin(canvas_rotation_point_x, canvas_rotation_point_y);
     }
 

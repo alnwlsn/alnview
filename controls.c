@@ -24,6 +24,8 @@ float canvas_rotation_point_x = 0;
 float canvas_rotation_point_y = 0;
 int show_center_mark = 0;            // for rendering, show a center mark if true
 int show_canvas_rotation_point = 0;  // for renderer to show another reference mark
+int global_testA = 0;
+int global_testB = 0;
 
 void controls_process(SDL_Event e) {
   switch (e.type) {
@@ -121,6 +123,18 @@ void controls_process(SDL_Event e) {
           break;
         case SDLK_EQUALS:
           cv.z = 1.0f;  // reset canvas zoom
+          break;
+        case SDLK_PERIOD:
+          global_testA += 1;
+          break;
+        case SDLK_COMMA:
+          global_testA -= 1;
+          break;
+        case SDLK_l:
+          global_testB -= 1;
+          break;
+        case SDLK_SEMICOLON:
+          global_testB += 1;
           break;
       }
       if (shift_held) {  // keys + shift key held

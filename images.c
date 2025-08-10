@@ -1,5 +1,7 @@
 #include "images.h"
 
+#include "controls.h"
+
 Image *images = NULL;
 int images_count = 0;
 
@@ -53,7 +55,10 @@ void images_arrange_in_grid() {  // arranges all images into grid by selection o
     images[si].rx = 0;
     images[si].ry = 0;
     images[si].zoom = 1;
-
+    images[si].crop_top = 0;
+    images[si].crop_right = 0;
+    images[si].crop_bottom = 0;
+    images[si].crop_left = 0;
     x += images[si].width + spacing;
     if (images[si].height > max_row_height) max_row_height = images[si].height;
 
@@ -134,11 +139,21 @@ void images_load_dir(const char *directory) {  // load all images from directory
 void images_render() {
   sort_images_by(compare_draw_order);
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
-    SDL_Rect dst;
-    int si = images[i].sort_index;  // sorted index
+    int si = images[i].sort_index;          // sorted index
 
-    float lX = images[si].x * cv.z;
-    float lY = -images[si].y * cv.z;
+    // test override
+    if (images[si].draw_order == 1) {
+      images[si].crop_left = global_testA;
+      images[si].r = global_testB;
+    }
+
+    float lX = (images[si].x) * cv.z;
+    float lY = -(images[si].y) * cv.z;
+    // lX += (images[si].crop_left * cv.z);
+    // lY += (images[si].crop_top * cv.z);
+    lX += (images[si].crop_left * cv.z) * cos(-images[si].r * M_PI / 180) - (images[si].crop_top * cv.z) * sin(-images[si].r * M_PI / 180);
+    lY += (images[si].crop_top * cv.z) * cos(-images[si].r * M_PI / 180) + (images[si].crop_left * cv.z) * sin(-images[si].r * M_PI / 180);
+
     float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);  // rotate image into place
     float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
     tX += screen_size_x / 2.0f;
@@ -146,13 +161,33 @@ void images_render() {
     tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);  // add in the rotated centroid point
     tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
 
-    dst.x = (int)tX;
-    dst.y = (int)tY;
-    dst.w = (int)(images[si].width * cv.z);
-    dst.h = (int)(images[si].height * cv.z);
-    SDL_Point rp = {0, 0};
-    SDL_RenderCopyEx(renderer, images[si].texture, NULL, &dst, -cv.r, &rp, SDL_FLIP_NONE);
+    // dst.x = (int)tX;
+    // dst.y = (int)tY;
+    // dst.w = (int)((images[si].width) * cv.z);
+    // dst.h = (int)(images[si].height * cv.z);
+    // SDL_Point rp = {0, 0};
+    // SDL_RenderCopyEx(renderer, images[si].texture, &src, &dst, -cv.r, &rp, SDL_FLIP_NONE);
     //  SDL_RenderCopyEx(renderer, images[si].texture, NULL, &dst, world_r, NULL, SDL_FLIP_NONE);
+
+    // Calculate the source rectangle (what part of the texture to take)
+    SDL_Rect src;
+    src.x = images[si].crop_left;
+    src.y = images[si].crop_top;
+    src.w = images[si].width - images[si].crop_left - images[si].crop_right;
+    src.h = images[si].height - images[si].crop_top - images[si].crop_bottom;
+
+    // Calculate the destination rectangle (scaled + positioned)
+    SDL_Rect dst;
+    dst.x = (int)(tX);
+    dst.y = (int)(tY);
+    dst.w = (int)(src.w * cv.z);  // scale after cropping
+    dst.h = (int)(src.h * cv.z);
+
+    // Rotation pivot (relative to destination rect's top-left)
+    SDL_Point rp = {0, 0};
+
+    // Render
+    SDL_RenderCopyEx(renderer, images[si].texture, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
   }
 }
 
