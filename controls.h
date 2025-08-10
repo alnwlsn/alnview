@@ -7,5 +7,6 @@ extern float canvas_rotation_point_x;
 extern float canvas_rotation_point_y;
 extern int global_testA;
 extern int global_testB;
+extern int global_testC;
 
 void controls_process(SDL_Event e);

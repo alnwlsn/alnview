@@ -149,7 +149,7 @@ void images_render() {
     if (images[si].draw_order == 1) {
       images[si].rx = 50;
       images[si].ry = -50;
-      // images[si].crop_left = 0;
+      images[si].crop_left = global_testC;
       images[si].r = global_testA;
       images[si].z = (1.0f + global_testB / 10.0);
 
@@ -157,13 +157,9 @@ void images_render() {
       imrefBy = images[si].y + images[si].ry * images[si].z;
     }
 
-    // float lrX = (images[si].rx*images[si].z);
-    // float lrY = (images[si].ry*images[si].z);
     float lrX = (images[si].rx * images[si].z) * cos(images[si].r * M_PI / 180) -
                 (images[si].ry * images[si].z) * sin(images[si].r * M_PI / 180);  // rotate image into place
     float lrY = (images[si].ry * images[si].z) * cos(images[si].r * M_PI / 180) + (images[si].rx * images[si].z) * sin(images[si].r * M_PI / 180);
-    // imrefAx = lrdX + images[si].x;
-    // imrefAy = lrdY + images[si].y;
 
     if (images[si].draw_order == 1) {
       imrefAx = lrX;
@@ -178,23 +174,10 @@ void images_render() {
     lY += (images[si].crop_top * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) +
           (images[si].crop_left * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
     // rotation from canvas
-    float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);  // rotate image into place
-    float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
-    tX += screen_size_x / 2.0f;
-    tY += screen_size_y / 2.0f;
-    tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);  // add in the rotated centroid point
-    tY -= -cv.y * cv.z * cos(-cv.r * M_PI / 180) + cv.x * cv.z * sin(-cv.r * M_PI / 180);
-    tX += images[si].rx * cv.z * cos(-cv.r * M_PI / 180) + images[si].ry * cv.z * sin(-cv.r * M_PI / 180);  // add in the rotated 
-    tY += -images[si].ry * cv.z * cos(-cv.r * M_PI / 180) + images[si].rx * cv.z * sin(-cv.r * M_PI / 180);
-
-
-    // dst.x = (int)tX;
-    // dst.y = (int)tY;
-    // dst.w = (int)((images[si].width) * cv.z);
-    // dst.h = (int)(images[si].height * cv.z);
-    // SDL_Point rp = {0, 0};
-    // SDL_RenderCopyEx(renderer, images[si].texture, &src, &dst, -cv.r, &rp, SDL_FLIP_NONE);
-    //  SDL_RenderCopyEx(renderer, images[si].texture, NULL, &dst, world_r, NULL, SDL_FLIP_NONE);
+    float tX = (lX + (-cv.x + images[si].rx) * cv.z) * cos(-cv.r * M_PI / 180) - (lY + (cv.y - images[si].ry) * cv.z) * sin(-cv.r * M_PI / 180) +
+               (screen_size_x / 2.0f);  // rotate image into place
+    float tY = (lY + (cv.y - images[si].ry) * cv.z) * cos(-cv.r * M_PI / 180) + (lX + (-cv.x + images[si].rx) * cv.z) * sin(-cv.r * M_PI / 180) +
+               (screen_size_y / 2.0f);
 
     // Calculate the source rectangle (what part of the texture to take)
     SDL_Rect src;

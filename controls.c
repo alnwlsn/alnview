@@ -26,6 +26,7 @@ int show_center_mark = 0;            // for rendering, show a center mark if tru
 int show_canvas_rotation_point = 0;  // for renderer to show another reference mark
 int global_testA = 0;
 int global_testB = 0;
+int global_testC = 0;
 
 void controls_process(SDL_Event e) {
   switch (e.type) {
@@ -135,6 +136,12 @@ void controls_process(SDL_Event e) {
           break;
         case SDLK_SEMICOLON:
           global_testB += 1;
+          break;
+        case SDLK_n:
+          global_testC -= 1;
+          break;
+        case SDLK_m:
+          global_testC += 1;
           break;
       }
       if (shift_held) {  // keys + shift key held

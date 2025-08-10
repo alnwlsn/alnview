@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &ax, &ay);
     snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f sX: %.1f  sY: %.1f", canvas_rotation_point_x, canvas_rotation_point_y, ax, ay);
     render_text(renderer, coordText, 2, 48);
-    snprintf(coordText, sizeof(coordText), "TA: %d TB: %d", global_testA, global_testB);
+    snprintf(coordText, sizeof(coordText), "TA: %d TB: %d TC: %d", global_testA, global_testB, global_testC);
     render_text(renderer, coordText, 2, 64);
 
     canvas_render_pin(0, 0);

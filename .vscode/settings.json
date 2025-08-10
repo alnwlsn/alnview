@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "math.h": "c",
-        "controls.h": "c"
+        "controls.h": "c",
+        "cmath": "c"
     }
 }
