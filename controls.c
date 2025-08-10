@@ -22,7 +22,7 @@ int animation_step = 0;
 // globals
 float canvas_rotation_point_x = 0;
 float canvas_rotation_point_y = 0;
-int show_center_mark = 0;     // for rendering, show a center mark if true
+int show_center_mark = 0;            // for rendering, show a center mark if true
 int show_canvas_rotation_point = 0;  // for renderer to show another reference mark
 
 void controls_process(SDL_Event e) {
@@ -101,7 +101,7 @@ void controls_process(SDL_Event e) {
       }
       break;
     case SDL_KEYDOWN:
-      switch (e.key.keysym.sym) {  // unmodified keys down
+      switch (e.key.keysym.sym) {  // keys regardless of modifiers
         case SDLK_LSHIFT:
         case SDLK_RSHIFT:
           shift_held = 1;
@@ -123,7 +123,7 @@ void controls_process(SDL_Event e) {
           cv.z = 1.0f;  // reset canvas zoom
           break;
       }
-      if (shift_held) {  // shift held (overrides ctrl)
+      if (shift_held) {  // keys + shift key held
         switch (e.key.keysym.sym) {
           case SDLK_LEFTBRACKET:
             cv.r += ROTATE_STEP;  // canvas rotation about center of window
@@ -132,15 +132,21 @@ void controls_process(SDL_Event e) {
             cv.r -= ROTATE_STEP;
             break;
         }
-      } else if (ctrl_held) {  // control held
+      } else if (ctrl_held) {  // key + control held
         switch (e.key.keysym.sym) {
           case SDLK_LEFTBRACKET:
-            canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, ROTATE_STEP);  // canvas rotation about cursor position
+            canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, -ROTATE_STEP);  // canvas rotation about cursor position
             break;
           case SDLK_RIGHTBRACKET:
-            canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, -ROTATE_STEP);
+            canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, ROTATE_STEP);
+            break;
+          case SDLK_p:
+            canvas_rotation_point_x = mouse_canvas_x;
+            canvas_rotation_point_y = mouse_canvas_y;
             break;
         }
+      } else {  // keys with no modifiers
+        switch (e.key.keysym.sym) {}
       }
       break;
       //   switch (e.key.keysym.sym) {
