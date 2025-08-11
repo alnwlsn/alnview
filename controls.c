@@ -13,6 +13,7 @@ int shift_held = 0;  // shift key held
 int ctrl_held = 0;   // control key held
 int tab_held = 0;
 int dragged_imi = -1;
+int last_dragged_imi = 0;
 
 // move references
 int mouse_raw_last_x = 0, mouse_raw_last_y = 0;          // for mouse dragging positioning
@@ -67,6 +68,7 @@ void controls_process(SDL_Event e) {
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
         int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
         if (imi > -1) {
+          last_dragged_imi = imi;
           dragged_imi = imi;
           image_dragging = 1;
           mouse_raw_last_x = e.button.x;
@@ -199,10 +201,10 @@ void controls_process(SDL_Event e) {
       if (shift_held) {  // keys + shift key held
         switch (e.key.keysym.sym) {
           case SDLK_LEFTBRACKET:
-            cv.r += ROTATE_STEP;  // canvas rotation about center of window
+            image_rotate_by(last_dragged_imi, ROTATE_STEP);
             break;
           case SDLK_RIGHTBRACKET:
-            cv.r -= ROTATE_STEP;
+            image_rotate_by(last_dragged_imi, -ROTATE_STEP);
             break;
         }
       } else if (ctrl_held) {  // key + control held
@@ -219,7 +221,14 @@ void controls_process(SDL_Event e) {
             break;
         }
       } else {  // keys with no modifiers
-        switch (e.key.keysym.sym) {}
+        switch (e.key.keysym.sym) {
+          case SDLK_LEFTBRACKET:
+            cv.r += ROTATE_STEP;  // canvas rotation about center of window
+            break;
+          case SDLK_RIGHTBRACKET:
+            cv.r -= ROTATE_STEP;
+            break;
+        }
       }
       break;
       //   switch (e.key.keysym.sym) {

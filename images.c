@@ -60,8 +60,6 @@ void images_arrange_in_grid() {  // arranges all images into grid by selection o
     images[si].x = x;
     images[si].y = -y;
     images[si].r = 0;
-    images[si].rx = 0;
-    images[si].ry = 0;
     images[si].z = 1;
     images[si].crop_top = 0;
     images[si].crop_right = 0;
@@ -135,8 +133,8 @@ void images_load_dir(const char *directory) {  // load all images from directory
     images[i].x = 0;
     images[i].y = 0;
     images[i].r = 0;
-    images[i].rx = 0;
-    images[i].ry = 0;
+    images[i].rx = images[i].width/2;
+    images[i].ry = -images[i].height/2;
     images[i].z = 1;
     images[images[i].sort_index].draw_order = i;
     images[images[i].sort_index].sel_order = i;
@@ -271,6 +269,11 @@ void image_zoom_reset(int imi) {
   images[imi].z = 1;
 }
 
+void image_rotate_by(int imi, float dr) {
+  if (imi < 0) return;
+  images[imi].r += dr;
+}
+
 void images_render() {
   sort_images_by(compare_draw_order);
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
@@ -284,7 +287,7 @@ void images_render() {
       images[si].crop_top = global_testC / 2;
       images[si].crop_right = global_testC;
       images[si].crop_bottom = global_testC / 2;
-      images[si].r = global_testA;
+      // images[si].r = global_testA;
       // images[si].z = (1.0f + global_testB / 10.0);
     }
 
