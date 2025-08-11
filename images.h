@@ -66,3 +66,4 @@ void image_to_on_bottom(int imi);
 void image_to_on_top(int imi);
 void image_drag_screen_by(int imi, int dx, int dy);
 void image_zoom_by(int imi, float zoom_factor);
+void image_zoom_reset(int imi);

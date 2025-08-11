@@ -165,7 +165,10 @@ void controls_process(SDL_Event e) {
           cv.r = 0;  // reset canvas rotation
           break;
         case SDLK_EQUALS:
-          cv.z = 1.0f;  // reset canvas zoom
+          canvas_zoom_reset();
+          break;
+        case SDLK_QUOTE:
+          image_zoom_reset(select_imi());
           break;
         case SDLK_COMMA:
           image_to_on_bottom(select_imi());

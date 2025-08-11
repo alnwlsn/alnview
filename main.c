@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
 
   images_load_dir(img_dir);  // load all the images
 
+  // images[4].r = 30; //for test
+
   int quit = 0;
   SDL_Event e;
 

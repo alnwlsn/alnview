@@ -256,20 +256,19 @@ void image_drag_screen_by(int imi, int dx, int dy) {
 
 void image_zoom_by(int imi, float zoom_factor) {
   if (imi < 0) return;
+  float Ax = mouse_canvas_x - images[imi].x - images[imi].rx;
+  float Ay = mouse_canvas_y - images[imi].y - images[imi].ry;
   images[imi].z *= zoom_factor;
-  // // // zoom centered on mouse position
-  // // // find old and new position; offset view accordingly
-  // float scx1 = (mouse_screen_x / images[imi].z);
-  // float scy1 = (mouse_screen_y / images[imi].z);
-  // images[imi].z *= zoom_factor;
-  // float scx2 = (mouse_screen_x / images[imi].z);
-  // float scy2 = (mouse_screen_y / images[imi].z);
-  // float sdx = scx2 - scx1;
-  // float sdy = scy2 - scy1;
-  // float cdx = sdx * cos(-cv.r * M_PI / 180) - sdy * sin(-cv.r * M_PI / 180);
-  // float cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
-  // images[imi].y -= cdx;
-  // images[imi].x -= cdy;
+  float Bx = (mouse_canvas_x - images[imi].x - images[imi].rx) * zoom_factor;
+  float By = (mouse_canvas_y - images[imi].y - images[imi].ry) * zoom_factor;
+  images[imi].x -= (Bx - Ax);
+  images[imi].y -= (By - Ay);
+}
+
+void image_zoom_reset(int imi) {
+  if (imi < 0) return;
+  image_zoom_by(imi, 1 / images[imi].z);
+  images[imi].z = 1;
 }
 
 void images_render() {
@@ -286,7 +285,7 @@ void images_render() {
       images[si].crop_right = global_testC;
       images[si].crop_bottom = global_testC / 2;
       images[si].r = global_testA;
-      images[si].z = (1.0f + global_testB / 10.0);
+      // images[si].z = (1.0f + global_testB / 10.0);
     }
 
     // crop can't be negative

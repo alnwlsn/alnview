@@ -111,6 +111,12 @@ void canvas_zoom_by(float zoom_factor) {
   cv.y -= cdy;
 }
 
+void canvas_zoom_reset(){
+  canvas_zoom_by(1/cv.z);
+  cv.z = 1;
+}
+
+
 void canvas_rotate_about_point_by(float rx, float ry, float angle) {  // rotate canvas by angle about point on canvas
   cv.r -= angle;
   float sdx = rx - cv.x;
