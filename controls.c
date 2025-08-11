@@ -7,6 +7,7 @@ bool canvas_rotating_center = 0;  // for rotation of canvas about center of scre
 bool canvas_rotating_point = 0;
 bool mouse_dragging = 0;  // for panning
 bool image_dragging = 0;
+bool image_rotating = 0;
 
 // states
 int shift_held = 0;  // shift key held
@@ -64,6 +65,10 @@ void controls_process(SDL_Event e) {
           canvas_rotating_point = 1;
           mouse_screen_last_x = mouse_screen_x;
           mouse_screen_last_y = mouse_screen_y;
+        } else {
+          image_rotating = 1;
+          mouse_screen_last_x = mouse_screen_x;
+          mouse_screen_last_y = mouse_screen_y;
         }
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
         int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
@@ -83,6 +88,7 @@ void controls_process(SDL_Event e) {
         canvas_rotating_center = 0;
         show_canvas_rotation_point = 0;
         canvas_rotating_point = 0;
+        image_rotating = 0;
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
         image_dragging = 0;
         dragged_imi = -1;
@@ -99,7 +105,16 @@ void controls_process(SDL_Event e) {
         mouse_raw_last_x = e.motion.x;
         mouse_raw_last_y = e.motion.y;
       }
-      if (canvas_rotating_center) {
+      if (image_rotating) {
+        float screen_reference_x, screen_reference_y;
+        canvas_to_screen(images[last_dragged_imi].x + images[last_dragged_imi].rx, images[last_dragged_imi].y + images[last_dragged_imi].ry,
+                         &screen_reference_x, &screen_reference_y);
+        float dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
+                                       atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
+        mouse_screen_last_x = mouse_screen_x;
+        mouse_screen_last_y = mouse_screen_y;
+        image_rotate_by(last_dragged_imi, -dAngle);
+      } else if (canvas_rotating_center) {
         cv.r = canvas_initial_rotation + (mouse_angle_about_center - mouse_initial_angle);
       } else if (canvas_rotating_point) {  // canvas rotation about reference point
         float screen_reference_x, screen_reference_y;
