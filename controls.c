@@ -1,14 +1,18 @@
 #include "controls.h"
 
+#include <stdbool.h>
+
 // modes
-int canvas_rotating_center = 0;  // for rotation of canvas about center of screen
-int canvas_rotating_point = 0;
-int mouse_dragging = 0;  // for panning
+bool canvas_rotating_center = 0;  // for rotation of canvas about center of screen
+bool canvas_rotating_point = 0;
+bool mouse_dragging = 0;  // for panning
+bool image_dragging = 0;
 
 // states
 int shift_held = 0;  // shift key held
 int ctrl_held = 0;   // control key held
 int tab_held = 0;
+int dragged_imi = 0;
 
 // move references
 int mouse_raw_last_x = 0, mouse_raw_last_y = 0;          // for mouse dragging positioning
@@ -53,8 +57,11 @@ void controls_process(SDL_Event e) {
         }
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
         int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
-        if(imi>-1){
-          images[imi].x += 10;
+        if (imi > -1) {
+          dragged_imi = imi;
+          image_dragging = 1;
+          mouse_raw_last_x = e.button.x;
+          mouse_raw_last_y = e.button.y;
         }
       }
       break;
@@ -65,11 +72,19 @@ void controls_process(SDL_Event e) {
         canvas_rotating_center = 0;
         show_canvas_rotation_point = 0;
         canvas_rotating_point = 0;
+      } else if (e.button.button == SDL_BUTTON_RIGHT) {
+        image_dragging = 0;
+        dragged_imi = -1;
       }
       break;
     case SDL_MOUSEMOTION:
       if (mouse_dragging) {
         canvas_drag_screen_by(e.motion.x - mouse_raw_last_x, mouse_raw_last_y - e.motion.y);
+        mouse_raw_last_x = e.motion.x;
+        mouse_raw_last_y = e.motion.y;
+      }
+      if (image_dragging) {
+        image_drag_screen_by(dragged_imi, e.motion.x - mouse_raw_last_x, mouse_raw_last_y - e.motion.y);
         mouse_raw_last_x = e.motion.x;
         mouse_raw_last_y = e.motion.y;
       }
@@ -130,10 +145,31 @@ void controls_process(SDL_Event e) {
         case SDLK_EQUALS:
           cv.z = 1.0f;  // reset canvas zoom
           break;
-        case SDLK_PERIOD:
+        case SDLK_COMMA: {
+          if (dragged_imi > -1) {
+            image_to_on_bottom(dragged_imi);
+          } else {
+            int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
+            if (imi > -1) {
+              image_to_on_bottom(imi);
+            }
+          }
+        } break;
+        case SDLK_PERIOD: {
+          if (dragged_imi > -1) {
+            image_to_on_top(dragged_imi);
+          } else {
+            int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
+            if (imi > -1) {
+              image_to_on_top(imi);
+            }
+          }
+        } break;
+
+        case SDLK_b:
           global_testA += 1;
           break;
-        case SDLK_COMMA:
+        case SDLK_v:
           global_testA -= 1;
           break;
         case SDLK_l:

@@ -222,13 +222,42 @@ int image_point_on(float x, float y) {  // tells which image is under the point
   return image_index;
 }
 
+void image_to_on_top(int imi) {
+  int max_draw_order = -999999;
+  for (int i = 0; i < images_count; ++i) {
+    if (images[i].draw_order >= max_draw_order) {
+      max_draw_order = images[i].draw_order;
+    }
+  }
+  if (images[imi].draw_order < max_draw_order) images[imi].draw_order = max_draw_order + 1;
+}
+void image_to_on_bottom(int imi) {
+  int min_draw_order = 999999;
+  for (int i = 0; i < images_count; ++i) {
+    if (images[i].draw_order <= min_draw_order) {
+      min_draw_order = images[i].draw_order;
+    }
+  }
+  if (images[imi].draw_order > min_draw_order) images[imi].draw_order = min_draw_order - 1;
+}
+
+void image_drag_screen_by(int imi, int dx, int dy) {
+  // pan screen by mouse coords
+  float sdx = -dx / cv.z;
+  float sdy = -dy / cv.z;
+  float cdx = sdx * cos(-cv.r * M_PI / 180) - sdy * sin(-cv.r * M_PI / 180);
+  float cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
+  images[imi].x -= cdx;
+  images[imi].y -= cdy;
+}
+
 void images_render() {
   sort_images_by(compare_draw_order);
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
     int si = images[i].sort_index;          // sorted index
 
     // test override
-    if (images[si].draw_order == 1) {
+    if (images[si].sel_order == 1) {
       images[si].rx = 50;
       images[si].ry = -50;
       images[si].crop_left = global_testC;
@@ -244,14 +273,6 @@ void images_render() {
     if (images[si].crop_right < 0) images[si].crop_right = 0;
     if (images[si].crop_top < 0) images[si].crop_top = 0;
     if (images[si].crop_bottom < 0) images[si].crop_bottom = 0;
-
-    if (images[si].draw_order == 1) {
-      if (image_point_inside(mouse_canvas_x, mouse_canvas_y, image_find_corners(si))) {
-        imrefAy = -20;
-      } else {
-        imrefAy = -40;
-      }
-    }
 
     // rotation from image
     float lrX = (images[si].rx * images[si].z) * cos(images[si].r * M_PI / 180) - (images[si].ry * images[si].z) * sin(images[si].r * M_PI / 180);

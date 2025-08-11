@@ -59,3 +59,7 @@ void images_arrange_in_grid();
 int image_point_on(float x, float y); //returns images[] index of image currently under the given point, or -1 if none
 
 void images_render();
+
+void image_to_on_bottom(int imi);
+void image_to_on_top(int imi);
+void image_drag_screen_by(int imi, int dx, int dy);
