@@ -223,6 +223,7 @@ int image_point_on(float x, float y) {  // tells which image is under the point
 }
 
 void image_to_on_top(int imi) {
+  if (imi < 0) return;
   int max_draw_order = -999999;
   for (int i = 0; i < images_count; ++i) {
     if (images[i].draw_order >= max_draw_order) {
@@ -232,6 +233,7 @@ void image_to_on_top(int imi) {
   if (images[imi].draw_order < max_draw_order) images[imi].draw_order = max_draw_order + 1;
 }
 void image_to_on_bottom(int imi) {
+  if (imi < 0) return;
   int min_draw_order = 999999;
   for (int i = 0; i < images_count; ++i) {
     if (images[i].draw_order <= min_draw_order) {
@@ -242,6 +244,7 @@ void image_to_on_bottom(int imi) {
 }
 
 void image_drag_screen_by(int imi, int dx, int dy) {
+  if (imi < 0) return;
   // pan screen by mouse coords
   float sdx = -dx / cv.z;
   float sdy = -dy / cv.z;
@@ -249,6 +252,24 @@ void image_drag_screen_by(int imi, int dx, int dy) {
   float cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
   images[imi].x -= cdx;
   images[imi].y -= cdy;
+}
+
+void image_zoom_by(int imi, float zoom_factor) {
+  if (imi < 0) return;
+  images[imi].z *= zoom_factor;
+  // // // zoom centered on mouse position
+  // // // find old and new position; offset view accordingly
+  // float scx1 = (mouse_screen_x / images[imi].z);
+  // float scy1 = (mouse_screen_y / images[imi].z);
+  // images[imi].z *= zoom_factor;
+  // float scx2 = (mouse_screen_x / images[imi].z);
+  // float scy2 = (mouse_screen_y / images[imi].z);
+  // float sdx = scx2 - scx1;
+  // float sdy = scy2 - scy1;
+  // float cdx = sdx * cos(-cv.r * M_PI / 180) - sdy * sin(-cv.r * M_PI / 180);
+  // float cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
+  // images[imi].y -= cdx;
+  // images[imi].x -= cdy;
 }
 
 void images_render() {

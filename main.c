@@ -84,6 +84,19 @@ int main(int argc, char *argv[]) {
     canvas_render_pin(imrefCx, imrefCy);
     canvas_render_pin(imrefDx, imrefDy);
 
+    int imir = image_point_on(mouse_canvas_x, mouse_canvas_y);
+    if(imir>-1){
+      canvas_render_pin(images[imir].x, images[imir].y);
+      canvas_render_pin(images[imir].x+images[imir].rx, images[imir].y+images[imir].ry);
+      rectangleCorners s = image_find_corners(imir);
+      canvas_render_pin(s.aX, s.aY);
+      canvas_render_pin(s.bX, s.bY);
+      canvas_render_pin(s.cX, s.cY);
+      canvas_render_pin(s.dX, s.dY);
+    }
+
+
+
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
     SDL_RenderPresent(renderer);
     SDL_Delay(16);  // ~60fps

@@ -60,6 +60,9 @@ int image_point_on(float x, float y); //returns images[] index of image currentl
 
 void images_render();
 
+rectangleCorners image_find_corners(int si);
+
 void image_to_on_bottom(int imi);
 void image_to_on_top(int imi);
 void image_drag_screen_by(int imi, int dx, int dy);
+void image_zoom_by(int imi, float zoom_factor);
