@@ -20,6 +20,7 @@ typedef struct {
   float rx;
   float ry;
   float z;
+  uint8_t opacity;
   int crop_top;
   int crop_right;
   int crop_bottom;
@@ -68,3 +69,4 @@ void image_drag_screen_by(int imi, int dx, int dy);
 void image_zoom_by(int imi, float zoom_factor);
 void image_zoom_reset(int imi);
 void image_rotate_by(int imi, float dr);
+void image_rotate_snap(int imi, float sr);

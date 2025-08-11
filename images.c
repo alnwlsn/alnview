@@ -133,9 +133,10 @@ void images_load_dir(const char *directory) {  // load all images from directory
     images[i].x = 0;
     images[i].y = 0;
     images[i].r = 0;
-    images[i].rx = images[i].width/2;
-    images[i].ry = -images[i].height/2;
+    images[i].rx = images[i].width / 2;
+    images[i].ry = -images[i].height / 2;
     images[i].z = 1;
+    images[i].opacity = 255;
     images[images[i].sort_index].draw_order = i;
     images[images[i].sort_index].sel_order = i;
   }
@@ -273,6 +274,14 @@ void image_rotate_by(int imi, float dr) {
   if (imi < 0) return;
   images[imi].r += dr;
 }
+void image_rotate_snap(int imi, float r) {
+  if (imi < 0) return;
+  float a = images[imi].r;
+  a /= r;
+  a = round(a);
+  a *= r;
+  images[imi].r = a;
+}
 
 void images_render() {
   sort_images_by(compare_draw_order);
@@ -328,6 +337,7 @@ void images_render() {
     dst.h = (int)(src.h * cv.z * images[si].z);
 
     SDL_Point rp = {0, 0};
+    SDL_SetTextureAlphaMod(images[si].texture,images[si].opacity);
     SDL_RenderCopyEx(renderer, images[si].texture, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
   }
 }

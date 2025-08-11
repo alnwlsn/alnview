@@ -133,10 +133,10 @@ void controls_process(SDL_Event e) {
         else if (e.wheel.y < 0)
           image_zoom_by(select_imi(), 1 / ZOOM_FACTOR);
       } else if (ctrl_held) {
-        // if (e.wheel.y > 0)
-        //   image_zoom_by(ZOOM_FACTOR_FINE);
-        // else if (e.wheel.y < 0)
-        //   image_zoom_by(1 / ZOOM_FACTOR_FINE);
+        if (e.wheel.y > 0)
+          images[last_dragged_imi].z *= ZOOM_FACTOR;
+        else if (e.wheel.y < 0)
+          images[last_dragged_imi].z /= ZOOM_FACTOR;
       } else {
         if (e.wheel.y > 0)
           canvas_zoom_by(ZOOM_FACTOR);
@@ -187,13 +187,21 @@ void controls_process(SDL_Event e) {
         case SDLK_QUOTE:
           image_zoom_reset(select_imi());
           break;
+        case SDLK_SEMICOLON:
+          image_rotate_snap(last_dragged_imi, 90);
+          break;
         case SDLK_COMMA:
           image_to_on_bottom(select_imi());
           break;
         case SDLK_PERIOD:
           image_to_on_top(select_imi());
           break;
-
+        case SDLK_z:
+          images[last_dragged_imi].opacity -= 1;
+          break;
+        case SDLK_x:
+          images[last_dragged_imi].opacity += 1;
+          break;
         case SDLK_b:
           global_testA += 1;
           break;
@@ -203,7 +211,7 @@ void controls_process(SDL_Event e) {
         case SDLK_l:
           global_testB -= 1;
           break;
-        case SDLK_SEMICOLON:
+        case SDLK_k:
           global_testB += 1;
           break;
         case SDLK_n:
