@@ -30,6 +30,19 @@ typedef struct {
   char filepath[FILEPATHLEN];
 } Image;
 
+typedef struct {
+  float aX;
+  float aY;
+  float bX;
+  float bY;
+  float cX;
+  float cY;
+  float dX;
+  float dY;
+} rectangleCorners;
+
+extern Image *images;
+
 extern float imrefAx;
 extern float imrefAy;
 extern float imrefBx;
@@ -42,5 +55,7 @@ extern float imrefDy;
 void images_free(); //to be called when program exits
 void images_load_dir(const char *directory);  // load all images from directory
 void images_arrange_in_grid();
+
+int image_point_on(float x, float y); //returns images[] index of image currently under the given point, or -1 if none
 
 void images_render();

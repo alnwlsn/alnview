@@ -144,30 +144,82 @@ void images_load_dir(const char *directory) {  // load all images from directory
   images_arrange_in_grid();
 }
 
-void image_find_corners(int si) {  // finds canvas coords for 4 corners of image
-  float corner_a_x = 0;
-  float corner_a_y = 0;
-  float corner_b_x = 0;
-  float corner_b_y = 0;
-  float corner_c_x = 0;
-  float corner_c_y = 0;
-  float corner_d_x = 0;
-  float corner_d_y = 0;
+int image_point_inside(double px, double py, rectangleCorners s) {
+  double c1 = (s.bX - s.aX) * (py - s.aY) - (s.bY - s.aY) * (px - s.aX);
+  double c2 = (s.cX - s.bX) * (py - s.bY) - (s.cY - s.bY) * (px - s.bX);
+  double c3 = (s.dX - s.cX) * (py - s.cY) - (s.dY - s.cY) * (px - s.cX);
+  double c4 = (s.aX - s.dX) * (py - s.dY) - (s.aY - s.dY) * (px - s.dX);
 
-  float aX = (images[si].rx * images[si].z) * cos(images[si].r * M_PI / 180) - (images[si].ry * images[si].z) * sin(images[si].r * M_PI / 180);
-  float aY = (images[si].ry * images[si].z) * cos(images[si].r * M_PI / 180) + (images[si].rx * images[si].z) * sin(images[si].r * M_PI / 180);
-  // float bY = 
-  corner_a_x = (images[si].x-aX)+images[si].rx;
-  corner_a_y = (images[si].y-aY)+images[si].ry;
+  return ((c1 >= 0 && c2 >= 0 && c3 >= 0 && c4 >= 0) || (c1 <= 0 && c2 <= 0 && c3 <= 0 && c4 <= 0));
+}
+rectangleCorners image_find_corners(int si) {  // finds canvas coords for 4 corners of image
+  rectangleCorners s;
+  s.aX = 0;
+  s.aY = 0;
+  s.bX = 0;
+  s.bY = 0;
+  s.cX = 0;
+  s.cY = 0;
+  s.dX = 0;
+  s.dY = 0;
 
-  imrefAx = corner_a_x;
-  imrefAy = corner_a_y;
-  imrefBx = corner_b_x;
-  imrefBy = corner_b_y;
-  imrefCx = corner_c_x;
-  imrefCy = corner_c_y;
-  imrefDx = corner_d_x;
-  imrefDy = corner_d_y;
+  float rpc_x = images[si].x + images[si].rx;
+  float rpc_y = images[si].y + images[si].ry;
+  float pxc_x = images[si].x + images[si].crop_left;
+  float pxc_y = images[si].y - images[si].crop_top;
+  s.aX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
+  s.aY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
+  s.aX *= images[si].z;
+  s.aY *= images[si].z;
+  s.aX += rpc_x;
+  s.aY += rpc_y;
+
+  rpc_x = images[si].x + images[si].rx;
+  rpc_y = images[si].y + images[si].ry;
+  pxc_x = images[si].x + images[si].width - images[si].crop_right;
+  pxc_y = images[si].y - images[si].crop_top;
+  s.bX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
+  s.bY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
+  s.bX *= images[si].z;
+  s.bY *= images[si].z;
+  s.bX += rpc_x;
+  s.bY += rpc_y;
+
+  rpc_x = images[si].x + images[si].rx;
+  rpc_y = images[si].y + images[si].ry;
+  pxc_x = images[si].x + images[si].width - images[si].crop_right;
+  pxc_y = images[si].y - images[si].height + images[si].crop_bottom;
+  s.cX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
+  s.cY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
+  s.cX *= images[si].z;
+  s.cY *= images[si].z;
+  s.cX += rpc_x;
+  s.cY += rpc_y;
+
+  rpc_x = images[si].x + images[si].rx;
+  rpc_y = images[si].y + images[si].ry;
+  pxc_x = images[si].x + images[si].crop_left;
+  pxc_y = images[si].y - images[si].height + images[si].crop_bottom;
+  s.dX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
+  s.dY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
+  s.dX *= images[si].z;
+  s.dY *= images[si].z;
+  s.dX += rpc_x;
+  s.dY += rpc_y;
+  return s;
+}
+int image_point_on(float x, float y) {  // tells which image is under the point
+  int image_index = -1;
+  int c_draw_order = -999999;
+  for (int i = 0; i < images_count; ++i) {
+    if (image_point_inside(x, y, image_find_corners(i))) {
+      if (images[i].draw_order >= c_draw_order) {
+        c_draw_order = images[i].draw_order;
+        image_index = i;
+      }
+    }
+  }
+  return image_index;
 }
 
 void images_render() {
@@ -180,9 +232,25 @@ void images_render() {
       images[si].rx = 50;
       images[si].ry = -50;
       images[si].crop_left = global_testC;
+      images[si].crop_top = global_testC / 2;
+      images[si].crop_right = global_testC;
+      images[si].crop_bottom = global_testC / 2;
       images[si].r = global_testA;
       images[si].z = (1.0f + global_testB / 10.0);
-      image_find_corners(si);
+    }
+
+    // crop can't be negative
+    if (images[si].crop_left < 0) images[si].crop_left = 0;
+    if (images[si].crop_right < 0) images[si].crop_right = 0;
+    if (images[si].crop_top < 0) images[si].crop_top = 0;
+    if (images[si].crop_bottom < 0) images[si].crop_bottom = 0;
+
+    if (images[si].draw_order == 1) {
+      if (image_point_inside(mouse_canvas_x, mouse_canvas_y, image_find_corners(si))) {
+        imrefAy = -20;
+      } else {
+        imrefAy = -40;
+      }
     }
 
     // rotation from image

@@ -1,4 +1,5 @@
 #include "canvas.h"
+#include "images.h"
 #include <SDL2/SDL.h>
 
 extern int show_center_mark; //for renderer to show center mark

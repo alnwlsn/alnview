@@ -51,6 +51,11 @@ void controls_process(SDL_Event e) {
           mouse_screen_last_x = mouse_screen_x;
           mouse_screen_last_y = mouse_screen_y;
         }
+      } else if (e.button.button == SDL_BUTTON_RIGHT) {
+        int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
+        if(imi>-1){
+          images[imi].x += 10;
+        }
       }
       break;
     case SDL_MOUSEBUTTONUP:
