@@ -8,11 +8,11 @@ CanvasView cv;  // current view
 CanvasView waypt[MAX_CANVAS];
 int screen_size_x;
 int screen_size_y;
-float mouse_screen_x;
-float mouse_screen_y;
-float mouse_canvas_x;
-float mouse_canvas_y;
-float mouse_angle_about_center;
+double mouse_screen_x;
+double mouse_screen_y;
+double mouse_canvas_x;
+double mouse_canvas_y;
+double mouse_angle_about_center;
 
 void canvas_update_cursor() {
   int mouseX_raw, mouseY_raw;
@@ -30,11 +30,11 @@ void canvas_update_cursor() {
   mouse_angle_about_center = (180 / M_PI) * atan2(mouse_screen_y, mouse_screen_x);
 }
 
-void canvas_to_screen(float canvas_x, float canvas_y, float *screen_x, float *screen_y){
-  float sdx = canvas_x - cv.x;
-  float sdy = canvas_y - cv.y;
-  float cx = sdx * cos(cv.r * M_PI / 180) - sdy * sin(cv.r * M_PI / 180);
-  float cy = sdy * cos(cv.r * M_PI / 180) + sdx * sin(cv.r * M_PI / 180);
+void canvas_to_screen(double canvas_x, double canvas_y, double *screen_x, double *screen_y){
+  double sdx = canvas_x - cv.x;
+  double sdy = canvas_y - cv.y;
+  double cx = sdx * cos(cv.r * M_PI / 180) - sdy * sin(cv.r * M_PI / 180);
+  double cy = sdy * cos(cv.r * M_PI / 180) + sdx * sin(cv.r * M_PI / 180);
   *screen_x = cx*cv.z;
   *screen_y = cy*cv.z;
 }
@@ -58,20 +58,20 @@ void canvas_init() {
   }
 }
 
-float rx = 128, ry = -128;  // point to rotate canvas about
+double rx = 128, ry = -128;  // point to rotate canvas about
 
-// float ax = 0, ay = 0, bx = 0, by = 0;  // debugging
+// double ax = 0, ay = 0, bx = 0, by = 0;  // debugging
 
 // static int animation = 0;
 // static int animation_step = 0;
 // static const int animation_steps = 50;
 
-void canvas_render_pin(float x, float y) {
+void canvas_render_pin(double x, double y) {
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-  float lX = x * cv.z;
-  float lY = -y * cv.z;
-  float tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);
-  float tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
+  double lX = x * cv.z;
+  double lY = -y * cv.z;
+  double tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);
+  double tY = lY * cos(-cv.r * M_PI / 180) + lX * sin(-cv.r * M_PI / 180);
   tX += screen_size_x / 2.0f;
   tY += screen_size_y / 2.0f;
   tX -= cv.x * cv.z * cos(-cv.r * M_PI / 180) + cv.y * cv.z * sin(-cv.r * M_PI / 180);
@@ -87,26 +87,26 @@ void canvas_render_pin(float x, float y) {
 
 void canvas_drag_screen_by(int dx, int dy) {
   // pan screen by mouse coords
-  float sdx = dx / cv.z;
-  float sdy = dy / cv.z;
-  float cdx = sdx * cos(-cv.r * M_PI / 180) - sdy * sin(-cv.r * M_PI / 180);
-  float cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
+  double sdx = dx / cv.z;
+  double sdy = dy / cv.z;
+  double cdx = sdx * cos(-cv.r * M_PI / 180) - sdy * sin(-cv.r * M_PI / 180);
+  double cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
   cv.x -= cdx;
   cv.y -= cdy;
 }
 
-void canvas_zoom_by(float zoom_factor) {
+void canvas_zoom_by(double zoom_factor) {
   // zoom centered on mouse position
   // find old and new position; offset view accordingly
-  float scx1 = (mouse_screen_x / cv.z);
-  float scy1 = (mouse_screen_y / cv.z);
+  double scx1 = (mouse_screen_x / cv.z);
+  double scy1 = (mouse_screen_y / cv.z);
   cv.z *= zoom_factor;
-  float scx2 = (mouse_screen_x / cv.z);
-  float scy2 = (mouse_screen_y / cv.z);
-  float sdx = scx2 - scx1;
-  float sdy = scy2 - scy1;
-  float cdx = sdx * cos(-cv.r * M_PI / 180) - sdy * sin(-cv.r * M_PI / 180);
-  float cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
+  double scx2 = (mouse_screen_x / cv.z);
+  double scy2 = (mouse_screen_y / cv.z);
+  double sdx = scx2 - scx1;
+  double sdy = scy2 - scy1;
+  double cdx = sdx * cos(-cv.r * M_PI / 180) - sdy * sin(-cv.r * M_PI / 180);
+  double cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
   cv.x -= cdx;
   cv.y -= cdy;
 }
@@ -117,12 +117,12 @@ void canvas_zoom_reset(){
 }
 
 
-void canvas_rotate_about_point_by(float rx, float ry, float angle) {  // rotate canvas by angle about point on canvas
+void canvas_rotate_about_point_by(double rx, double ry, double angle) {  // rotate canvas by angle about point on canvas
   cv.r -= angle;
-  float sdx = rx - cv.x;
-  float sdy = ry - cv.y;
-  float cx = sdx * cos(angle * M_PI / 180) - sdy * sin(angle * M_PI / 180) + cv.x;
-  float cy = sdy * cos(angle * M_PI / 180) + sdx * sin(angle * M_PI / 180) + cv.y;
+  double sdx = rx - cv.x;
+  double sdy = ry - cv.y;
+  double cx = sdx * cos(angle * M_PI / 180) - sdy * sin(angle * M_PI / 180) + cv.x;
+  double cy = sdy * cos(angle * M_PI / 180) + sdx * sin(angle * M_PI / 180) + cv.y;
   cv.x = cv.x - (cx - rx);
   cv.y = cv.y - (cy - ry);
 }

@@ -4,14 +4,14 @@
 
 Image *images = NULL;
 int images_count = 0;
-float imrefAx = 0;
-float imrefAy = 0;
-float imrefBx = 0;
-float imrefBy = 0;
-float imrefCx = 0;
-float imrefCy = 0;
-float imrefDx = 0;
-float imrefDy = 0;
+double imrefAx = 0;
+double imrefAy = 0;
+double imrefBx = 0;
+double imrefBy = 0;
+double imrefCx = 0;
+double imrefCy = 0;
+double imrefDx = 0;
+double imrefDy = 0;
 
 // sorting options
 // call sort_images_by(compare_some_option)
@@ -162,10 +162,10 @@ rectangleCorners image_find_corners(int si) {  // finds canvas coords for 4 corn
   s.dX = 0;
   s.dY = 0;
 
-  float rpc_x = images[si].x + images[si].rx;
-  float rpc_y = images[si].y + images[si].ry;
-  float pxc_x = images[si].x + images[si].crop_left;
-  float pxc_y = images[si].y - images[si].crop_top;
+  double rpc_x = images[si].x + images[si].rx;
+  double rpc_y = images[si].y + images[si].ry;
+  double pxc_x = images[si].x + images[si].crop_left;
+  double pxc_y = images[si].y - images[si].crop_top;
   s.aX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
   s.aY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
   s.aX *= images[si].z;
@@ -207,7 +207,7 @@ rectangleCorners image_find_corners(int si) {  // finds canvas coords for 4 corn
   s.dY += rpc_y;
   return s;
 }
-int image_point_on(float x, float y) {  // tells which image is under the point
+int image_point_on(double x, double y) {  // tells which image is under the point
   int image_index = -1;
   int c_draw_order = -999999;
   for (int i = 0; i < images_count; ++i) {
@@ -245,21 +245,21 @@ void image_to_on_bottom(int imi) {
 void image_drag_screen_by(int imi, int dx, int dy) {
   if (imi < 0) return;
   // pan screen by mouse coords
-  float sdx = -dx / cv.z;
-  float sdy = -dy / cv.z;
-  float cdx = sdx * cos(-cv.r * M_PI / 180) - sdy * sin(-cv.r * M_PI / 180);
-  float cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
+  double sdx = -dx / cv.z;
+  double sdy = -dy / cv.z;
+  double cdx = sdx * cos(-cv.r * M_PI / 180) - sdy * sin(-cv.r * M_PI / 180);
+  double cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
   images[imi].x -= cdx;
   images[imi].y -= cdy;
 }
 
-void image_zoom_by(int imi, float zoom_factor) {
+void image_zoom_by(int imi, double zoom_factor) {
   if (imi < 0) return;
-  float Ax = mouse_canvas_x - images[imi].x - images[imi].rx;
-  float Ay = mouse_canvas_y - images[imi].y - images[imi].ry;
+  double Ax = mouse_canvas_x - images[imi].x - images[imi].rx;
+  double Ay = mouse_canvas_y - images[imi].y - images[imi].ry;
   images[imi].z *= zoom_factor;
-  float Bx = (mouse_canvas_x - images[imi].x - images[imi].rx) * zoom_factor;
-  float By = (mouse_canvas_y - images[imi].y - images[imi].ry) * zoom_factor;
+  double Bx = (mouse_canvas_x - images[imi].x - images[imi].rx) * zoom_factor;
+  double By = (mouse_canvas_y - images[imi].y - images[imi].ry) * zoom_factor;
   images[imi].x -= (Bx - Ax);
   images[imi].y -= (By - Ay);
 }
@@ -270,13 +270,13 @@ void image_zoom_reset(int imi) {
   images[imi].z = 1;
 }
 
-void image_rotate_by(int imi, float dr) {
+void image_rotate_by(int imi, double dr) {
   if (imi < 0) return;
   images[imi].r += dr;
 }
-void image_rotate_snap(int imi, float r) {
+void image_rotate_snap(int imi, double r) {
   if (imi < 0) return;
-  float a = images[imi].r;
+  double a = images[imi].r;
   a /= r;
   a = round(a);
   a *= r;
@@ -307,20 +307,20 @@ void images_render() {
     if (images[si].crop_bottom < 0) images[si].crop_bottom = 0;
 
     // rotation from image
-    float lrX = (images[si].rx * images[si].z) * cos(images[si].r * M_PI / 180) - (images[si].ry * images[si].z) * sin(images[si].r * M_PI / 180);
-    float lrY = (images[si].ry * images[si].z) * cos(images[si].r * M_PI / 180) + (images[si].rx * images[si].z) * sin(images[si].r * M_PI / 180);
+    double lrX = (images[si].rx * images[si].z) * cos(images[si].r * M_PI / 180) - (images[si].ry * images[si].z) * sin(images[si].r * M_PI / 180);
+    double lrY = (images[si].ry * images[si].z) * cos(images[si].r * M_PI / 180) + (images[si].rx * images[si].z) * sin(images[si].r * M_PI / 180);
 
-    float lX = (images[si].x - lrX) * cv.z;
-    float lY = -(images[si].y - lrY) * cv.z;
+    double lX = (images[si].x - lrX) * cv.z;
+    double lY = -(images[si].y - lrY) * cv.z;
     // rotation from crop offset
     lX += (images[si].crop_left * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) -
           (images[si].crop_top * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
     lY += (images[si].crop_top * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) +
           (images[si].crop_left * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
     // rotation from canvas
-    float tX = (lX + (-cv.x + images[si].rx) * cv.z) * cos(-cv.r * M_PI / 180) - (lY + (cv.y - images[si].ry) * cv.z) * sin(-cv.r * M_PI / 180) +
+    double tX = (lX + (-cv.x + images[si].rx) * cv.z) * cos(-cv.r * M_PI / 180) - (lY + (cv.y - images[si].ry) * cv.z) * sin(-cv.r * M_PI / 180) +
                (screen_size_x / 2.0f);  // rotate image into place
-    float tY = (lY + (cv.y - images[si].ry) * cv.z) * cos(-cv.r * M_PI / 180) + (lX + (-cv.x + images[si].rx) * cv.z) * sin(-cv.r * M_PI / 180) +
+    double tY = (lY + (cv.y - images[si].ry) * cv.z) * cos(-cv.r * M_PI / 180) + (lX + (-cv.x + images[si].rx) * cv.z) * sin(-cv.r * M_PI / 180) +
                (screen_size_y / 2.0f);
 
     // apply crop

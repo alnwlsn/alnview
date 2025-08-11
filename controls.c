@@ -18,16 +18,16 @@ int last_dragged_imi = 0;
 
 // move references
 int mouse_raw_last_x = 0, mouse_raw_last_y = 0;          // for mouse dragging positioning
-float mouse_screen_last_x = 0, mouse_screen_last_y = 0;  // for mouse dragging rotation
-float canvas_initial_rotation = 0;
-float mouse_initial_angle = 0;
+double mouse_screen_last_x = 0, mouse_screen_last_y = 0;  // for mouse dragging rotation
+double canvas_initial_rotation = 0;
+double mouse_initial_angle = 0;
 
 int animation = 0;
 int animation_step = 0;
 
 // globals
-float canvas_rotation_point_x = 0;
-float canvas_rotation_point_y = 0;
+double canvas_rotation_point_x = 0;
+double canvas_rotation_point_y = 0;
 int show_center_mark = 0;            // for rendering, show a center mark if true
 int show_canvas_rotation_point = 0;  // for renderer to show another reference mark
 int global_testA = 0;
@@ -106,10 +106,10 @@ void controls_process(SDL_Event e) {
         mouse_raw_last_y = e.motion.y;
       }
       if (image_rotating) {
-        float screen_reference_x, screen_reference_y;
+        double screen_reference_x, screen_reference_y;
         canvas_to_screen(images[last_dragged_imi].x + images[last_dragged_imi].rx, images[last_dragged_imi].y + images[last_dragged_imi].ry,
                          &screen_reference_x, &screen_reference_y);
-        float dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
+        double dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
                                        atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
         mouse_screen_last_x = mouse_screen_x;
         mouse_screen_last_y = mouse_screen_y;
@@ -117,9 +117,9 @@ void controls_process(SDL_Event e) {
       } else if (canvas_rotating_center) {
         cv.r = canvas_initial_rotation + (mouse_angle_about_center - mouse_initial_angle);
       } else if (canvas_rotating_point) {  // canvas rotation about reference point
-        float screen_reference_x, screen_reference_y;
+        double screen_reference_x, screen_reference_y;
         canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &screen_reference_x, &screen_reference_y);
-        float dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
+        double dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
                                        atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
         mouse_screen_last_x = mouse_screen_x;
         mouse_screen_last_y = mouse_screen_y;
@@ -285,15 +285,15 @@ void controls_process(SDL_Event e) {
       //   cv.y = 0;
       //   break;
       // case SDLK_1:
-      //   float dr = 15.0f;
+      //   double dr = 15.0f;
 
       //   cv.r -= dr;
-      //   float sdx = canvas_rx - cv.x;
-      //   float sdy = canvas_ry - cv.y;
-      //   float cx = sdx * cos(dr * M_PI / 180) - sdy * sin(dr * M_PI / 180) + cv.x;
-      //   float cy = sdy * cos(dr * M_PI / 180) + sdx * sin(dr * M_PI / 180) + cv.y;
-      //   // float cdx = -canvas_rx+cv.x;
-      //   // float cdy = -canvas_ry+cv.y;
+      //   double sdx = canvas_rx - cv.x;
+      //   double sdy = canvas_ry - cv.y;
+      //   double cx = sdx * cos(dr * M_PI / 180) - sdy * sin(dr * M_PI / 180) + cv.x;
+      //   double cy = sdy * cos(dr * M_PI / 180) + sdx * sin(dr * M_PI / 180) + cv.y;
+      //   // double cdx = -canvas_rx+cv.x;
+      //   // double cdy = -canvas_ry+cv.y;
       //   ax = cx;
       //   ay = cy;
       //   bx = cv.x - (cx - canvas_rx);

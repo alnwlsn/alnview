@@ -6,10 +6,10 @@
 
 // view of the canvas in the window
 typedef struct {
-  float r;  // rotation angle in degrees
-  float x;  // center X in canvas coords
-  float y;  // center Y in canvas coords
-  float z;  // zoom
+  double r;  // rotation angle in degrees
+  double x;  // center X in canvas coords
+  double y;  // center Y in canvas coords
+  double z;  // zoom
 } CanvasView;
 
 // globals that control the whole thing
@@ -18,19 +18,19 @@ extern SDL_Renderer *renderer;
 extern CanvasView cv;
 extern int screen_size_x;
 extern int screen_size_y;
-extern float mouse_screen_x;
-extern float mouse_screen_y;
-extern float mouse_canvas_x;
-extern float mouse_canvas_y;
-extern float mouse_angle_about_center;
+extern double mouse_screen_x;
+extern double mouse_screen_y;
+extern double mouse_canvas_x;
+extern double mouse_canvas_y;
+extern double mouse_angle_about_center;
 
 void canvas_update_cursor();  // update window size and mouse cursor
 
 void canvas_init();                        // initializes SDL window
-void canvas_render_pin(float x, float y);  // put pin marker on canvas here
+void canvas_render_pin(double x, double y);  // put pin marker on canvas here
 
 void canvas_drag_screen_by(int dx, int dy);                                               // pan canvas on screen by change in mouse screen coords
-void canvas_zoom_by(float zoom_factor);                                                   // zoom canvas, centered on cursor.
+void canvas_zoom_by(double zoom_factor);                                                   // zoom canvas, centered on cursor.
 void canvas_zoom_reset();                                                                 // zoom to 1, centered on cursor.
-void canvas_rotate_about_point_by(float rx, float ry, float angle);                       // rotate canvas by angle by point on canvas
-void canvas_to_screen(float canvas_x, float canvas_y, float *screen_x, float *screen_y);  // coordinate conversion
+void canvas_rotate_about_point_by(double rx, double ry, double angle);                       // rotate canvas by angle by point on canvas
+void canvas_to_screen(double canvas_x, double canvas_y, double *screen_x, double *screen_y);  // coordinate conversion

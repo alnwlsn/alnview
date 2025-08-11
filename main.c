@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     render_text(renderer, coordText, 2, 16);
     snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mouse_canvas_x, mouse_canvas_y);
     render_text(renderer, coordText, 2, 32);
-    float ax, ay;
+    double ax, ay;
     canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &ax, &ay);
     snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f sX: %.1f  sY: %.1f", canvas_rotation_point_x, canvas_rotation_point_y, ax, ay);
     render_text(renderer, coordText, 2, 48);
