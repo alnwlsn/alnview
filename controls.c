@@ -17,7 +17,7 @@ int dragged_imi = -1;
 int last_dragged_imi = 0;
 
 // move references
-int mouse_raw_last_x = 0, mouse_raw_last_y = 0;          // for mouse dragging positioning
+int mouse_raw_last_x = 0, mouse_raw_last_y = 0;           // for mouse dragging positioning
 double mouse_screen_last_x = 0, mouse_screen_last_y = 0;  // for mouse dragging rotation
 double canvas_initial_rotation = 0;
 double mouse_initial_angle = 0;
@@ -110,7 +110,7 @@ void controls_process(SDL_Event e) {
         canvas_to_screen(images[last_dragged_imi].x + images[last_dragged_imi].rx, images[last_dragged_imi].y + images[last_dragged_imi].ry,
                          &screen_reference_x, &screen_reference_y);
         double dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
-                                       atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
+                                        atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
         mouse_screen_last_x = mouse_screen_x;
         mouse_screen_last_y = mouse_screen_y;
         image_rotate_by(last_dragged_imi, -dAngle);
@@ -120,7 +120,7 @@ void controls_process(SDL_Event e) {
         double screen_reference_x, screen_reference_y;
         canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &screen_reference_x, &screen_reference_y);
         double dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
-                                       atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
+                                        atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
         mouse_screen_last_x = mouse_screen_x;
         mouse_screen_last_y = mouse_screen_y;
         canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, dAngle);
@@ -220,6 +220,14 @@ void controls_process(SDL_Event e) {
         case SDLK_m:
           global_testC += 1;
           break;
+        case SDLK_f: {
+          Uint32 flags = SDL_GetWindowFlags(window);
+          if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+            SDL_SetWindowFullscreen(window, 0);  // Back to windowed
+          } else {
+            SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);  // Fullscreen
+          }
+        } break;
       }
       if (shift_held) {  // keys + shift key held
         switch (e.key.keysym.sym) {
