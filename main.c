@@ -68,7 +68,8 @@ int main(int argc, char *argv[]) {
     canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &ax, &ay);
     snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f sX: %.1f  sY: %.1f", canvas_rotation_point_x, canvas_rotation_point_y, ax, ay);
     render_text(renderer, coordText, 2, 48);
-    snprintf(coordText, sizeof(coordText), "TA: %d TB: %d TC: %d M: %d", global_testA, global_testB, global_testC, image_point_on(mouse_canvas_x, mouse_canvas_y));
+    snprintf(coordText, sizeof(coordText), "TA: %d TB: %d TC: %d M: %d", global_testA, global_testB, global_testC,
+             image_point_on(mouse_canvas_x, mouse_canvas_y));
     render_text(renderer, coordText, 2, 64);
 
     canvas_render_pin(0, 0);
@@ -86,18 +87,16 @@ int main(int argc, char *argv[]) {
     canvas_render_pin(imrefCx, imrefCy);
     canvas_render_pin(imrefDx, imrefDy);
 
-    int imir = image_point_on(mouse_canvas_x, mouse_canvas_y);
-    if(imir>-1){
-      canvas_render_pin(images[imir].x, images[imir].y);
-      canvas_render_pin(images[imir].x+images[imir].rx, images[imir].y+images[imir].ry);
-      rectangleCorners s = image_find_corners(imir);
+    // int imir = image_point_on(mouse_canvas_x, mouse_canvas_y);
+    if (show_image_reference_marks) {
+      canvas_render_pin(images[last_dragged_imi].x, images[last_dragged_imi].y);
+      canvas_render_pin(images[last_dragged_imi].x + images[last_dragged_imi].rx, images[last_dragged_imi].y + images[last_dragged_imi].ry);
+      rectangleCorners s = image_find_corners(last_dragged_imi);
       canvas_render_pin(s.aX, s.aY);
       canvas_render_pin(s.bX, s.bY);
       canvas_render_pin(s.cX, s.cY);
       canvas_render_pin(s.dX, s.dY);
     }
-
-
 
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
     SDL_RenderPresent(renderer);

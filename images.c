@@ -283,6 +283,44 @@ void image_rotate_snap(int imi, double r) {
   images[imi].r = a;
 }
 
+void image_rotation_point_set_new(int imi, double x, double y) {
+  //do this the cheat way: first, position before change
+  double rpc_x = images[imi].x + images[imi].rx;
+  double rpc_y = images[imi].y + images[imi].ry;
+  double pxc_x = images[imi].x + images[imi].crop_left;
+  double pxc_y = images[imi].y - images[imi].crop_top;
+  double aX = (pxc_x - rpc_x) * cos(images[imi].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[imi].r * M_PI / 180);
+  double aY = (pxc_y - rpc_y) * cos(images[imi].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[imi].r * M_PI / 180);
+  aX *= images[imi].z;
+  aY *= images[imi].z;
+  aX += rpc_x;
+  aY += rpc_y;
+  
+  // printf("%.1f %.1f\n",dx,dy);
+  // double x2 = (images[imi].rx * images[imi].z) * cos(images[imi].r * M_PI / 180) - (images[imi].ry * images[imi].z) * sin(images[imi].r * M_PI / 180);
+  // double y2 = (images[imi].ry * images[imi].z) * cos(images[imi].r * M_PI / 180) + (images[imi].rx * images[imi].z) * sin(images[imi].r * M_PI / 180);
+  double cX = x - images[imi].x;
+  double cY = y - images[imi].y;
+
+  // images[imi].rx = cX;
+  // images[imi].ry = cY;
+
+  //then, after
+  rpc_x = images[imi].x + images[imi].rx;
+  rpc_y = images[imi].y + images[imi].ry;
+  pxc_x = images[imi].x + images[imi].crop_left;
+  pxc_y = images[imi].y - images[imi].crop_top;
+  double bX = (pxc_x - rpc_x) * cos(images[imi].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[imi].r * M_PI / 180);
+  double bY = (pxc_y - rpc_y) * cos(images[imi].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[imi].r * M_PI / 180);
+  bX *= images[imi].z;
+  bY *= images[imi].z;
+  bX += rpc_x;
+  bY += rpc_y;
+  printf("%.1f %.1f %.1f %.1f\n",aX,aY,bX,bY);
+  images[imi].x -= (bX-aX);
+  images[imi].y -= (bY-aY);
+}
+
 void images_render() {
   sort_images_by(compare_draw_order);
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
@@ -319,9 +357,9 @@ void images_render() {
           (images[si].crop_left * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
     // rotation from canvas
     double tX = (lX + (-cv.x + images[si].rx) * cv.z) * cos(-cv.r * M_PI / 180) - (lY + (cv.y - images[si].ry) * cv.z) * sin(-cv.r * M_PI / 180) +
-               (screen_size_x / 2.0f);  // rotate image into place
+                (screen_size_x / 2.0f);  // rotate image into place
     double tY = (lY + (cv.y - images[si].ry) * cv.z) * cos(-cv.r * M_PI / 180) + (lX + (-cv.x + images[si].rx) * cv.z) * sin(-cv.r * M_PI / 180) +
-               (screen_size_y / 2.0f);
+                (screen_size_y / 2.0f);
 
     // apply crop
     SDL_Rect src;
@@ -337,7 +375,7 @@ void images_render() {
     dst.h = (int)(src.h * cv.z * images[si].z);
 
     SDL_Point rp = {0, 0};
-    SDL_SetTextureAlphaMod(images[si].texture,images[si].opacity);
+    SDL_SetTextureAlphaMod(images[si].texture, images[si].opacity);
     SDL_RenderCopyEx(renderer, images[si].texture, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
   }
 }

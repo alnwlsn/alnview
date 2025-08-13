@@ -14,7 +14,7 @@ int shift_held = 0;  // shift key held
 int ctrl_held = 0;   // control key held
 int tab_held = 0;
 int dragged_imi = -1;
-int last_dragged_imi = 0;
+
 
 // move references
 int mouse_raw_last_x = 0, mouse_raw_last_y = 0;           // for mouse dragging positioning
@@ -26,10 +26,12 @@ int animation = 0;
 int animation_step = 0;
 
 // globals
+int last_dragged_imi = 0;
 double canvas_rotation_point_x = 0;
 double canvas_rotation_point_y = 0;
-int show_center_mark = 0;            // for rendering, show a center mark if true
-int show_canvas_rotation_point = 0;  // for renderer to show another reference mark
+bool show_center_mark = 0;            // for rendering, show a center mark if true
+bool show_canvas_rotation_point = 0;  // for renderer to show another reference mark
+bool show_image_reference_marks = 0;  // show corners, base and rotation point of selected image
 int global_testA = 0;
 int global_testB = 0;
 int global_testC = 0;
@@ -56,6 +58,9 @@ void controls_process(SDL_Event e) {
           canvas_rotation_point_x = mouse_canvas_x;
           canvas_rotation_point_y = mouse_canvas_y;
         }
+        if (shift_held) {
+          image_rotation_point_set_new(last_dragged_imi, mouse_canvas_x, mouse_canvas_y);
+        }
       } else if (e.button.button == SDL_BUTTON_MIDDLE) {
         if (shift_held) {  // middle click and drag to rotate canvas about center
           mouse_initial_angle = mouse_angle_about_center;
@@ -69,6 +74,7 @@ void controls_process(SDL_Event e) {
           image_rotating = 1;
           mouse_screen_last_x = mouse_screen_x;
           mouse_screen_last_y = mouse_screen_y;
+          show_image_reference_marks = 1;
         }
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
         int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
@@ -89,6 +95,7 @@ void controls_process(SDL_Event e) {
         show_canvas_rotation_point = 0;
         canvas_rotating_point = 0;
         image_rotating = 0;
+        show_image_reference_marks = 0;
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
         image_dragging = 0;
         dragged_imi = -1;
@@ -151,6 +158,7 @@ void controls_process(SDL_Event e) {
         case SDLK_RSHIFT:
           shift_held = 0;
           show_center_mark = 0;
+          show_image_reference_marks = 0;
           break;
         case SDLK_LCTRL:
         case SDLK_RCTRL:
@@ -168,6 +176,7 @@ void controls_process(SDL_Event e) {
         case SDLK_RSHIFT:
           shift_held = 1;
           show_center_mark = 1;
+          show_image_reference_marks = 1;
           break;
         case SDLK_LCTRL:
         case SDLK_RCTRL:

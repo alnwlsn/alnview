@@ -70,3 +70,4 @@ void image_zoom_by(int imi, double zoom_factor);
 void image_zoom_reset(int imi);
 void image_rotate_by(int imi, double dr);
 void image_rotate_snap(int imi, double sr);
+void image_rotation_point_set_new(int imi, double x, double y);
