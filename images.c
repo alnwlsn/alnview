@@ -366,10 +366,10 @@ void canvas_zoom_center_to_image(int imi) {
   double sc_rt = (double)screen_size_y / (double)screen_size_x;
   if (im_rt <= sc_rt) {
     cv.z *= ((screen_size_x / 2.0f)) / eX;
-    // cv.z -= 0.1;
+    cv.z /= 1.05;
   } else {
     cv.z *= ((screen_size_y / 2.0f)) / eY;
-    // cv.z -= 0.1;
+    cv.z /= 1.05;
   }
   // printf("%.1f, %.1f %.1f, %.1f\n", im_rt, sc_rt, eX, eY);
 }
