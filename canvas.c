@@ -67,7 +67,6 @@ double rx = 128, ry = -128;  // point to rotate canvas about
 // static const int animation_steps = 50;
 
 void canvas_render_pin(double x, double y) {
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   double lX = x * cv.z;
   double lY = -y * cv.z;
   double tX = lX * cos(-cv.r * M_PI / 180) - lY * sin(-cv.r * M_PI / 180);

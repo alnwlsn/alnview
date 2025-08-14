@@ -15,7 +15,6 @@ int ctrl_held = 0;   // control key held
 int tab_held = 0;
 int dragged_imi = -1;
 
-
 // move references
 int mouse_raw_last_x = 0, mouse_raw_last_y = 0;           // for mouse dragging positioning
 double mouse_screen_last_x = 0, mouse_screen_last_y = 0;  // for mouse dragging rotation
@@ -79,6 +78,7 @@ void controls_process(SDL_Event e) {
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
         int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
         if (imi > -1) {
+          image_sel_set(imi);
           last_dragged_imi = imi;
           dragged_imi = imi;
           image_dragging = 1;
@@ -204,6 +204,26 @@ void controls_process(SDL_Event e) {
           break;
         case SDLK_PERIOD:
           image_to_on_top(select_imi());
+          break;
+        case SDLK_r:
+          image_rotate_by(last_dragged_imi, 90);
+          break;
+        case SDLK_c:
+          image_rotation_point_set_center(last_dragged_imi);
+          break;
+        case SDLK_d: {
+          int imi = select_imi();
+          canvas_zoom_center_to_image(imi);
+          image_sel_set(imi);
+        } break;
+        case SDLK_PAGEUP:
+          image_center_sel_prev();
+          break;
+        case SDLK_PAGEDOWN:
+          image_center_sel_next();
+          break;
+        case SDLK_SPACE:
+          canvas_center_image(last_dragged_imi);
           break;
         case SDLK_z:
           images[last_dragged_imi].opacity -= 1;

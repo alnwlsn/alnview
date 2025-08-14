@@ -12,6 +12,7 @@ double imrefCx = 0;
 double imrefCy = 0;
 double imrefDx = 0;
 double imrefDy = 0;
+int sel_current = 0;
 
 // sorting options
 // call sort_images_by(compare_some_option)
@@ -33,6 +34,13 @@ int compare_sel_order(const void *a, const void *b) {
   int j = *(const int *)b;
   if (sort_images[i].sel_order < sort_images[j].sel_order) return -1;
   if (sort_images[i].sel_order > sort_images[j].sel_order) return 1;
+  return 0;
+}
+int compare_sel_order_rev(const void *a, const void *b) {
+  int i = *(const int *)a;
+  int j = *(const int *)b;
+  if (sort_images[i].sel_order > sort_images[j].sel_order) return -1;
+  if (sort_images[i].sel_order < sort_images[j].sel_order) return 1;
   return 0;
 }
 void sort_images_by(int (*cmp)(const void *, const void *)) {
@@ -284,7 +292,8 @@ void image_rotate_snap(int imi, double r) {
 }
 
 void image_rotation_point_set_new(int imi, double x, double y) {
-  //do this the cheat way: first, position before change
+  if (imi < 0) return;
+  // do this the cheat way: first, position before change
   double rpc_x = images[imi].x + images[imi].rx;
   double rpc_y = images[imi].y + images[imi].ry;
   double pxc_x = images[imi].x + images[imi].crop_left;
@@ -295,17 +304,16 @@ void image_rotation_point_set_new(int imi, double x, double y) {
   aY *= images[imi].z;
   aX += rpc_x;
   aY += rpc_y;
-  
-  // printf("%.1f %.1f\n",dx,dy);
-  // double x2 = (images[imi].rx * images[imi].z) * cos(images[imi].r * M_PI / 180) - (images[imi].ry * images[imi].z) * sin(images[imi].r * M_PI / 180);
-  // double y2 = (images[imi].ry * images[imi].z) * cos(images[imi].r * M_PI / 180) + (images[imi].rx * images[imi].z) * sin(images[imi].r * M_PI / 180);
-  double cX = x - images[imi].x;
-  double cY = y - images[imi].y;
 
-  // images[imi].rx = cX;
-  // images[imi].ry = cY;
+  // find new rotation point (in image coordinates)
+  double dX = images[imi].rx;
+  double dY = images[imi].ry;
+  double cX = x - images[imi].x - dX;
+  double cY = y - images[imi].y - dY;
+  images[imi].rx = cX * cos(-images[imi].r * M_PI / 180) - cY * sin(-images[imi].r * M_PI / 180) + dX;
+  images[imi].ry = cY * cos(-images[imi].r * M_PI / 180) + cX * sin(-images[imi].r * M_PI / 180) + dY;
 
-  //then, after
+  // then, after
   rpc_x = images[imi].x + images[imi].rx;
   rpc_y = images[imi].y + images[imi].ry;
   pxc_x = images[imi].x + images[imi].crop_left;
@@ -316,9 +324,93 @@ void image_rotation_point_set_new(int imi, double x, double y) {
   bY *= images[imi].z;
   bX += rpc_x;
   bY += rpc_y;
-  printf("%.1f %.1f %.1f %.1f\n",aX,aY,bX,bY);
-  images[imi].x -= (bX-aX);
-  images[imi].y -= (bY-aY);
+  images[imi].x -= (bX - aX);
+  images[imi].y -= (bY - aY);
+}
+
+void canvas_center_image(int imi) {
+  if (imi < 0) return;
+  rectangleCorners s = image_find_corners(imi);
+  double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
+  double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
+  cv.x = cX;  // center view
+  cv.y = cY;
+}
+
+void image_rotation_point_set_center(int imi) {  // return image rotation to center
+  if (imi < 0) return;
+  rectangleCorners s = image_find_corners(imi);
+  double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
+  double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
+  image_rotation_point_set_new(imi, cX, cY);
+}
+void canvas_zoom_center_to_image(int imi) {
+  if (imi < 0) return;
+  rectangleCorners s = image_find_corners(imi);
+  double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
+  double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
+  cv.x = cX;  // center view
+  cv.y = cY;
+  double eX = s.aX, eY = s.aY;
+  double xs[] = {s.aX, s.bX, s.cX, s.dX};
+  double ys[] = {s.aY, s.bY, s.cY, s.dY};
+  for (int i = 0; i <= 3; i++) {
+    if (xs[i] <= eX) eX = xs[i];
+    if (ys[i] <= eY) eY = ys[i];
+  }
+  eX = cX - eX;
+  eY = cY - eY;
+  double im_rt = eY / eX;
+  eY *= cv.z;
+  eX *= cv.z;
+  double sc_rt = (double)screen_size_y / (double)screen_size_x;
+  if (im_rt <= sc_rt) {
+    cv.z *= ((screen_size_x / 2.0f)) / eX;
+    // cv.z -= 0.1;
+  } else {
+    cv.z *= ((screen_size_y / 2.0f)) / eY;
+    // cv.z -= 0.1;
+  }
+  // printf("%.1f, %.1f %.1f, %.1f\n", im_rt, sc_rt, eX, eY);
+}
+
+void image_sel_set(int imi) {
+  sel_current = images[imi].sel_order;
+  // printf("s%d\n", sel_current);
+}
+void image_center_sel_next() {
+  int imi = -1;
+  sort_images_by(compare_sel_order);
+  for (int i = 0; i < images_count; i++) {
+    if (images[images[i].sort_index].sel_order > sel_current) {
+      sel_current = images[images[i].sort_index].sel_order;
+      // printf("s%d\n", sel_current);
+      imi = images[i].sort_index;
+      break;
+    }
+  }
+  if (imi < 0) {
+    sel_current = images[images[0].sort_index].sel_order;
+    imi = images[0].sort_index;
+  }
+  canvas_center_image(imi);
+}
+void image_center_sel_prev() {
+  int imi = -1;
+  sort_images_by(compare_sel_order_rev);
+  for (int i = 0; i < images_count; i++) {
+    if (images[images[i].sort_index].sel_order < sel_current) {
+      sel_current = images[images[i].sort_index].sel_order;
+      // printf("s%d\n", sel_current);
+      imi = images[i].sort_index;
+      break;
+    }
+  }
+  if (imi < 0) {
+    sel_current = images[images[0].sort_index].sel_order;
+    imi = images[0].sort_index;
+  }
+  canvas_center_image(imi);
 }
 
 void images_render() {
