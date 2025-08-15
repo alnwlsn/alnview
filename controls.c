@@ -226,10 +226,10 @@ void controls_process(SDL_Event e) {
           canvas_center_image(last_dragged_imi);
           break;
         case SDLK_z:
-          images[last_dragged_imi].opacity -= 1;
+          images[last_dragged_imi].opacity -= 16;
           break;
         case SDLK_x:
-          images[last_dragged_imi].opacity += 1;
+          images[last_dragged_imi].opacity += 16;
           break;
         case SDLK_b:
           global_testA += 1;

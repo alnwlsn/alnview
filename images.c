@@ -308,8 +308,8 @@ void image_rotation_point_set_new(int imi, double x, double y) {
   // find new rotation point (in image coordinates)
   double dX = images[imi].rx;
   double dY = images[imi].ry;
-  double cX = x - images[imi].x - dX;
-  double cY = y - images[imi].y - dY;
+  double cX = (x - images[imi].x - dX) / images[imi].z;
+  double cY = (y - images[imi].y - dY) / images[imi].z;
   images[imi].rx = cX * cos(-images[imi].r * M_PI / 180) - cY * sin(-images[imi].r * M_PI / 180) + dX;
   images[imi].ry = cY * cos(-images[imi].r * M_PI / 180) + cX * sin(-images[imi].r * M_PI / 180) + dY;
 
