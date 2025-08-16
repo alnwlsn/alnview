@@ -1,8 +1,6 @@
 #pragma once
-// makes the SDL window and handles the canvas
-#include <SDL2/SDL.h>
-
-#include "defines.h"
+//handles the canvas
+#include "render.h"
 
 // view of the canvas in the window
 typedef struct {
@@ -13,8 +11,6 @@ typedef struct {
 } CanvasView;
 
 // globals that control the whole thing
-extern SDL_Window *window;
-extern SDL_Renderer *renderer;
 extern CanvasView cv;
 extern int screen_size_x;
 extern int screen_size_y;

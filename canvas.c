@@ -1,9 +1,6 @@
 #include "canvas.h"
-
 #include <math.h>
 
-SDL_Window *window = NULL;
-SDL_Renderer *renderer = NULL;
 CanvasView cv;  // current view
 CanvasView waypt[MAX_CANVAS];
 int screen_size_x;
@@ -40,10 +37,6 @@ void canvas_to_screen(double canvas_x, double canvas_y, double *screen_x, double
 }
 
 void canvas_init() {
-  window = SDL_CreateWindow("alnview", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_INIT_X, WINDOW_INIT_Y,
-                            SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);  //| SDL_WINDOW_MAXIMIZED);
-  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
   // globals that need initalized
   cv.x = 0;
   cv.y = 0;
