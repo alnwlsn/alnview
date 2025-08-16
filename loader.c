@@ -73,7 +73,7 @@ bool load_state() {
   for (int i = 0; i < images_count_load; i++) {
     ImageSave s;
     fread(&s, sizeof(ImageSave), 1, f);
-    printf("%s\n", s.filepath);
+    // printf("%s\n", s.filepath);
     int imi = image_load(s.filepath);
     snprintf(coordText, sizeof(coordText), "loading %s", s.filepath);
     render_text_screen(coordText);

@@ -245,7 +245,7 @@ void controls_process(SDL_Event e) {
           image_zoom_reset(mouseover_or_selected_imi());
           break;
         case SDLK_SEMICOLON:
-          image_rotate_snap(selected_imi, 90);
+          image_rotate_snap(mouseover_selects_imi(), 90);
           break;
         case SDLK_COMMA:
           image_to_on_bottom(selected_imi);

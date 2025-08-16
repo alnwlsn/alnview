@@ -146,7 +146,7 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
       fprintf(stderr, "Failed to load %s: %s\n", filepath, IMG_GetError());
     }
   }
-  return images_count-1;
+  return images_count - 1;
   // fprintf(stdout, "img %d\n", images_count);
 }
 
@@ -379,37 +379,38 @@ void canvas_center_on_nearest_image_in_direction(int imi, double direction) {
   rectangleCorners s = image_find_corners(imi);
   double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
   double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
-  double nearestDistance = -1;
-  int cimi = 0;
+  double nearestDistance = INFINITY;
+  int cimi = -1;
 
   for (int i = 0; i < images_count; i++) {
-    s = image_find_corners(i);
-    double dX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
-    double dY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
-    double distance = sqrt(((dX - cX) * (dX - cX)) + ((dY - cY) * (dY - cY)));
-    double angle = (180 / M_PI) * atan2((dY - cY), (dX - cX));
-    if (nearestDistance < 0) nearestDistance = distance;
+    if (i != imi) {
+      s = image_find_corners(i);
+      double dX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
+      double dY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
 
-    angle += direction;
-    while (angle > 360) angle -= 360;
-    while (angle < 0) angle += 360;
-    if (angle < 90) {
-      if (nearestDistance < 0) nearestDistance = distance;
-      if (distance < nearestDistance) {
-        nearestDistance = distance;
-        cimi = i;
+      double distance = sqrt(((dX - cX) * (dX - cX)) + ((dY - cY) * (dY - cY)));
+      double angle = (180 / M_PI) * atan2((cY - dY), (dX - cX));
+
+      angle += direction + 45 - cv.r;
+      while (angle > 360) angle -= 360;
+      while (angle < 0) angle += 360;
+
+      if (angle < 90) {
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          cimi = i;
+        }
       }
-      // printf("D: %.1f A: %.1f\n", distance, angle);
     }
   }
-  printf("D: %.1f A: %d\n", nearestDistance, cimi);
-  // selected_imi = cimi;
-
-  s = image_find_corners(cimi);
-  cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
-  cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
-  cv.x = cX;  // center view
-  cv.y = cY;
+  if (cimi > -1) {
+    selected_imi = cimi;
+    s = image_find_corners(cimi);
+    cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
+    cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
+    cv.x = cX;  // center view
+    cv.y = cY;
+  }
 }
 
 void image_rotation_point_set_center(int imi) {  // return image rotation to center
