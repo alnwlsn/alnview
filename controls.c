@@ -298,6 +298,18 @@ void controls_process(SDL_Event e) {
         case SDLK_m:
           global_testC += 1;
           break;
+        case SDLK_UP:
+          canvas_center_on_nearest_image_in_direction(selected_imi,90);
+          break;
+        case SDLK_DOWN:
+          canvas_center_on_nearest_image_in_direction(selected_imi,270);
+          break;
+        case SDLK_LEFT:
+          canvas_center_on_nearest_image_in_direction(selected_imi,180);
+          break;
+        case SDLK_RIGHT:
+          canvas_center_on_nearest_image_in_direction(selected_imi,0);
+          break;
         case SDLK_F11: {
           Uint32 flags = SDL_GetWindowFlags(window);
           if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
