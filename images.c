@@ -419,16 +419,16 @@ void images_render() {
     int si = images[i].sort_index;          // sorted index
 
     // test override
-    if (images[si].sel_order == 1) {
-      images[si].rx = 50;
-      images[si].ry = -50;
-      images[si].crop_left = global_testC;
-      images[si].crop_top = global_testC / 2;
-      images[si].crop_right = global_testC;
-      images[si].crop_bottom = global_testC / 2;
-      // images[si].r = global_testA;
-      // images[si].z = (1.0f + global_testB / 10.0);
-    }
+    // if (images[si].sel_order == 1) {
+    //   images[si].rx = 50;
+    //   images[si].ry = -50;
+    //   images[si].crop_left = global_testC;
+    //   images[si].crop_top = global_testC / 2;
+    //   images[si].crop_right = global_testC;
+    //   images[si].crop_bottom = global_testC / 2;
+    //   // images[si].r = global_testA;
+    //   // images[si].z = (1.0f + global_testB / 10.0);
+    // }
 
     // crop can't be negative
     if (images[si].crop_left < 0) images[si].crop_left = 0;

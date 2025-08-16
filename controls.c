@@ -8,11 +8,13 @@ bool canvas_rotating_point = 0;
 bool mouse_dragging = 0;  // for panning
 bool image_dragging = 0;
 bool image_rotating = 0;
+bool image_drag_zoom = 0;
+bool canvas_drag_zoom = 0;
 
 // states
 int shift_held = 0;  // shift key held
 int ctrl_held = 0;   // control key held
-int tab_held = 0;
+int tab_held = 0;    // tab key held
 int dragged_imi = -1;
 
 // move references
@@ -53,7 +55,7 @@ void controls_process(SDL_Event e) {
         mouse_raw_last_y = e.button.y;
         mouse_screen_last_x = mouse_screen_x;
         mouse_screen_last_y = mouse_screen_y;
-        if (ctrl_held) {
+        if (tab_held) {
           canvas_rotation_point_x = mouse_canvas_x;
           canvas_rotation_point_y = mouse_canvas_y;
         }
@@ -61,29 +63,45 @@ void controls_process(SDL_Event e) {
           image_rotation_point_set_new(last_dragged_imi, mouse_canvas_x, mouse_canvas_y);
         }
       } else if (e.button.button == SDL_BUTTON_MIDDLE) {
-        if (shift_held) {  // middle click and drag to rotate canvas about center
-          mouse_initial_angle = mouse_angle_about_center;
-          canvas_initial_rotation = cv.r;
-          canvas_rotating_center = 1;
-        } else if (ctrl_held) {  // middle click and drag to rotate canvas about reference
+        if (tab_held) {  // rotate canvas about reference
           canvas_rotating_point = 1;
           mouse_screen_last_x = mouse_screen_x;
           mouse_screen_last_y = mouse_screen_y;
-        } else {
+        } else if (ctrl_held) {  // rotate canvas about center
+          mouse_initial_angle = mouse_angle_about_center;
+          canvas_initial_rotation = cv.r;
+          canvas_rotating_center = 1;
+        } else {  // shift or no shift; rotate image
           image_rotating = 1;
           mouse_screen_last_x = mouse_screen_x;
           mouse_screen_last_y = mouse_screen_y;
           show_image_reference_marks = 1;
         }
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
-        int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
-        if (imi > -1) {
-          image_sel_set(imi);
-          last_dragged_imi = imi;
-          dragged_imi = imi;
-          image_dragging = 1;
-          mouse_raw_last_x = e.button.x;
-          mouse_raw_last_y = e.button.y;
+        if (shift_held) {
+          image_drag_zoom = 1;
+          mouse_screen_last_x = mouse_screen_x;
+          mouse_screen_last_y = mouse_screen_y;
+        } else if (tab_held) {
+          canvas_drag_zoom = 1;
+          mouse_screen_last_x = mouse_screen_x;
+          mouse_screen_last_y = mouse_screen_y;
+        } else if (ctrl_held) {
+          int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
+          if (imi > -1) {
+            image_sel_set(imi);
+            last_dragged_imi = imi;
+          }
+        } else {
+          int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
+          if (imi > -1) {
+            image_sel_set(imi);
+            last_dragged_imi = imi;
+            dragged_imi = imi;
+            image_dragging = 1;
+            mouse_raw_last_x = e.button.x;
+            mouse_raw_last_y = e.button.y;
+          }
         }
       }
       break;
@@ -98,6 +116,8 @@ void controls_process(SDL_Event e) {
         show_image_reference_marks = 0;
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
         image_dragging = 0;
+        image_drag_zoom = 0;
+        canvas_drag_zoom = 0;
         dragged_imi = -1;
       }
       break;
@@ -132,18 +152,46 @@ void controls_process(SDL_Event e) {
         mouse_screen_last_y = mouse_screen_y;
         canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, dAngle);
       }
+      if (image_drag_zoom) {
+        double screen_reference_x, screen_reference_y;
+        canvas_to_screen(images[last_dragged_imi].x + images[last_dragged_imi].rx, images[last_dragged_imi].y + images[last_dragged_imi].ry,
+                         &screen_reference_x, &screen_reference_y);
+        double distance1 = sqrt((screen_reference_x - mouse_screen_last_x) * (screen_reference_x - mouse_screen_last_x) +
+                                (screen_reference_y - mouse_screen_last_y) * (screen_reference_y - mouse_screen_last_y));
+        double distance2 = sqrt((screen_reference_x - mouse_screen_x) * (screen_reference_x - mouse_screen_x) +
+                                (screen_reference_y - mouse_screen_y) * (screen_reference_y - mouse_screen_y));
+        mouse_screen_last_x = mouse_screen_x;
+        mouse_screen_last_y = mouse_screen_y;
+        images[last_dragged_imi].z *= distance2 / distance1;
+      }
+      if (canvas_drag_zoom) {
+        double screen_reference_x, screen_reference_y;
+        canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &screen_reference_x, &screen_reference_y);
+        double distance1 = sqrt((screen_reference_x - mouse_screen_last_x) * (screen_reference_x - mouse_screen_last_x) +
+                                (screen_reference_y - mouse_screen_last_y) * (screen_reference_y - mouse_screen_last_y));
+        double distance2 = sqrt((screen_reference_x - mouse_screen_x) * (screen_reference_x - mouse_screen_x) +
+                                (screen_reference_y - mouse_screen_y) * (screen_reference_y - mouse_screen_y));
+        mouse_screen_last_x = mouse_screen_x;
+        mouse_screen_last_y = mouse_screen_y;
+        canvas_zoom_by_at_point(canvas_rotation_point_x, canvas_rotation_point_y, distance2 / distance1);
+      }
       break;
     case SDL_MOUSEWHEEL: {
-      if (shift_held) {
+      if (ctrl_held) {
         if (e.wheel.y > 0)
           image_zoom_by(select_imi(), ZOOM_FACTOR);
         else if (e.wheel.y < 0)
           image_zoom_by(select_imi(), 1 / ZOOM_FACTOR);
-      } else if (ctrl_held) {
+      } else if (shift_held) {
         if (e.wheel.y > 0)
           images[last_dragged_imi].z *= ZOOM_FACTOR;
         else if (e.wheel.y < 0)
           images[last_dragged_imi].z /= ZOOM_FACTOR;
+      } else if (tab_held) {
+        if (e.wheel.y > 0)
+          canvas_zoom_by_at_point(canvas_rotation_point_x, canvas_rotation_point_y, ZOOM_FACTOR);
+        else if (e.wheel.y < 0)
+          canvas_zoom_by_at_point(canvas_rotation_point_x, canvas_rotation_point_y, 1 / ZOOM_FACTOR);
       } else {
         if (e.wheel.y > 0)
           canvas_zoom_by(ZOOM_FACTOR);
@@ -163,10 +211,11 @@ void controls_process(SDL_Event e) {
         case SDLK_LCTRL:
         case SDLK_RCTRL:
           ctrl_held = 0;
-          show_canvas_rotation_point = 0;
+          show_center_mark = 0;
           break;
         case SDLK_TAB:
           tab_held = 0;
+          show_canvas_rotation_point = 0;
           break;
       }
       break;
@@ -175,17 +224,16 @@ void controls_process(SDL_Event e) {
         case SDLK_LSHIFT:
         case SDLK_RSHIFT:
           shift_held = 1;
-          show_center_mark = 1;
           show_image_reference_marks = 1;
           break;
         case SDLK_LCTRL:
         case SDLK_RCTRL:
           ctrl_held = 1;
-          show_canvas_rotation_point = 1;
+          show_center_mark = 1;
           break;
         case SDLK_TAB:
           tab_held = 1;
-          show_center_mark = 0;
+          show_canvas_rotation_point = 1;
           break;
         case SDLK_MINUS:
           cv.r = 0;  // reset canvas rotation
@@ -249,7 +297,7 @@ void controls_process(SDL_Event e) {
         case SDLK_m:
           global_testC += 1;
           break;
-        case SDLK_f: {
+        case SDLK_F11: {
           Uint32 flags = SDL_GetWindowFlags(window);
           if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
             SDL_SetWindowFullscreen(window, 0);  // Back to windowed

@@ -26,11 +26,12 @@ extern double mouse_angle_about_center;
 
 void canvas_update_cursor();  // update window size and mouse cursor
 
-void canvas_init();                        // initializes SDL window
+void canvas_init();                          // initializes SDL window
 void canvas_render_pin(double x, double y);  // put pin marker on canvas here
 
-void canvas_drag_screen_by(int dx, int dy);                                               // pan canvas on screen by change in mouse screen coords
-void canvas_zoom_by(double zoom_factor);                                                   // zoom canvas, centered on cursor.
-void canvas_zoom_reset();                                                                 // zoom to 1, centered on cursor.
-void canvas_rotate_about_point_by(double rx, double ry, double angle);                       // rotate canvas by angle by point on canvas
+void canvas_drag_screen_by(int dx, int dy);                             // pan canvas on screen by change in mouse screen coords
+void canvas_zoom_by(double zoom_factor);                                // zoom canvas, centered on cursor.
+void canvas_zoom_reset();                                               // zoom to 1, centered on cursor.
+void canvas_rotate_about_point_by(double rx, double ry, double angle);  // rotate canvas by angle by point on canvas
+void canvas_zoom_by_at_point(double cx, double cy, double zoom_factor);
 void canvas_to_screen(double canvas_x, double canvas_y, double *screen_x, double *screen_y);  // coordinate conversion

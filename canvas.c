@@ -110,6 +110,25 @@ void canvas_zoom_by(double zoom_factor) {
   cv.y -= cdy;
 }
 
+void canvas_zoom_by_at_point(double cx, double cy, double zoom_factor) {
+  // zoom centered on specific canvas point
+  // find old and new position; offset view accordingly
+  double sx, sy;
+  canvas_to_screen(cx,cy, &sx, &sy);
+  double scx1 = (sx / cv.z);
+  double scy1 = (sy / cv.z);
+  cv.z *= zoom_factor;
+  double scx2 = (sx / cv.z);
+  double scy2 = (sy / cv.z);
+  double sdx = scx2 - scx1;
+  double sdy = scy2 - scy1;
+  double cdx = sdx * cos(-cv.r * M_PI / 180) - sdy * sin(-cv.r * M_PI / 180);
+  double cdy = sdy * cos(-cv.r * M_PI / 180) + sdx * sin(-cv.r * M_PI / 180);
+  cv.x -= cdx;
+  cv.y -= cdy;
+}
+
+
 void canvas_zoom_reset(){
   canvas_zoom_by(1/cv.z);
   cv.z = 1;

@@ -49,6 +49,13 @@ int main(int argc, char *argv[]) {
         case SDL_QUIT:
           quit = 1;
           break;
+        case SDL_KEYDOWN:
+          switch (e.key.keysym.sym) {
+            case SDLK_ESCAPE:
+              quit = 1;
+              break;
+          }
+          break;
       }
       controls_process(e);  // control loop
     }
@@ -74,8 +81,6 @@ int main(int argc, char *argv[]) {
              image_point_on(mouse_canvas_x, mouse_canvas_y));
     render_text(renderer, coordText, 2, 64);
 
-    canvas_render_pin(0, 0);
-
     if (show_center_mark) {
       canvas_render_pin(cv.x, cv.y);
     }
@@ -84,15 +89,10 @@ int main(int argc, char *argv[]) {
       canvas_render_pin(canvas_rotation_point_x, canvas_rotation_point_y);
     }
 
-    canvas_render_pin(imrefAx, imrefAy);
-    canvas_render_pin(imrefBx, imrefBy);
-    canvas_render_pin(imrefCx, imrefCy);
-    canvas_render_pin(imrefDx, imrefDy);
-
     // int imir = image_point_on(mouse_canvas_x, mouse_canvas_y);
     if (show_image_reference_marks) {
-      SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-      canvas_render_pin(images[last_dragged_imi].x, images[last_dragged_imi].y);
+      // SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+      // canvas_render_pin(images[last_dragged_imi].x, images[last_dragged_imi].y); //image origin
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
       canvas_render_pin(images[last_dragged_imi].x + images[last_dragged_imi].rx, images[last_dragged_imi].y + images[last_dragged_imi].ry);
       rectangleCorners s = image_find_corners(last_dragged_imi);
@@ -101,6 +101,13 @@ int main(int argc, char *argv[]) {
       canvas_render_pin(s.cX, s.cY);
       canvas_render_pin(s.dX, s.dY);
     }
+
+    // SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+    // canvas_render_pin(imrefAx, imrefAy);
+    // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    // canvas_render_pin(imrefBx, imrefBy);
+    // canvas_render_pin(imrefCx, imrefCy);
+    // canvas_render_pin(imrefDx, imrefDy);
 
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
     SDL_RenderPresent(renderer);
