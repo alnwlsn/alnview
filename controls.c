@@ -259,7 +259,7 @@ void controls_process(SDL_Event e) {
           break;
         case SDLK_RETURN: {
           int imi = mouseover_selects_imi();
-          canvas_zoom_center_to_image(imi);
+          canvas_center_on_image_fit(imi);
           image_series_set(imi);
         } break;
         case SDLK_PAGEUP:
@@ -270,6 +270,9 @@ void controls_process(SDL_Event e) {
           break;
         case SDLK_SPACE:
           canvas_center_on_image(mouseover_selects_imi());
+          break;
+        case SDLK_BACKQUOTE:
+          canvas_zoom_center_fitall();
           break;
         case SDLK_z:
           images[selected_imi].opacity -= 16;

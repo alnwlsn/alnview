@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
 
   images_load_dir(img_dir);  // load all the images
 
+  canvas_zoom_center_fitall();
+
   // images[4].r = 30; //for test
 
   int quit = 0;

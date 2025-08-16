@@ -1,4 +1,5 @@
 #include "images.h"
+
 #include "controls.h"
 
 Image *images = NULL;
@@ -81,6 +82,37 @@ void images_arrange_in_grid() {  // arranges all images into grid by selection o
       max_row_height = 0;
     }
   }
+}
+
+void canvas_zoom_center_fitall() {
+  double minx = 9999999, miny = 9999999;
+  double maxx = -9999999, maxy = -9999999;
+  for (int i = 0; i < images_count; i++) {
+    rectangleCorners s = image_find_corners(i);
+    double xs[] = {s.aX, s.bX, s.cX, s.dX};
+    double ys[] = {s.aY, s.bY, s.cY, s.dY};
+    for (int j = 0; j <= 3; j++) {
+      if (xs[j] <= minx) minx = xs[j];
+      if (ys[j] <= miny) miny = ys[j];
+      if (xs[j] >= maxx) maxx = xs[j];
+      if (ys[j] >= maxy) maxy = ys[j];
+    }
+  }
+  double cex = (maxx + minx) / 2, cey = (maxy + miny) / 2;
+  cv.x = cex;
+  cv.y = cey;
+  minx = cex - minx;
+  miny = cey - miny;
+  double im_rt = miny / minx;
+  miny *= cv.z;
+  minx *= cv.z;
+  double sc_rt = (double)screen_size_y / (double)screen_size_x;
+  if (im_rt <= sc_rt) {
+    cv.z *= ((screen_size_x / 2.0f)) / minx;
+  } else {
+    cv.z *= ((screen_size_y / 2.0f)) / miny;
+  }
+  cv.z /= 1.05;
 }
 
 void image_load(char *filepath) {  // loads image at filepath, inits width and height
@@ -344,7 +376,8 @@ void image_rotation_point_set_center(int imi) {  // return image rotation to cen
   double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
   image_rotation_point_set_new(imi, cX, cY);
 }
-void canvas_zoom_center_to_image(int imi) {
+void canvas_center_on_image_fit(int imi) {
+  // currently doesn't work with rotated canvas
   if (imi < 0) return;
   rectangleCorners s = image_find_corners(imi);
   double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
@@ -366,11 +399,10 @@ void canvas_zoom_center_to_image(int imi) {
   double sc_rt = (double)screen_size_y / (double)screen_size_x;
   if (im_rt <= sc_rt) {
     cv.z *= ((screen_size_x / 2.0f)) / eX;
-    cv.z /= 1.05;
   } else {
     cv.z *= ((screen_size_y / 2.0f)) / eY;
-    cv.z /= 1.05;
   }
+  cv.z /= 1.05;
   // printf("%.1f, %.1f %.1f, %.1f\n", im_rt, sc_rt, eX, eY);
 }
 

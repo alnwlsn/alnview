@@ -56,6 +56,8 @@ void canvas_init() {
     waypt[i].r = 0;
     waypt[i].z = 1.0f;
   }
+
+  canvas_update_cursor();
 }
 
 double rx = 128, ry = -128;  // point to rotate canvas about
