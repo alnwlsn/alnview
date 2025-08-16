@@ -2,7 +2,7 @@
 #include <math.h>
 
 CanvasView cv;  // current view
-CanvasView waypt[MAX_CANVAS];
+CanvasView cvp[MAX_CANVAS];
 int screen_size_x;
 int screen_size_y;
 double mouse_screen_x;
@@ -44,10 +44,10 @@ void canvas_init() {
   cv.z = 1.0f;
 
   for (int i = 0; i < MAX_CANVAS; i++) {
-    waypt[i].x = 0;
-    waypt[i].y = 0;
-    waypt[i].r = 0;
-    waypt[i].z = 1.0f;
+    cvp[i].x = 0;
+    cvp[i].y = 0;
+    cvp[i].r = 0;
+    cvp[i].z = 1.0f;
   }
 
   canvas_update_cursor();

@@ -332,6 +332,36 @@ void controls_process(SDL_Event e) {
           case SDLK_RIGHTBRACKET:
             image_rotate_by(selected_imi, -ROTATE_STEP);
             break;
+          case SDLK_0:
+            cvp[0] = cv;
+            break;
+          case SDLK_1:
+            cvp[1] = cv;
+            break;
+          case SDLK_2:
+            cvp[2] = cv;
+            break;
+          case SDLK_3:
+            cvp[3] = cv;
+            break;
+          case SDLK_4:
+            cvp[4] = cv;
+            break;
+          case SDLK_5:
+            cvp[5] = cv;
+            break;
+          case SDLK_6:
+            cvp[6] = cv;
+            break;
+          case SDLK_7:
+            cvp[7] = cv;
+            break;
+          case SDLK_8:
+            cvp[8] = cv;
+            break;
+          case SDLK_9:
+            cvp[9] = cv;
+            break;
         }
       } else if (ctrl_held) {  // key + control held
         switch (e.key.keysym.sym) {
@@ -349,6 +379,36 @@ void controls_process(SDL_Event e) {
             break;
           case SDLK_RIGHTBRACKET:
             cv.r -= ROTATE_STEP;
+            break;
+          case SDLK_0:
+            cv = cvp[0];
+            break;
+          case SDLK_1:
+            cv = cvp[1];
+            break;
+          case SDLK_2:
+            cv = cvp[2];
+            break;
+          case SDLK_3:
+            cv = cvp[3];
+            break;
+          case SDLK_4:
+            cv = cvp[4];
+            break;
+          case SDLK_5:
+            cv = cvp[5];
+            break;
+          case SDLK_6:
+            cv = cvp[6];
+            break;
+          case SDLK_7:
+            cv = cvp[7];
+            break;
+          case SDLK_8:
+            cv = cvp[8];
+            break;
+          case SDLK_9:
+            cv = cvp[9];
             break;
         }
       }

@@ -14,6 +14,12 @@ void save_state() {
   fwrite(&images_count, sizeof(int), 1, f);
   fwrite(&selected_imi, sizeof(int), 1, f);
 
+  int max_canvas2 = MAX_CANVAS;
+  fwrite(&max_canvas2, sizeof(int), 1, f);
+  for (int i = 0; i < max_canvas2; i++) {
+    fwrite(&cvp[i], sizeof(CanvasView), 1, f);
+  }
+
   for (int i = 0; i < images_count; i++) {
     ImageSave s;
     s.width = images[i].width;
@@ -43,14 +49,14 @@ void save_state() {
 bool load_state() {
   FILE *f = fopen("save.aln", "rb");
   if (!f) {
-    perror("fopen");
+    // perror("fopen");
     return 0;
   }
 
   uint16_t rev = -1;
   fread(&rev, sizeof(u_int16_t), 1, f);
-  if(rev != REVISION){
-    printf("%d wrong file revision\n",rev);
+  if (rev != REVISION) {
+    printf("%d wrong file revision\n", rev);
     return 0;
   }
   fread(&cv, sizeof(CanvasView), 1, f);
@@ -58,10 +64,16 @@ bool load_state() {
   fread(&images_count_load, sizeof(int), 1, f);
   fread(&selected_imi, sizeof(int), 1, f);
 
+  int cvp_i = 0;
+  fread(&cvp_i, sizeof(int), 1, f);
+  for (int i = 0; i < cvp_i; i++) {
+    fread(&cvp[i], sizeof(CanvasView), 1, f);
+  }
+
   for (int i = 0; i < images_count_load; i++) {
     ImageSave s;
     fread(&s, sizeof(ImageSave), 1, f);
-    printf("%s\n",s.filepath);
+    printf("%s\n", s.filepath);
     int imi = image_load(s.filepath);
     snprintf(coordText, sizeof(coordText), "loading %s", s.filepath);
     render_text_screen(coordText);
@@ -80,9 +92,6 @@ bool load_state() {
     images[imi].series_order = s.series_order;
     images[imi].draw_order = s.draw_order;
     images[imi].sort_index = s.sort_index;
-    // strncpy(images[imi].filepath, s.filepath, FILEPATHLEN);
-
-    // images[i].texture = NULL;  // caller must reload texture separately
   }
 
   fclose(f);

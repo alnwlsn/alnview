@@ -12,6 +12,7 @@ typedef struct {
 
 // globals that control the whole thing
 extern CanvasView cv;
+extern CanvasView cvp[];
 extern int screen_size_x;
 extern int screen_size_y;
 extern double mouse_screen_x;
