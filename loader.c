@@ -1,0 +1,91 @@
+#include "loader.h"
+
+// void save_state(const char *filename, Image *images, int count) {
+void save_state() {
+  FILE *f = fopen("save.aln", "wb");
+  if (!f) {
+    perror("fopen");
+    return;
+  }
+
+  uint16_t rev = REVISION;
+  fwrite(&rev, sizeof(u_int16_t), 1, f);
+  fwrite(&cv, sizeof(CanvasView), 1, f);
+  fwrite(&images_count, sizeof(int), 1, f);
+  fwrite(&selected_imi, sizeof(int), 1, f);
+
+  for (int i = 0; i < images_count; i++) {
+    ImageSave s;
+    s.width = images[i].width;
+    s.height = images[i].height;
+    s.x = images[i].x;
+    s.y = images[i].y;
+    s.r = images[i].r;
+    s.rx = images[i].rx;
+    s.ry = images[i].ry;
+    s.z = images[i].z;
+    s.opacity = images[i].opacity;
+    s.crop_top = images[i].crop_top;
+    s.crop_right = images[i].crop_right;
+    s.crop_bottom = images[i].crop_bottom;
+    s.crop_left = images[i].crop_left;
+    s.series_order = images[i].series_order;
+    s.draw_order = images[i].draw_order;
+    s.sort_index = images[i].sort_index;
+    strncpy(s.filepath, images[i].filepath, FILEPATHLEN);
+
+    fwrite(&s, sizeof(ImageSave), 1, f);
+  }
+
+  fclose(f);
+}
+
+bool load_state() {
+  FILE *f = fopen("save.aln", "rb");
+  if (!f) {
+    perror("fopen");
+    return 0;
+  }
+
+  uint16_t rev = -1;
+  fread(&rev, sizeof(u_int16_t), 1, f);
+  if(rev != REVISION){
+    printf("%d wrong file revision\n",rev);
+    return 0;
+  }
+  fread(&cv, sizeof(CanvasView), 1, f);
+  int images_count_load = 0;
+  fread(&images_count_load, sizeof(int), 1, f);
+  fread(&selected_imi, sizeof(int), 1, f);
+
+  for (int i = 0; i < images_count_load; i++) {
+    ImageSave s;
+    fread(&s, sizeof(ImageSave), 1, f);
+    printf("%s\n",s.filepath);
+    int imi = image_load(s.filepath);
+    snprintf(coordText, sizeof(coordText), "loading %s", s.filepath);
+    render_text_screen(coordText);
+
+    images[imi].x = s.x;
+    images[imi].y = s.y;
+    images[imi].r = s.r;
+    images[imi].rx = s.rx;
+    images[imi].ry = s.ry;
+    images[imi].z = s.z;
+    images[imi].opacity = s.opacity;
+    images[imi].crop_top = s.crop_top;
+    images[imi].crop_right = s.crop_right;
+    images[imi].crop_bottom = s.crop_bottom;
+    images[imi].crop_left = s.crop_left;
+    images[imi].series_order = s.series_order;
+    images[imi].draw_order = s.draw_order;
+    images[imi].sort_index = s.sort_index;
+    // strncpy(images[imi].filepath, s.filepath, FILEPATHLEN);
+
+    // images[i].texture = NULL;  // caller must reload texture separately
+  }
+
+  fclose(f);
+
+  return 1;
+}

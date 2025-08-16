@@ -7,8 +7,9 @@
 // #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include "defines.h"
+
 #include "canvas.h"
+#include "defines.h"
 
 typedef struct {
   SDL_Texture *texture;
@@ -30,6 +31,7 @@ typedef struct {
   int sort_index;  // when sorted, this points to images[index] of sorted list
   char filepath[FILEPATHLEN];
 } Image;
+extern int images_count;
 
 typedef struct {
   double aX;
@@ -53,11 +55,12 @@ extern double imrefCy;
 extern double imrefDx;
 extern double imrefDy;
 
-void images_free(); //to be called when program exits
+void images_free();                           // to be called when program exits
 void images_load_dir(const char *directory);  // load all images from directory
 void images_arrange_in_grid();
+int image_load(char *filepath);
 
-int image_point_on(double x, double y); //returns images[] index of image currently under the given point, or -1 if none
+int image_point_on(double x, double y);  // returns images[] index of image currently under the given point, or -1 if none
 
 void images_render();
 

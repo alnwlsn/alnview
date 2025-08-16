@@ -116,7 +116,7 @@ void canvas_zoom_center_fitall() {
   cv.z /= 1.05;
 }
 
-void image_load(char *filepath) {  // loads image at filepath, inits width and height
+int image_load(char *filepath) {  // loads image at filepath, inits width and height
   if (images_count >= MAX_IMAGES) {
     fprintf(stderr, "Too many images to load\n");
   }
@@ -146,6 +146,7 @@ void image_load(char *filepath) {  // loads image at filepath, inits width and h
       fprintf(stderr, "Failed to load %s: %s\n", filepath, IMG_GetError());
     }
   }
+  return images_count-1;
   // fprintf(stdout, "img %d\n", images_count);
 }
 
@@ -403,7 +404,7 @@ void canvas_center_on_nearest_image_in_direction(int imi, double direction) {
   }
   printf("D: %.1f A: %d\n", nearestDistance, cimi);
   // selected_imi = cimi;
-  
+
   s = image_find_corners(cimi);
   cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
   cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
