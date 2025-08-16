@@ -92,10 +92,10 @@ int main(int argc, char *argv[]) {
     // int imir = image_point_on(mouse_canvas_x, mouse_canvas_y);
     if (show_image_reference_marks) {
       // SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-      // canvas_render_pin(images[last_dragged_imi].x, images[last_dragged_imi].y); //image origin
+      // canvas_render_pin(images[selected_imi].x, images[selected_imi].y); //image origin
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-      canvas_render_pin(images[last_dragged_imi].x + images[last_dragged_imi].rx, images[last_dragged_imi].y + images[last_dragged_imi].ry);
-      rectangleCorners s = image_find_corners(last_dragged_imi);
+      canvas_render_pin(images[selected_imi].x + images[selected_imi].rx, images[selected_imi].y + images[selected_imi].ry);
+      rectangleCorners s = image_find_corners(selected_imi);
       canvas_render_pin(s.aX, s.aY);
       canvas_render_pin(s.bX, s.bY);
       canvas_render_pin(s.cX, s.cY);
