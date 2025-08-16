@@ -1,6 +1,7 @@
 #include "images.h"
 
 #include "controls.h"
+#include "render.h"
 
 Image *images = NULL;
 int images_count = 0;
@@ -131,7 +132,7 @@ void image_load(char *filepath) {  // loads image at filepath, inits width and h
     if (surface) {
       SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
       if (texture) {
-        fprintf(stdout, "loaded %s\n", filepath);
+        // fprintf(stdout, "loaded %s\n", filepath);
         img->texture = texture;
         img->width = surface->w;
         img->height = surface->h;
@@ -162,6 +163,10 @@ void images_load_dir(const char *directory) {  // load all images from directory
     snprintf(path, sizeof(path) - 8, "%s/%s", directory, entry->d_name);
     struct stat path_stat;
     if (stat(path, &path_stat) != 0 || !S_ISREG(path_stat.st_mode)) continue;
+
+    snprintf(coordText, sizeof(coordText), "loading %s", path);
+    render_text_screen(coordText);
+
     image_load(path);
   }
   closedir(dir);

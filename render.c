@@ -7,15 +7,33 @@
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 TTF_Font *font = NULL;
+char coordText[600];
 
-void render_text(SDL_Renderer *renderer, char *coordText, int x, int y) {  // for rendering text on screen
+void render_text(char *text, int x, int y) {  // for rendering text on screen
   SDL_Color textColor = {255, 255, 255, 255};
-  SDL_Surface *textSurface = TTF_RenderText_Blended(font, coordText, textColor);
+  SDL_Surface *textSurface = TTF_RenderText_Blended(font, text, textColor);
   SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
   SDL_Rect textRect = {x, y, textSurface->w, textSurface->h};
   SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
   SDL_FreeSurface(textSurface);
   SDL_DestroyTexture(textTexture);
+}
+
+void render_text_center(char *text, int x, int y) {  // for rendering text on screen
+  SDL_Color textColor = {255, 255, 255, 255};
+  SDL_Surface *textSurface = TTF_RenderText_Blended(font, text, textColor);
+  SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+  SDL_Rect textRect = {x-(textSurface->w/2), y-(textSurface->h/2), textSurface->w, textSurface->h};
+  SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+  SDL_FreeSurface(textSurface);
+  SDL_DestroyTexture(textTexture);
+}
+
+void render_text_screen(char *text){
+    SDL_RenderClear(renderer);
+    render_text_center(text, WINDOW_INIT_X/2, WINDOW_INIT_Y/2);
+    SDL_SetRenderDrawColor(renderer, BGCOLOR_R, BGCOLOR_G, BGCOLOR_B, 255);
+    SDL_RenderPresent(renderer);
 }
 
 void render_init() {
@@ -39,20 +57,19 @@ void render_canvas() {
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
   // debugging text
-  char coordText[128];
   snprintf(coordText, sizeof(coordText), "X: %.1f Y: %.1f R: %.1f Z: %.1f", cv.x, cv.y, cv.r, cv.z);
-  render_text(renderer, coordText, 2, 0);
+  render_text(coordText, 2, 0);
   snprintf(coordText, sizeof(coordText), "X: %.1f Y: %.1f A: %.1f", mouse_screen_x, mouse_screen_y, mouse_angle_about_center);
-  render_text(renderer, coordText, 2, 16);
+  render_text(coordText, 2, 16);
   snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mouse_canvas_x, mouse_canvas_y);
-  render_text(renderer, coordText, 2, 32);
+  render_text(coordText, 2, 32);
   double ax, ay;
   canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &ax, &ay);
   snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f sX: %.1f  sY: %.1f", canvas_rotation_point_x, canvas_rotation_point_y, ax, ay);
-  render_text(renderer, coordText, 2, 48);
+  render_text(coordText, 2, 48);
   snprintf(coordText, sizeof(coordText), "TA: %d TB: %d TC: %d M: %d", global_testA, global_testB, global_testC,
            image_point_on(mouse_canvas_x, mouse_canvas_y));
-  render_text(renderer, coordText, 2, 64);
+  render_text(coordText, 2, 64);
 
   if (show_center_mark) {
     canvas_render_pin(cv.x, cv.y);
@@ -82,6 +99,6 @@ void render_canvas() {
   // canvas_render_pin(imrefCx, imrefCy);
   // canvas_render_pin(imrefDx, imrefDy);
 
-  SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);  // background color
+  SDL_SetRenderDrawColor(renderer, BGCOLOR_R, BGCOLOR_G, BGCOLOR_B, 255);  // background color
   SDL_RenderPresent(renderer);
 }

@@ -8,3 +8,6 @@
 #define WINDOW_INIT_Y 600
 #define ZOOM_FACTOR 1.1f
 #define ROTATE_STEP 15.0f
+#define BGCOLOR_R 30
+#define BGCOLOR_G 30
+#define BGCOLOR_B 30
