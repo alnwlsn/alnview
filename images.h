@@ -25,7 +25,7 @@ typedef struct {
   int crop_right;
   int crop_bottom;
   int crop_left;
-  int sel_order;
+  int series_order;
   int draw_order;
   int sort_index;  // when sorted, this points to images[index] of sorted list
   char filepath[FILEPATHLEN];
@@ -73,7 +73,7 @@ void image_rotate_snap(int imi, double sr);
 void image_rotation_point_set_new(int imi, double x, double y);
 void image_rotation_point_set_center(int imi);
 void canvas_zoom_center_to_image(int imi);
-void canvas_center_image(int imi);
-void image_sel_set(int imi);
-void image_center_sel_next();
-void image_center_sel_prev();
+void canvas_center_on_image(int imi);
+void image_series_set(int imi);
+void image_center_series_next();
+void image_center_series_prev();

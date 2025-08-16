@@ -1,5 +1,4 @@
 #include "images.h"
-
 #include "controls.h"
 
 Image *images = NULL;
@@ -12,7 +11,7 @@ double imrefCx = 0;
 double imrefCy = 0;
 double imrefDx = 0;
 double imrefDy = 0;
-int sel_current = 0;
+int series_current = 0;
 
 // sorting options
 // call sort_images_by(compare_some_option)
@@ -29,18 +28,18 @@ int compare_draw_order(const void *a, const void *b) {
   if (sort_images[i].draw_order > sort_images[j].draw_order) return 1;
   return 0;
 }
-int compare_sel_order(const void *a, const void *b) {
+int compare_series_order(const void *a, const void *b) {
   int i = *(const int *)a;
   int j = *(const int *)b;
-  if (sort_images[i].sel_order < sort_images[j].sel_order) return -1;
-  if (sort_images[i].sel_order > sort_images[j].sel_order) return 1;
+  if (sort_images[i].series_order < sort_images[j].series_order) return -1;
+  if (sort_images[i].series_order > sort_images[j].series_order) return 1;
   return 0;
 }
-int compare_sel_order_rev(const void *a, const void *b) {
+int compare_series_order_rev(const void *a, const void *b) {
   int i = *(const int *)a;
   int j = *(const int *)b;
-  if (sort_images[i].sel_order > sort_images[j].sel_order) return -1;
-  if (sort_images[i].sel_order < sort_images[j].sel_order) return 1;
+  if (sort_images[i].series_order > sort_images[j].series_order) return -1;
+  if (sort_images[i].series_order < sort_images[j].series_order) return 1;
   return 0;
 }
 void sort_images_by(int (*cmp)(const void *, const void *)) {
@@ -62,7 +61,7 @@ void images_arrange_in_grid() {  // arranges all images into grid by selection o
 
   int x = 0, y = 0;
   int max_row_height = 0;
-  sort_images_by(compare_sel_order);
+  sort_images_by(compare_series_order);
   for (int i = 0; i < images_count; ++i) {
     int si = images[i].sort_index;
     images[si].x = x;
@@ -146,8 +145,9 @@ void images_load_dir(const char *directory) {  // load all images from directory
     images[i].z = 1;
     images[i].opacity = 255;
     images[images[i].sort_index].draw_order = i;
-    images[images[i].sort_index].sel_order = i;
+    images[images[i].sort_index].series_order = i;
   }
+  selected_imi = images[0].sort_index;
   images_arrange_in_grid();
 }
 
@@ -328,7 +328,7 @@ void image_rotation_point_set_new(int imi, double x, double y) {
   images[imi].y -= (bY - aY);
 }
 
-void canvas_center_image(int imi) {
+void canvas_center_on_image(int imi) {
   if (imi < 0) return;
   rectangleCorners s = image_find_corners(imi);
   double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
@@ -374,43 +374,43 @@ void canvas_zoom_center_to_image(int imi) {
   // printf("%.1f, %.1f %.1f, %.1f\n", im_rt, sc_rt, eX, eY);
 }
 
-void image_sel_set(int imi) {
-  sel_current = images[imi].sel_order;
-  // printf("s%d\n", sel_current);
+void image_series_set(int imi) {
+  series_current = images[imi].series_order;
+  // printf("s%d\n", series_current);
 }
-void image_center_sel_next() {
+void image_center_series_next() {
   int imi = -1;
-  sort_images_by(compare_sel_order);
+  sort_images_by(compare_series_order);
   for (int i = 0; i < images_count; i++) {
-    if (images[images[i].sort_index].sel_order > sel_current) {
-      sel_current = images[images[i].sort_index].sel_order;
-      // printf("s%d\n", sel_current);
+    if (images[images[i].sort_index].series_order > series_current) {
+      series_current = images[images[i].sort_index].series_order;
+      // printf("s%d\n", series_current);
       imi = images[i].sort_index;
       break;
     }
   }
   if (imi < 0) {
-    sel_current = images[images[0].sort_index].sel_order;
+    series_current = images[images[0].sort_index].series_order;
     imi = images[0].sort_index;
   }
-  canvas_center_image(imi);
+  canvas_center_on_image(imi);
 }
-void image_center_sel_prev() {
+void image_center_series_prev() {
   int imi = -1;
-  sort_images_by(compare_sel_order_rev);
+  sort_images_by(compare_series_order_rev);
   for (int i = 0; i < images_count; i++) {
-    if (images[images[i].sort_index].sel_order < sel_current) {
-      sel_current = images[images[i].sort_index].sel_order;
-      // printf("s%d\n", sel_current);
+    if (images[images[i].sort_index].series_order < series_current) {
+      series_current = images[images[i].sort_index].series_order;
+      // printf("s%d\n", series_current);
       imi = images[i].sort_index;
       break;
     }
   }
   if (imi < 0) {
-    sel_current = images[images[0].sort_index].sel_order;
+    series_current = images[images[0].sort_index].series_order;
     imi = images[0].sort_index;
   }
-  canvas_center_image(imi);
+  canvas_center_on_image(imi);
 }
 
 void images_render() {
@@ -419,7 +419,7 @@ void images_render() {
     int si = images[i].sort_index;          // sorted index
 
     // test override
-    // if (images[si].sel_order == 1) {
+    // if (images[si].series_order == 1) {
     //   images[si].rx = 50;
     //   images[si].ry = -50;
     //   images[si].crop_left = global_testC;

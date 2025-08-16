@@ -97,13 +97,13 @@ void controls_process(SDL_Event e) {
         } else if (ctrl_held) {
           int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
           if (imi > -1) {
-            image_sel_set(imi);
+            image_series_set(imi);
             selected_imi = imi;
           }
         } else {
           int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
           if (imi > -1) {
-            image_sel_set(imi);
+            image_series_set(imi);
             selected_imi = imi;
             image_dragging = 1;
             mouse_raw_last_x = e.button.x;
@@ -257,19 +257,19 @@ void controls_process(SDL_Event e) {
         case SDLK_SLASH:
           image_rotation_point_set_center(selected_imi);
           break;
-        case SDLK_d: {
-          int imi = mouseover_or_selected_imi();
+        case SDLK_RETURN: {
+          int imi = mouseover_selects_imi();
           canvas_zoom_center_to_image(imi);
-          image_sel_set(imi);
+          image_series_set(imi);
         } break;
         case SDLK_PAGEUP:
-          image_center_sel_prev();
+          image_center_series_prev();
           break;
         case SDLK_PAGEDOWN:
-          image_center_sel_next();
+          image_center_series_next();
           break;
         case SDLK_SPACE:
-          canvas_center_image(mouseover_selects_imi());
+          canvas_center_on_image(mouseover_selects_imi());
           break;
         case SDLK_z:
           images[selected_imi].opacity -= 16;
@@ -320,10 +320,6 @@ void controls_process(SDL_Event e) {
             break;
           case SDLK_RIGHTBRACKET:
             canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, ROTATE_STEP);
-            break;
-          case SDLK_p:
-            canvas_rotation_point_x = mouse_canvas_x;
-            canvas_rotation_point_y = mouse_canvas_y;
             break;
         }
       } else {  // keys with no modifiers
