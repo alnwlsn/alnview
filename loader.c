@@ -56,7 +56,7 @@ bool load_state() {
   uint16_t rev = -1;
   fread(&rev, sizeof(uint16_t), 1, f);
   if (rev != REVISION) {
-    printf("%d wrong file revision\n", rev);
+    fprintf(stderr, "%d wrong savefile revision\n", rev);
     return 0;
   }
   fread(&cv, sizeof(CanvasView), 1, f);
@@ -73,6 +73,12 @@ bool load_state() {
   for (int i = 0; i < images_count_load; i++) {
     ImageSave s;
     fread(&s, sizeof(ImageSave), 1, f);
+    FILE *test = fopen(s.filepath, "rb");
+    if (!test) {
+      fprintf(stderr, "savefile image not found: %s\n", s.filepath);
+      continue;  // skip this one
+    }
+    fclose(test);
     // printf("%s\n", s.filepath);
     int imi = image_load(s.filepath);
     snprintf(coordText, sizeof(coordText), "loading %s", s.filepath);

@@ -86,6 +86,7 @@ void images_arrange_in_grid() {  // arranges all images into grid by selection o
 }
 
 void canvas_zoom_center_fitall() {
+  if (images_count <= 0) return;
   double minx = 9999999, miny = 9999999;
   double maxx = -9999999, maxy = -9999999;
   for (int i = 0; i < images_count; i++) {
@@ -159,11 +160,18 @@ void images_load_dir(const char *directory) {  // load all images from directory
   struct dirent *entry;
   // collect image files in dir
   while ((entry = readdir(dir))) {
-    if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
+    if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0 || strcmp(entry->d_name, SAVEFILE) == 0) continue;
     char path[512];
     snprintf(path, sizeof(path) - 8, "%s/%s", directory, entry->d_name);
     struct stat path_stat;
     if (stat(path, &path_stat) != 0 || !S_ISREG(path_stat.st_mode)) continue;
+
+    for (int i = 0; i < images_count; i++) {
+    if(strcmp(path, images[i].filepath)==0){
+      fprintf(stderr, "tried to load %s but is already loaded\n", SDL_GetError());
+      continue;
+    }
+  }
 
     snprintf(coordText, sizeof(coordText), "loading %s", path);
     render_text_screen(coordText);
@@ -171,6 +179,8 @@ void images_load_dir(const char *directory) {  // load all images from directory
     image_load(path);
   }
   closedir(dir);
+
+  if (images_count <= 0) return;
 
   // initialize images
   sort_images_by(compare_filepath);
