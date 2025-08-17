@@ -12,3 +12,4 @@
 #define BGCOLOR_R 30
 #define BGCOLOR_G 30
 #define BGCOLOR_B 30
+#define SAVEFILE "view.aln"

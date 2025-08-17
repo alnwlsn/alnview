@@ -9,6 +9,24 @@ SDL_Renderer *renderer = NULL;
 TTF_Font *font = NULL;
 char coordText[600];
 
+char* get_resource_path(const char *file) {
+    // SDL_GetBasePath gives you the directory containing the executable
+    char *base = SDL_GetBasePath();
+    if (!base) {
+        // fallback: current working directory
+        base = SDL_strdup("./");
+    }
+
+    size_t len = strlen(base) + strlen(file) + 1;
+    char *full_path = (char*)malloc(len);
+    if (full_path) {
+        strcpy(full_path, base);
+        strcat(full_path, file);
+    }
+    SDL_free(base);  // SDL_GetBasePath uses SDL_malloc internally
+    return full_path;
+}
+
 void render_text(char *text, int x, int y) {  // for rendering text on screen
   SDL_Color textColor = {255, 255, 255, 255};
   SDL_Surface *textSurface = TTF_RenderText_Blended(font, text, textColor);
@@ -38,7 +56,7 @@ void render_text_screen(char *text){
 
 void render_init() {
   TTF_Init();
-  font = TTF_OpenFont("font.ttf", 16);
+  font = TTF_OpenFont(get_resource_path("font.ttf"), 16);
   if (!font) {
     fprintf(stderr, "Failed to load font: %s\n", TTF_GetError());
     exit(1);

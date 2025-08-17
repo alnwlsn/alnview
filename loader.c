@@ -2,14 +2,14 @@
 
 // void save_state(const char *filename, Image *images, int count) {
 void save_state() {
-  FILE *f = fopen("save.aln", "wb");
+  FILE *f = fopen(SAVEFILE, "wb");
   if (!f) {
     perror("fopen");
     return;
   }
 
   uint16_t rev = REVISION;
-  fwrite(&rev, sizeof(u_int16_t), 1, f);
+  fwrite(&rev, sizeof(uint16_t), 1, f);
   fwrite(&cv, sizeof(CanvasView), 1, f);
   fwrite(&images_count, sizeof(int), 1, f);
   fwrite(&selected_imi, sizeof(int), 1, f);
@@ -47,14 +47,14 @@ void save_state() {
 }
 
 bool load_state() {
-  FILE *f = fopen("save.aln", "rb");
+  FILE *f = fopen(SAVEFILE, "rb");
   if (!f) {
     // perror("fopen");
     return 0;
   }
 
   uint16_t rev = -1;
-  fread(&rev, sizeof(u_int16_t), 1, f);
+  fread(&rev, sizeof(uint16_t), 1, f);
   if (rev != REVISION) {
     printf("%d wrong file revision\n", rev);
     return 0;

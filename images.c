@@ -373,6 +373,8 @@ void canvas_center_on_image(int imi) {
   double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
   cv.x = cX;  // center view
   cv.y = cY;
+  selected_imi = imi;
+  series_current = images[selected_imi].series_order;
 }
 
 void canvas_center_on_nearest_image_in_direction(int imi, double direction) {
@@ -404,12 +406,13 @@ void canvas_center_on_nearest_image_in_direction(int imi, double direction) {
     }
   }
   if (cimi > -1) {
-    selected_imi = cimi;
     s = image_find_corners(cimi);
     cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
     cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
     cv.x = cX;  // center view
     cv.y = cY;
+    selected_imi = cimi;
+    series_current = images[selected_imi].series_order;
   }
 }
 
