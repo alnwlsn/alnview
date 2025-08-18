@@ -160,12 +160,15 @@ void images_load_dir(const char *directory) {  // load all images from directory
     struct stat path_stat;
     if (stat(path, &path_stat) != 0 || !S_ISREG(path_stat.st_mode)) continue;
 
+    bool already_loaded = 0;
     for (int i = 0; i < images_count; i++) {
       if (strcmp(path, images[i].filepath) == 0) {
         fprintf(stderr, "tried to load %s but is already loaded\n", SDL_GetError());
+        already_loaded = 1;
         continue;
       }
     }
+    if (already_loaded) continue;
 
     snprintf(coordText, sizeof(coordText), "loading %s", path);
     render_text_screen(coordText);
