@@ -163,7 +163,7 @@ void images_load_dir(const char *directory) {  // load all images from directory
     bool already_loaded = 0;
     for (int i = 0; i < images_count; i++) {
       if (strcmp(path, images[i].filepath) == 0) {
-        fprintf(stderr, "tried to load %s but is already loaded\n", SDL_GetError());
+        fprintf(stderr, "tried to load %s but is already loaded\n", path);
         already_loaded = 1;
         continue;
       }
