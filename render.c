@@ -62,7 +62,7 @@ void render_init() {
     exit(1);
   }
   SDL_Init(SDL_INIT_VIDEO);
-  IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
+  IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_TIF | IMG_INIT_WEBP);
   window = SDL_CreateWindow("alnview", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_INIT_X, WINDOW_INIT_Y,
                             SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);  //| SDL_WINDOW_MAXIMIZED);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);

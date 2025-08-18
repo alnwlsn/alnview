@@ -87,8 +87,8 @@ void images_arrange_in_grid() {  // arranges all images into grid by selection o
 
 void canvas_zoom_center_fitall() {
   if (images_count <= 0) return;
-  double minx = 9999999, miny = 9999999;
-  double maxx = -9999999, maxy = -9999999;
+  double minx = DBL_MAX, miny = DBL_MAX;
+  double maxx = -DBL_MAX, maxy = -DBL_MAX;
   for (int i = 0; i < images_count; i++) {
     rectangleCorners s = image_find_corners(i);
     double xs[] = {s.aX, s.bX, s.cX, s.dX};
@@ -121,31 +121,25 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
   if (images_count >= MAX_IMAGES) {
     fprintf(stderr, "Too many images to load\n");
   }
-  const char *ext = strrchr(filepath, '.');
-  if (!ext || (strcasecmp(ext, ".png") != 0 && strcasecmp(ext, ".jpg") != 0 && strcasecmp(ext, ".jpeg") != 0)) {
-    fprintf(stderr, "Can't load file %s\n", filepath);
-  } else {
-    // make room and load the image
-    images = realloc(images, sizeof(Image) * (images_count + 1));
-    Image *img = &images[images_count];
-    // img->texture = load_texture(renderer, filepath, &img->width, &img->height);
-    SDL_Surface *surface = IMG_Load(filepath);
-    if (surface) {
-      SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-      if (texture) {
-        // fprintf(stdout, "loaded %s\n", filepath);
-        img->texture = texture;
-        img->width = surface->w;
-        img->height = surface->h;
-        memcpy(img->filepath, filepath, FILEPATHLEN);
-        images_count++;
-      } else {
-        fprintf(stderr, "Failed to create texture: %s\n", SDL_GetError());
-      }
-      SDL_FreeSurface(surface);
+  // img->texture = load_texture(renderer, filepath, &img->width, &img->height);
+  SDL_Surface *surface = IMG_Load(filepath);
+  if (surface) {
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    if (texture) {
+      images = realloc(images, sizeof(Image) * (images_count + 1));
+      Image *img = &images[images_count];
+      img->texture = texture;
+      img->width = surface->w;
+      img->height = surface->h;
+      memcpy(img->filepath, filepath, FILEPATHLEN);
+      images_count++;
     } else {
-      fprintf(stderr, "Failed to load %s: %s\n", filepath, IMG_GetError());
+      fprintf(stderr, "Failed to create texture: %s\n", SDL_GetError());
     }
+    SDL_FreeSurface(surface);
+  } else {
+    fprintf(stderr, "Failed to load %s: %s\n", filepath, IMG_GetError());
   }
   return images_count - 1;
   // fprintf(stdout, "img %d\n", images_count);
@@ -167,11 +161,11 @@ void images_load_dir(const char *directory) {  // load all images from directory
     if (stat(path, &path_stat) != 0 || !S_ISREG(path_stat.st_mode)) continue;
 
     for (int i = 0; i < images_count; i++) {
-    if(strcmp(path, images[i].filepath)==0){
-      fprintf(stderr, "tried to load %s but is already loaded\n", SDL_GetError());
-      continue;
+      if (strcmp(path, images[i].filepath) == 0) {
+        fprintf(stderr, "tried to load %s but is already loaded\n", SDL_GetError());
+        continue;
+      }
     }
-  }
 
     snprintf(coordText, sizeof(coordText), "loading %s", path);
     render_text_screen(coordText);
