@@ -134,7 +134,7 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
   // fprintf(stdout, "img %d\n", images_count);
 }
 
-void images_load_dir(const char *directory) {  // load all images from directory
+void images_load_dir(const char *directory, bool show) {  // load all images from directory
   bool no_savefile = 1;
   DIR *dir = opendir(directory);
   if (!dir) {
@@ -163,7 +163,7 @@ void images_load_dir(const char *directory) {  // load all images from directory
     if (already_loaded) continue;
 
     snprintf(coordText, sizeof(coordText), "loading %s", path);
-    render_text_screen(coordText);
+    if (show) render_text_screen(coordText);
 
     image_load(path);
   }
@@ -212,6 +212,7 @@ void images_load_dir(const char *directory) {  // load all images from directory
 }
 
 int image_point_inside(double px, double py, rectangleCorners s) {
+  // take cross product of each point with target. if all in same direction, is inside
   double c1 = (s.bX - s.aX) * (py - s.aY) - (s.bY - s.aY) * (px - s.aX);
   double c2 = (s.cX - s.bX) * (py - s.bY) - (s.cY - s.bY) * (px - s.bX);
   double c3 = (s.dX - s.cX) * (py - s.cY) - (s.dY - s.cY) * (px - s.cX);
@@ -736,7 +737,12 @@ void images_render() {
   }
 }
 
-void images_free() {
+void images_unload(){
   for (int i = 0; i < images_count; ++i) SDL_DestroyTexture(images[i].texture);
+  images_count = 0;
+}
+
+void images_free() {
+  images_unload();
   free(images);
 }

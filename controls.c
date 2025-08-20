@@ -313,6 +313,12 @@ void controls_process(SDL_Event e) {
         case SDLK_f:
           image_uncrop(mouseover_or_selected_imi());
           break;
+        case SDLK_i: {
+          CanvasView gv = cv;
+          images_unload();
+          uniload(0);
+          cv = gv;
+        } break;
         case SDLK_s:
           save_state();
           break;

@@ -1,5 +1,7 @@
 #include "loader.h"
 
+char img_dir[FILEPATHLEN] = ".";
+
 // void save_state(const char *filename, Image *images, int count) {
 void save_state() {
   FILE *f = fopen(SAVEFILE, "wb");
@@ -46,7 +48,7 @@ void save_state() {
   fclose(f);
 }
 
-bool load_state() {
+bool load_state(bool show) {
   FILE *f = fopen(SAVEFILE, "rb");
   if (!f) {
     // perror("fopen");
@@ -82,7 +84,7 @@ bool load_state() {
     // printf("%s\n", s.filepath);
     int imi = image_load(s.filepath);
     snprintf(coordText, sizeof(coordText), "loading %s", s.filepath);
-    render_text_screen(coordText);
+    if (show) render_text_screen(coordText);
 
     images[imi].x = s.x;
     images[imi].y = s.y;
@@ -103,4 +105,13 @@ bool load_state() {
   fclose(f);
 
   return 1;
+}
+
+void uniload(bool show) {
+  if (!load_state(show)) {
+    images_load_dir(img_dir, show);  // load all the images
+    canvas_zoom_center_fitall();
+  } else {
+    images_load_dir(img_dir, show);  // still load extra imgs
+  }
 }

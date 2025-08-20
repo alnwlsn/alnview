@@ -1,10 +1,8 @@
 #include "canvas.h"
 #include "controls.h"
 #include "images.h"
-#include "render.h"
 #include "loader.h"
-
-char img_dir[FILEPATHLEN] = ".";
+#include "render.h"
 
 int main(int argc, char *argv[]) {
   render_init();
@@ -16,12 +14,7 @@ int main(int argc, char *argv[]) {
 
   canvas_init();  // this actually makes the window
 
-  if (!load_state()) {
-    images_load_dir(img_dir);  // load all the images
-    canvas_zoom_center_fitall();
-  }else{
-    images_load_dir(img_dir); //still load extra imgs
-  }
+  uniload(1);
 
   // images[4].r = 30; //for test
 
