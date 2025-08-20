@@ -46,15 +46,6 @@ typedef struct {
 
 extern Image *images;
 
-extern double imrefAx;
-extern double imrefAy;
-extern double imrefBx;
-extern double imrefBy;
-extern double imrefCx;
-extern double imrefCy;
-extern double imrefDx;
-extern double imrefDy;
-
 void images_free();                           // to be called when program exits
 void images_load_dir(const char *directory);  // load all images from directory
 void images_arrange_in_grid();

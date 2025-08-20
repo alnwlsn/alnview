@@ -10,8 +10,5 @@ extern bool show_image_reference_marks;
 extern double canvas_rotation_point_x;
 extern double canvas_rotation_point_y;
 extern int selected_imi;
-extern int global_testA;
-extern int global_testB;
-extern int global_testC;
 
 void controls_process(SDL_Event e);

@@ -37,9 +37,6 @@ double canvas_rotation_point_y = 0;
 bool show_center_mark = 0;            // for rendering, show a center mark if true
 bool show_canvas_rotation_point = 0;  // for renderer to show another reference mark
 bool show_image_reference_marks = 0;  // show corners, base and rotation point of selected image
-int global_testA = 0;
-int global_testB = 0;
-int global_testC = 0;
 
 int mouseover_or_selected_imi() {  // use either the mouseovered imi or the last selected one
   int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);

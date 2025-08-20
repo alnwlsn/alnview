@@ -4,6 +4,19 @@
 #include "controls.h"
 #include "images.h"
 
+double global_testA = 0;
+double global_testB = 0;
+double global_testC = 0;
+double global_testD = 0;
+double imrefAx = 0;
+double imrefAy = 0;
+double imrefBx = 0;
+double imrefBy = 0;
+double imrefCx = 0;
+double imrefCy = 0;
+double imrefDx = 0;
+double imrefDy = 0;
+
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 TTF_Font *font = NULL;
@@ -81,13 +94,8 @@ void render_canvas() {
   render_text(coordText, 2, 16);
   snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mouse_canvas_x, mouse_canvas_y);
   render_text(coordText, 2, 32);
-  double ax, ay;
-  canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &ax, &ay);
-  snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f sX: %.1f  sY: %.1f", canvas_rotation_point_x, canvas_rotation_point_y, ax, ay);
+  snprintf(coordText, sizeof(coordText), "gtA: %.1f gtB: %.1f gtC: %.1f gtD: %.1f", global_testA, global_testB, global_testC, global_testD);
   render_text(coordText, 2, 48);
-  snprintf(coordText, sizeof(coordText), "TA: %d TB: %d TC: %d M: %d", global_testA, global_testB, global_testC,
-           image_point_on(mouse_canvas_x, mouse_canvas_y));
-  render_text(coordText, 2, 64);
 
   if (show_center_mark) {
     canvas_render_pin(cv.x, cv.y);
@@ -111,11 +119,11 @@ void render_canvas() {
   }
 
   // SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
-  // canvas_render_pin(imrefAx, imrefAy);
+  canvas_render_pin(imrefAx, imrefAy);
   // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-  // canvas_render_pin(imrefBx, imrefBy);
-  // canvas_render_pin(imrefCx, imrefCy);
-  // canvas_render_pin(imrefDx, imrefDy);
+  canvas_render_pin(imrefBx, imrefBy);
+  canvas_render_pin(imrefCx, imrefCy);
+  canvas_render_pin(imrefDx, imrefDy);
 
   SDL_SetRenderDrawColor(renderer, BGCOLOR_R, BGCOLOR_G, BGCOLOR_B, 255);  // background color
   SDL_RenderPresent(renderer);
