@@ -307,17 +307,19 @@ rectangleCorners image_find_corners_noncrop(int si) {  // finds canvas coords fo
   s.dY *= images[si].z;
   s.dX += rpc_x;
   s.dY += rpc_y;
-  
-  imrefAx = s.aX;
-  imrefAy = s.aY;
-  imrefBx = s.bX;
-  imrefBy = s.bY;
-  imrefCx = s.cX;
-  imrefCy = s.cY;
-  imrefDx = s.dX;
-  imrefDy = s.dY;
-  
+
   return s;
+}
+
+void image_find_center(int si, double *cX, double *cY) {
+  rectangleCorners s = image_find_corners(si);
+  *cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
+  *cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
+}
+void image_find_center_noncrop(int si, double *cX, double *cY) {
+  rectangleCorners s = image_find_corners_noncrop(si);
+  *cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
+  *cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
 }
 
 int image_point_on(double x, double y) {  // tells which image is under the point
@@ -435,27 +437,26 @@ void image_rotation_point_set_new(int imi, double x, double y) {
 
 void canvas_center_on_image(int imi) {
   if (imi < 0) return;
-  rectangleCorners s = image_find_corners(imi);
-  double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
-  double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
-  cv.x = cX;  // center view
-  cv.y = cY;
+  image_find_center(imi, &cv.x, &cv.y);
+  // rectangleCorners s = image_find_corners(imi);
+  // double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
+  // double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
+  // cv.x = cX;  // center view
+  // cv.y = cY;
   selected_imi = imi;
   series_current = images[selected_imi].series_order;
 }
 
 void canvas_center_on_nearest_image_in_direction(int imi, double direction) {
-  rectangleCorners s = image_find_corners(imi);
-  double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
-  double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
+  double cX, cY;
+  image_find_center(imi, &cX, &cY);
   double nearestDistance = INFINITY;
   int cimi = -1;
 
   for (int i = 0; i < images_count; i++) {
     if (i != imi) {
-      s = image_find_corners(i);
-      double dX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
-      double dY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
+      double dX, dY;
+      image_find_center(i, &dX, &dY);
 
       double distance = sqrt(((dX - cX) * (dX - cX)) + ((dY - cY) * (dY - cY)));
       double angle = (180 / M_PI) * atan2((cY - dY), (dX - cX));
@@ -473,21 +474,14 @@ void canvas_center_on_nearest_image_in_direction(int imi, double direction) {
     }
   }
   if (cimi > -1) {
-    s = image_find_corners(cimi);
-    cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
-    cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
-    cv.x = cX;  // center view
-    cv.y = cY;
-    selected_imi = cimi;
-    series_current = images[selected_imi].series_order;
+    canvas_center_on_image(cimi);
   }
 }
 
 void image_rotation_point_set_center(int imi) {  // return image rotation to center
   if (imi < 0) return;
-  rectangleCorners s = image_find_corners(imi);
-  double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
-  double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
+  double cX, cY;
+  image_find_center(imi, &cX, &cY);
   image_rotation_point_set_new(imi, cX, cY);
 }
 void canvas_center_on_image_fit(int imi) {
@@ -559,23 +553,123 @@ void image_center_series_prev() {
   canvas_center_on_image(imi);
 }
 
+void image_crop(int imi) {
+  rectangleCorners s = image_find_corners_noncrop(imi);
+
+  // how we would apply crop to each side based on mouse
+  double crop_top_d = ((s.aY - mouse_canvas_y) * cos(images[imi].r * M_PI / 180) - (s.aX - mouse_canvas_x) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
+  double crop_bottom_d =
+      -((s.cY - mouse_canvas_y) * cos(images[imi].r * M_PI / 180) - (s.cX - mouse_canvas_x) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
+  double crop_left_d = -((s.aX - mouse_canvas_x) * cos(images[imi].r * M_PI / 180) + (s.aY - mouse_canvas_y) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
+  double crop_right_d = ((s.cX - mouse_canvas_x) * cos(images[imi].r * M_PI / 180) + (s.cY - mouse_canvas_y) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
+
+  // handles
+  s = image_find_corners(imi);
+  double abX = (s.aX + s.bX) / 2.0f;  // top
+  double abY = (s.aY + s.bY) / 2.0f;
+  double bcX = (s.cX + s.bX) / 2.0f;  // right
+  double bcY = (s.cY + s.bY) / 2.0f;
+  double cdX = (s.cX + s.dX) / 2.0f;  // bottom
+  double cdY = (s.cY + s.dY) / 2.0f;
+  double daX = (s.aX + s.dX) / 2.0f;  // left
+  double daY = (s.aY + s.dY) / 2.0f;
+
+  // distance to each corner and side (handle distances)
+  double d_t = sqrt((mouse_canvas_x - abX) * (mouse_canvas_x - abX) + (mouse_canvas_y - abY) * (mouse_canvas_y - abY));
+  double d_tr = sqrt((mouse_canvas_x - s.bX) * (mouse_canvas_x - s.bX) + (mouse_canvas_y - s.bY) * (mouse_canvas_y - s.bY));
+  double d_r = sqrt((mouse_canvas_x - bcX) * (mouse_canvas_x - bcX) + (mouse_canvas_y - bcY) * (mouse_canvas_y - bcY));
+  double d_rb = sqrt((mouse_canvas_x - s.cX) * (mouse_canvas_x - s.cX) + (mouse_canvas_y - s.cY) * (mouse_canvas_y - s.cY));
+  double d_b = sqrt((mouse_canvas_x - cdX) * (mouse_canvas_x - cdX) + (mouse_canvas_y - cdY) * (mouse_canvas_y - cdY));
+  double d_bl = sqrt((mouse_canvas_x - s.dX) * (mouse_canvas_x - s.dX) + (mouse_canvas_y - s.dY) * (mouse_canvas_y - s.dY));
+  double d_l = sqrt((mouse_canvas_x - daX) * (mouse_canvas_x - daX) + (mouse_canvas_y - daY) * (mouse_canvas_y - daY));
+  double d_lt = sqrt((mouse_canvas_x - s.aX) * (mouse_canvas_x - s.aX) + (mouse_canvas_y - s.aY) * (mouse_canvas_y - s.aY));
+
+  // find handle cursor is closest to
+  int dimin = 0;
+  double dvmin = INFINITY;
+  double d[] = {d_t, d_tr, d_r, d_rb, d_b, d_bl, d_l, d_lt};
+  for (int i = 0; i <= 7; i++) {
+    if (d[i] <= dvmin) {
+      dvmin = d[i];
+      dimin = i;
+    }
+  }
+
+  switch (dimin) {
+    case 0:  // top
+      // imrefAx = abX;
+      // imrefAy = abY;
+      images[imi].crop_top = (int)crop_top_d;
+      break;
+    case 1:  // top right
+      // imrefAx = s.bX;
+      // imrefAy = s.bY;
+      images[imi].crop_top = (int)crop_top_d;
+      images[imi].crop_right = (int)crop_right_d;
+      break;
+    case 2:  // right
+      // imrefAx = bcX;
+      // imrefAy = bcY;
+      images[imi].crop_right = (int)crop_right_d;
+      break;
+    case 3:  // right bottom
+      // imrefAx = s.cX;
+      // imrefAy = s.cY;
+      images[imi].crop_right = (int)crop_right_d;
+      images[imi].crop_bottom = (int)crop_bottom_d;
+      break;
+    case 4:  // bottom
+      // imrefAx = cdX;
+      // imrefAy = cdY;
+      images[imi].crop_bottom = (int)crop_bottom_d;
+      break;
+    case 5:  // bottom left
+      // imrefAx = s.dX;
+      // imrefAy = s.dY;
+      images[imi].crop_bottom = (int)crop_bottom_d;
+      images[imi].crop_left = (int)crop_left_d;
+      break;
+    case 6:  // left
+      // imrefAx = daX;
+      // imrefAy = daY;
+      images[imi].crop_left = (int)crop_left_d;
+      break;
+    case 7:  // left top
+      // imrefAx = s.aX;
+      // imrefAy = s.aY;
+      images[imi].crop_left = (int)crop_left_d;
+      images[imi].crop_top = (int)crop_top_d;
+      break;
+  }
+
+  if (images[imi].crop_top <= 0) images[imi].crop_top = 0;
+  if (images[imi].crop_bottom <= 0) images[imi].crop_bottom = 0;
+  if (images[imi].crop_left <= 0) images[imi].crop_left = 0;
+  if (images[imi].crop_right <= 0) images[imi].crop_right = 0;
+}
+void image_uncrop(int imi){
+  images[imi].crop_top = 0;
+  images[imi].crop_bottom = 0;
+  images[imi].crop_left = 0;
+  images[imi].crop_right = 0;
+}
+
 void images_render() {
   sort_images_by(compare_draw_order);
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
     int si = images[i].sort_index;          // sorted index
 
-    // test override
-    if (images[si].series_order == 1) {
-      // images[si].rx = 50;
-      // images[si].ry = -50;
-        // images[si].crop_left = global_testC;
-        // images[si].crop_top = global_testC / 2;
-        // images[si].crop_right = global_testC;
-        // images[si].crop_bottom = global_testC / 2;
-      // images[si].r = global_testA;
-      // images[si].z = (1.0f + global_testB / 10.0);
-      image_find_corners_noncrop(si);
-    }
+    // // test override
+    // if (images[si].series_order == 1) {
+    //   // images[si].rx = 50;
+    //   // images[si].ry = -50;
+    //   // images[si].crop_left = global_testC;
+    //   // images[si].crop_top = global_testC / 2;
+    //   // images[si].crop_right = global_testC;
+    //   // images[si].crop_bottom = global_testC / 2;
+    //   // images[si].r = global_testA;
+    //   // images[si].z = (1.0f + global_testB / 10.0);
+    // }
 
     // crop can't be negative
     if (images[si].crop_left < 0) images[si].crop_left = 0;

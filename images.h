@@ -73,3 +73,5 @@ void canvas_center_on_nearest_image_in_direction(int imi, double direction);
 void image_series_set(int imi);
 void image_center_series_next();
 void image_center_series_prev();
+void image_crop(int imi);
+void image_uncrop(int imi);

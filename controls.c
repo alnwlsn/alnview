@@ -18,6 +18,7 @@ int shift_held = 0;  // shift key held
 int ctrl_held = 0;   // control key held
 int tab_held = 0;    // tab key held
 int dragged_imi = -1;
+bool crop_held = 0;
 
 // move references
 int mouse_raw_last_x = 0, mouse_raw_last_y = 0;           // for mouse dragging positioning
@@ -127,6 +128,9 @@ void controls_process(SDL_Event e) {
       }
       break;
     case SDL_MOUSEMOTION:
+      if (crop_held) {
+        image_crop(selected_imi);
+      }
       if (mouse_dragging) {
         canvas_drag_screen_by(e.motion.x - mouse_raw_last_x, mouse_raw_last_y - e.motion.y);
       }
@@ -214,6 +218,9 @@ void controls_process(SDL_Event e) {
           tab_held = 0;
           show_canvas_rotation_point = 0;
           break;
+        case SDLK_c:
+          crop_held = 0;
+          break;
       }
       break;
     case SDL_KEYDOWN:
@@ -296,6 +303,15 @@ void controls_process(SDL_Event e) {
           break;
         case SDLK_m:
           global_testC += 1;
+          break;
+        case SDLK_c:
+          if (crop_held == 0) {
+            image_crop(selected_imi);
+          }
+          crop_held = 1;
+          break;
+        case SDLK_f:
+          image_uncrop(mouseover_or_selected_imi());
           break;
         case SDLK_s:
           save_state();
