@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 // #include <stdio.h>
@@ -30,6 +31,7 @@ typedef struct {
   int draw_order;
   int sort_index;  // when sorted, this points to images[index] of sorted list
   char filepath[FILEPATHLEN];
+  bool inited;
 } Image;
 extern int images_count;
 

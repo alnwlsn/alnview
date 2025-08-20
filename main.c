@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     images_load_dir(img_dir);  // load all the images
     canvas_zoom_center_fitall();
   }else{
-    images_load_dir(img_dir); //still load extra img
+    images_load_dir(img_dir); //still load extra imgs
   }
 
   // images[4].r = 30; //for test

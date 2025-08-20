@@ -62,10 +62,6 @@ void images_arrange_in_grid() {  // arranges all images into grid by selection o
     images[si].y = -y;
     images[si].r = 0;
     images[si].z = 1;
-    images[si].crop_top = 0;
-    images[si].crop_right = 0;
-    images[si].crop_bottom = 0;
-    images[si].crop_left = 0;
     x += images[si].width + spacing;
     if (images[si].height > max_row_height) max_row_height = images[si].height;
 
@@ -124,6 +120,7 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
       img->texture = texture;
       img->width = surface->w;
       img->height = surface->h;
+      img->inited = 0;
       memcpy(img->filepath, filepath, FILEPATHLEN);
       images_count++;
     } else {
@@ -138,6 +135,7 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
 }
 
 void images_load_dir(const char *directory) {  // load all images from directory
+  bool no_savefile = 1;
   DIR *dir = opendir(directory);
   if (!dir) {
     perror("Failed to open image directory");
@@ -155,8 +153,10 @@ void images_load_dir(const char *directory) {  // load all images from directory
     bool already_loaded = 0;
     for (int i = 0; i < images_count; i++) {
       if (strcmp(path, images[i].filepath) == 0) {
-        fprintf(stderr, "tried to load %s but is already loaded\n", path);
+        // fprintf(stderr, "tried to load %s but is already loaded\n", path);
         already_loaded = 1;
+        images[i].inited = 1;
+        no_savefile = 0;
         continue;
       }
     }
@@ -173,19 +173,42 @@ void images_load_dir(const char *directory) {  // load all images from directory
 
   // initialize images
   sort_images_by(compare_filepath);
+
+  int draw_order_offset = 0;
+  int series_order_offset = 0;
   for (int i = 0; i < images_count; i++) {
-    images[i].x = 0;
-    images[i].y = 0;
-    images[i].r = 0;
-    images[i].rx = images[i].width / 2;
-    images[i].ry = -images[i].height / 2;
-    images[i].z = 1;
-    images[i].opacity = 255;
-    images[images[i].sort_index].draw_order = i;
-    images[images[i].sort_index].series_order = i;
+    if (images[i].inited) {
+      if (draw_order_offset <= images[i].draw_order) draw_order_offset = images[i].draw_order;
+      if (series_order_offset <= images[i].series_order) series_order_offset = images[i].series_order;
+    }
+  }
+
+  for (int i = 0; i < images_count; i++) {
+    if (!images[i].inited) {
+      images[i].x = 0;
+      images[i].y = 0;
+      images[i].r = 0;
+      images[i].rx = images[i].width / 2;
+      images[i].ry = -images[i].height / 2;
+      images[i].z = 1;
+      images[i].crop_top = 0;
+      images[i].crop_right = 0;
+      images[i].crop_bottom = 0;
+      images[i].crop_left = 0;
+      images[i].opacity = 255;
+      draw_order_offset += 1;
+      series_order_offset += 1;
+      if (no_savefile) {
+        images[images[i].sort_index].draw_order = i;
+        images[images[i].sort_index].series_order = i;
+      } else {
+        images[i].draw_order = draw_order_offset;
+        images[i].series_order = series_order_offset;
+      }
+    }
   }
   selected_imi = images[0].sort_index;
-  images_arrange_in_grid();
+  if (no_savefile) images_arrange_in_grid();
 }
 
 int image_point_inside(double px, double py, rectangleCorners s) {
@@ -647,7 +670,7 @@ void image_crop(int imi) {
   if (images[imi].crop_left <= 0) images[imi].crop_left = 0;
   if (images[imi].crop_right <= 0) images[imi].crop_right = 0;
 }
-void image_uncrop(int imi){
+void image_uncrop(int imi) {
   images[imi].crop_top = 0;
   images[imi].crop_bottom = 0;
   images[imi].crop_left = 0;
