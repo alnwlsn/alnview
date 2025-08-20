@@ -19,6 +19,7 @@ int ctrl_held = 0;   // control key held
 int tab_held = 0;    // tab key held
 int dragged_imi = -1;
 bool crop_held = 0;
+bool antialiasing = 0;
 
 // move references
 int mouse_raw_last_x = 0, mouse_raw_last_y = 0;           // for mouse dragging positioning
@@ -239,6 +240,16 @@ void controls_process(SDL_Event e) {
           tab_held = 1;
           show_canvas_rotation_point = 1;
           break;
+        case SDLK_a: {
+          antialiasing = !antialiasing;
+          for(int i=0; i<images_count; i++){
+            if (antialiasing) {
+              SDL_SetTextureScaleMode(images[i].texture, SDL_ScaleModeLinear);
+            }else{
+              SDL_SetTextureScaleMode(images[i].texture, SDL_ScaleModeNearest);
+            }
+          }
+        } break;
         case SDLK_MINUS:
           cv.r = 0;  // reset canvas rotation
           break;

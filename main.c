@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
     strncpy(img_dir, argv[1], sizeof(img_dir) - 1);
     img_dir[sizeof(img_dir) - 1] = '\0';
   }
-  // SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ); //antialiasing
+  
 
   canvas_init();  // this actually makes the window
 
