@@ -23,7 +23,7 @@ All loaded images are stored uncompressed in RAM, which makes it very fast, but 
 You might find this program similar to [Feh](https://github.com/derf/feh), [PureRef](https://www.pureref.com/), and [BeeRef](https://beeref.org/), if not Google Earth and other similar mapping tools.
 
 
-Alnview is an [SDL2](https://www.libsdl.org/), so it can load all image file types that ```IMG_Load()``` knows about. This is at least PNG, JPG, WebP, BMP, TIFF, and GIF.
+Alnview is built on [SDL2](https://www.libsdl.org/), so it can load all the image file types that ```IMG_Load()``` knows about. This is at least PNG, JPG, WebP, BMP, TIFF, and GIF.
 
 
-The included font.ttf is one of the [dejavu fonts included with Linux Mint], but any should work.
+The included font.ttf is one of the [dejavu fonts included with Linux Mint](https://dejavu-fonts.github.io/), but any should work.
