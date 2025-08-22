@@ -1,10 +1,11 @@
 #include "controls.h"
+
 #include <stdbool.h>
 
 // modes
 bool canvas_rotating_center = 0;  // for rotation of canvas about center of screen
 bool canvas_rotating_point = 0;
-bool mouse_dragging = 0;  // for panning
+bool canvas_dragging = 0;  // for panning
 bool image_dragging = 0;
 bool image_rotating = 0;
 bool image_drag_zoom = 0;
@@ -14,17 +15,7 @@ bool canvas_drag_zoom = 0;
 int shift_held = 0;  // shift key held
 int ctrl_held = 0;   // control key held
 int tab_held = 0;    // tab key held
-int dragged_imi = -1;
 bool crop_held = 0;
-bool antialiasing = 0;
-
-// move references
-double canvas_initial_rotation = 0;
-double mouse_initial_angle = 0;
-
-// int animation = 0;
-// int animation_step = 0;
-
 
 int mouseover_or_selected_imi() {  // use either the mouseovered imi or the last selected one
   int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
@@ -36,80 +27,62 @@ int mouseover_or_selected_imi() {  // use either the mouseovered imi or the last
 int mouseover_selects_imi() {  // same as or, but selects the mouseovered image if there is one
   int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
   if (imi > -1) {
+    image_series_set(imi);
     selected_imi = imi;
   }
   return selected_imi;
 }
 
-int mouseover_or_none() { return image_point_on(mouse_canvas_x, mouse_canvas_y); }
+int mouseover_selects_imi_or_none() {  // if mouseovered, select image else don't
+  int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
+  if (imi > -1) {
+    image_series_set(imi);
+    selected_imi = imi;
+    return selected_imi;
+  } else {
+    return -1;
+  }
+}
 
 void controls_process(SDL_Event e) {
   switch (e.type) {
     case SDL_MOUSEBUTTONDOWN:
+      super_mouse_last(e);
       if (e.button.button == SDL_BUTTON_LEFT) {
-        mouse_dragging = 1;
-        mouse_raw_last_x = e.button.x;
-        mouse_raw_last_y = e.button.y;
-        mouse_screen_last_x = mouse_screen_x;
-        mouse_screen_last_y = mouse_screen_y;
-        if (tab_held) {
-          canvas_rotation_point_x = mouse_canvas_x;
-          canvas_rotation_point_y = mouse_canvas_y;
-        }
-        if (shift_held) {
-          image_rotation_point_set_new(selected_imi, mouse_canvas_x, mouse_canvas_y);
-        }
+        canvas_dragging = 1;
+        if (tab_held) super_canvas_rotation_init();
+        if (shift_held) image_rotation_point_set_new(selected_imi, mouse_canvas_x, mouse_canvas_y);
       } else if (e.button.button == SDL_BUTTON_MIDDLE) {
         if (tab_held) {  // rotate canvas about reference
           canvas_rotating_point = 1;
-          mouse_screen_last_x = mouse_screen_x;
-          mouse_screen_last_y = mouse_screen_y;
         } else if (ctrl_held) {  // rotate canvas about center
-          mouse_initial_angle = mouse_angle_about_center;
-          canvas_initial_rotation = cv.r;
+          super_canvas_center_rotation_init();
           canvas_rotating_center = 1;
         } else {  // shift or no shift; rotate image
           image_rotating = 1;
-          mouse_screen_last_x = mouse_screen_x;
-          mouse_screen_last_y = mouse_screen_y;
           show_image_reference_marks = 1;
         }
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
         if (shift_held) {
           image_drag_zoom = 1;
-          mouse_screen_last_x = mouse_screen_x;
-          mouse_screen_last_y = mouse_screen_y;
         } else if (tab_held) {
           canvas_drag_zoom = 1;
-          mouse_screen_last_x = mouse_screen_x;
-          mouse_screen_last_y = mouse_screen_y;
         } else if (ctrl_held) {
-          int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
-          if (imi > -1) {
-            image_series_set(imi);
-            selected_imi = imi;
-          }
+          mouseover_selects_imi();  // select image
         } else {
-          int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
-          if (imi > -1) {
-            image_series_set(imi);
-            selected_imi = imi;
-            image_dragging = 1;
-            mouse_raw_last_x = e.button.x;
-            mouse_raw_last_y = e.button.y;
-          }
+          if (mouseover_selects_imi_or_none() > -1) image_dragging = 1;
         }
       }
       break;
     case SDL_MOUSEBUTTONUP:
       if (e.button.button == SDL_BUTTON_LEFT) {
-        mouse_dragging = 0;
+        canvas_dragging = 0;
       } else if (e.button.button == SDL_BUTTON_MIDDLE) {
         canvas_rotating_center = 0;
         show_canvas_rotation_point = 0;
         canvas_rotating_point = 0;
         image_rotating = 0;
-        show_image_reference_marks = 0;
+        if (!shift_held) show_image_reference_marks = 0;
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
         image_dragging = 0;
         image_drag_zoom = 0;
@@ -117,44 +90,24 @@ void controls_process(SDL_Event e) {
       }
       break;
     case SDL_MOUSEMOTION:
-      if (crop_held) {
-        image_crop(selected_imi);
-      }
-      if (mouse_dragging) {
-        canvas_drag_screen_by(e.motion.x - mouse_raw_last_x, mouse_raw_last_y - e.motion.y);
-      }
-      if (image_dragging) {
-        image_drag_screen_by(selected_imi, e.motion.x - mouse_raw_last_x, mouse_raw_last_y - e.motion.y);
-      }
-      if (image_rotating) {
-        double screen_reference_x, screen_reference_y;
-        canvas_to_screen(images[selected_imi].x + images[selected_imi].rx, images[selected_imi].y + images[selected_imi].ry, &screen_reference_x,
-                         &screen_reference_y);
-        double dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
-                                        atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
-        image_rotate_by(selected_imi, -dAngle);
-      } else if (canvas_rotating_center) {
-        cv.r = canvas_initial_rotation + (mouse_angle_about_center - mouse_initial_angle);
-      } else if (canvas_rotating_point) {  // canvas rotation about reference point
-        double screen_reference_x, screen_reference_y;
-        canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &screen_reference_x, &screen_reference_y);
-        double dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
-                                        atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
-        canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, dAngle);
-      }
+      if (crop_held) image_crop(selected_imi);
+      if (canvas_dragging) canvas_drag_screen_by(e.motion.x - mouse_raw_last_x, mouse_raw_last_y - e.motion.y);
+      if (image_dragging) image_drag_screen_by(selected_imi, e.motion.x - mouse_raw_last_x, mouse_raw_last_y - e.motion.y);
+      if (image_rotating) super_image_rotating();
+      if (canvas_rotating_center)
+        super_canvas_rotating_center();
+      else if (canvas_rotating_point)
+        super_canvas_rotating_point();
       if (image_drag_zoom) super_image_drag_zoom();
       if (canvas_drag_zoom) super_canvas_drag_zoom();
-      mouse_raw_last_x = e.motion.x;
-      mouse_raw_last_y = e.motion.y;
-      mouse_screen_last_x = mouse_screen_x;
-      mouse_screen_last_y = mouse_screen_y;
+      super_mouse_last(e);
       break;
     case SDL_MOUSEWHEEL: {
       if (ctrl_held) {
         if (e.wheel.y > 0)
-          image_zoom_by(mouseover_or_none(), ZOOM_FACTOR);
+          image_zoom_by(mouseover_selects_imi_or_none(), ZOOM_FACTOR);
         else if (e.wheel.y < 0)
-          image_zoom_by(mouseover_or_none(), 1 / ZOOM_FACTOR);
+          image_zoom_by(mouseover_selects_imi_or_none(), 1 / ZOOM_FACTOR);
       } else if (shift_held) {
         if (e.wheel.y > 0)
           images[selected_imi].z *= ZOOM_FACTOR;
@@ -211,16 +164,9 @@ void controls_process(SDL_Event e) {
           tab_held = 1;
           show_canvas_rotation_point = 1;
           break;
-        case SDLK_a: {
-          antialiasing = !antialiasing;
-          for (int i = 0; i < images_count; i++) {
-            if (antialiasing) {
-              SDL_SetTextureScaleMode(images[i].texture, SDL_ScaleModeLinear);
-            } else {
-              SDL_SetTextureScaleMode(images[i].texture, SDL_ScaleModeNearest);
-            }
-          }
-        } break;
+        case SDLK_a:
+          super_toggle_antialiasing();
+          break;
         case SDLK_MINUS:
           cv.r = 0;  // reset canvas rotation
           break;
@@ -277,7 +223,7 @@ void controls_process(SDL_Event e) {
         case SDLK_f:
           image_uncrop(mouseover_or_selected_imi());
           break;
-        case SDLK_i: {
+        case SDLK_w: {
           CanvasView gv = cv;
           images_unload();
           loader_uni(0);
@@ -298,14 +244,9 @@ void controls_process(SDL_Event e) {
         case SDLK_RIGHT:
           canvas_center_on_nearest_image_in_direction(selected_imi, 0);
           break;
-        case SDLK_F11: {
-          Uint32 flags = SDL_GetWindowFlags(window);
-          if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
-            SDL_SetWindowFullscreen(window, 0);  // Back to windowed
-          } else {
-            SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);  // Fullscreen
-          }
-        } break;
+        case SDLK_F11:
+          super_toggle_fullscreen();
+          break;
       }
       if (shift_held) {  // keys + shift key held
         switch (e.key.keysym.sym) {

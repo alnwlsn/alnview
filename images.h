@@ -7,6 +7,8 @@
 #include <sys/stat.h>
 
 #include "defines.h"
+#include "canvas.h"
+#include "render.h"
 
 typedef struct {
   SDL_Texture *texture;

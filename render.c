@@ -1,9 +1,5 @@
 #include "render.h"
 
-#include "canvas.h"
-#include "controls.h"
-#include "images.h"
-
 double global_testA = 0;
 double global_testB = 0;
 double global_testC = 0;
@@ -26,22 +22,22 @@ SDL_Renderer *renderer = NULL;
 TTF_Font *font = NULL;
 char coordText[600];
 
-char* get_resource_path(const char *file) {
-    // SDL_GetBasePath gives you the directory containing the executable
-    char *base = SDL_GetBasePath();
-    if (!base) {
-        // fallback: current working directory
-        base = SDL_strdup("./");
-    }
+char *get_resource_path(const char *file) {
+  // SDL_GetBasePath gives you the directory containing the executable
+  char *base = SDL_GetBasePath();
+  if (!base) {
+    // fallback: current working directory
+    base = SDL_strdup("./");
+  }
 
-    size_t len = strlen(base) + strlen(file) + 1;
-    char *full_path = (char*)malloc(len);
-    if (full_path) {
-        strcpy(full_path, base);
-        strcat(full_path, file);
-    }
-    SDL_free(base);  // SDL_GetBasePath uses SDL_malloc internally
-    return full_path;
+  size_t len = strlen(base) + strlen(file) + 1;
+  char *full_path = (char *)malloc(len);
+  if (full_path) {
+    strcpy(full_path, base);
+    strcat(full_path, file);
+  }
+  SDL_free(base);  // SDL_GetBasePath uses SDL_malloc internally
+  return full_path;
 }
 
 void render_text(char *text, int x, int y) {  // for rendering text on screen
@@ -58,17 +54,17 @@ void render_text_center(char *text, int x, int y) {  // for rendering text on sc
   SDL_Color textColor = {255, 255, 255, 255};
   SDL_Surface *textSurface = TTF_RenderText_Blended(font, text, textColor);
   SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-  SDL_Rect textRect = {x-(textSurface->w/2), y-(textSurface->h/2), textSurface->w, textSurface->h};
+  SDL_Rect textRect = {x - (textSurface->w / 2), y - (textSurface->h / 2), textSurface->w, textSurface->h};
   SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
   SDL_FreeSurface(textSurface);
   SDL_DestroyTexture(textTexture);
 }
 
-void render_text_screen(char *text){
-    SDL_RenderClear(renderer);
-    render_text_center(text, WINDOW_INIT_X/2, WINDOW_INIT_Y/2);
-    SDL_SetRenderDrawColor(renderer, BGCOLOR_R, BGCOLOR_G, BGCOLOR_B, 255);
-    SDL_RenderPresent(renderer);
+void render_text_screen(char *text) {
+  SDL_RenderClear(renderer);
+  render_text_center(text, WINDOW_INIT_X / 2, WINDOW_INIT_Y / 2);
+  SDL_SetRenderDrawColor(renderer, BGCOLOR_R, BGCOLOR_G, BGCOLOR_B, 255);
+  SDL_RenderPresent(renderer);
 }
 
 void render_init() {

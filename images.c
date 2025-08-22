@@ -1,8 +1,5 @@
 #include "images.h"
 
-#include "controls.h"
-#include "render.h"
-
 Image *images = NULL;
 int images_count = 0;
 int series_current = 0;

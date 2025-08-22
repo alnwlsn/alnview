@@ -6,6 +6,7 @@
         "sdl.h": "c",
         "stdbool.h": "c",
         "macros.h": "c",
-        "images.h": "c"
+        "images.h": "c",
+        "super.h": "c"
     }
 }
