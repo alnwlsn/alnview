@@ -70,49 +70,56 @@ make
 # Controls
 Alnview is key driven, and has minimal GUI elements to maximize the amount of image visible on screen. Besides the images themselves, the only on-screen elements are small markers which indicate certain points (like the corners of the selected image), and text overlays (where applicable).
 
+Operations on images chose the image to affect in a few ways:
+- **last** - uses the last selected image
+- **mouse** - uses the image under the mouse pointer. After the operation, it will become the last image selected
+- **mouse (temporary)** - temporarily uses the image under the mouse pointer, but does not change the last selected image 
+- **mouse or last** - uses the image under the mouse, or if it is not on an image, uses the last selection
+- **next** - the last selected image becomes the one that is jumped to after finishing the operation
+
 | Control  | Action | Selects image using
 | ------------- | ------------- | ------------- |
 | ```left click + drag``` | pan canvas 
-| ```middle click + drag``` | drag rotate image | last selection
-| ```right click``` | select image | mouse pointer 
-| ```right click + drag``` | move (translate) image | mouse pointer
+| ```middle click + drag``` | drag rotate image | last
+| ```right click``` | select image | mouse
+| ```right click + drag``` | move (translate) image | mouse
 | ```scroll wheel``` | zoom canvas about mouse pointer
 | ```[square brackets]``` | incrementally rotate canvas about center of screen
-| ```shift``` | show image corners and image reference point mark | last selection
-| ```shift + left click``` | select reference point for image | last selection
-| ```shift + middle click + drag``` | drag rotate image about image reference point | last selection
-| ```shift + right click + drag``` | drag zoom image about image reference point | last selection
-| ```shift + scroll wheel``` | zoom image about image reference point | last selection
+| ```shift``` | show image corners and image reference point mark | last
+| ```shift + left click``` | select reference point for image | last
+| ```shift + middle click + drag``` | drag rotate image about image reference point | last
+| ```shift + right click + drag``` | drag zoom image about image reference point | last
+| ```shift + scroll wheel``` | zoom image about image reference point | last
 | ```shift + [square brackets]``` | incrementally rotate image about image reference point
 | ```ctrl``` | show center of screen mark
 | ```ctrl + middle click + drag``` | drag rotate canvas about center of screen
-| ```ctrl + right click + drag``` | move (translate) image | last selection
-| ```ctrl + scroll wheel``` | zoom image under mouse pointer about mouse pointer | mouse pointer (temporary)
+| ```ctrl + right click + drag``` | move (translate) image | last
+| ```ctrl + scroll wheel``` | zoom image under mouse pointer about mouse pointer | mouse (temporary)
 | ```tab``` | show canvas reference point mark
 | ```tab + left click``` | select reference point for canvas
 | ```tab + middle click + drag``` | drag rotate canvas about canvas reference point
 | ```tab + right click + drag``` | drag zoom canvas about canvas reference point
 | ```tab + scroll wheel``` | zoom canvas about canvas reference point
 | ```tab + [square brackets]``` | incrementally rotate canvas about canvas reference point
-| ```space``` | select image + show corners | mouse pointer
+| ```space``` | select image + show corners | mouse
 | ```O``` | reset canvas rotation to 0
 | ```P``` | reset canvas zoom to 1
 | ```' (single quote)``` | reset image zoom to 1 | mouse (temporary) or last
 | ```; (semicolon)``` | snap image rotation to nearest 90 | mouse or last
-| ```, (comma)``` | send image to back | last selection
-| ```. (period)``` | bring image to front | last selection
+| ```, (comma)``` | send image to back | last
+| ```. (period)``` | bring image to front | last
 | ```R``` | rotate image by 90 clockwise | mouse or last
-| ```/ (forward slash)``` | reset image reference point to center of image | last selection
+| ```/ (forward slash)``` | reset image reference point to center of image | last
 | ```(backtick)``` | zoom and pan canvas to fit all images on screen
-| ```V``` | center view on image | last selection
+| ```V``` | center view on image | last
 | ```enter``` | center on image and zoom view to fit screen | mouse or last
-| ```page up``` | center view on previous image in series | next selected
-| ```page down``` | center view on next image in series | next selected
-| ```[arrow keys]``` | center view on nearest image in direction | next selected
-| ```Z``` | decrease image opacity | last selection
-| ```X``` | increase image opacity | last selection
-| ```C (+ optional hold)``` | crop image (nearest edge or corner to mouse pointer) | last selection
-| ```D``` | uncrop image | last selection
+| ```page up``` | center view on previous image in series | next
+| ```page down``` | center view on next image in series | next
+| ```[arrow keys]``` | center view on nearest image in direction | next
+| ```Z``` | decrease image opacity | last
+| ```X``` | increase image opacity | last
+| ```C (+ optional hold)``` | crop image (nearest edge or corner to mouse pointer) | last
+| ```D``` | uncrop image | last
 | ```W``` | reload all images from disk
 | ```E``` | reload single image from disk | mouse or last
 | ```S``` | create/update save file (save setup)
