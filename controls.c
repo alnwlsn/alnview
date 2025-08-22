@@ -167,10 +167,10 @@ void controls_process(SDL_Event e) {
         case SDLK_a:
           super_toggle_antialiasing();
           break;
-        case SDLK_MINUS:
+        case SDLK_o:
           cv.r = 0;  // reset canvas rotation
           break;
-        case SDLK_EQUALS:
+        case SDLK_p:
           canvas_zoom_reset();
           break;
         case SDLK_QUOTE:
@@ -292,7 +292,7 @@ void controls_process(SDL_Event e) {
             cvp[9] = cv;
             break;
         }
-      } else if (ctrl_held) {  // key + control held
+      } else if (tab_held) {  // key
         switch (e.key.keysym.sym) {
           case SDLK_LEFTBRACKET:
             canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, -ROTATE_STEP);  // canvas rotation about cursor position
