@@ -70,8 +70,24 @@ make
 # Controls
 Alnview is key driven, and has minimal GUI elements to maximize the amount of image visible on screen. Besides the images themselves, the only on-screen elements are small pointers which indicate certain points (like the corners of the selected image), and text overlays (where applicable).
 
-| ```left click + drag``` | pan canvas |
-| ```middle click + drag``` | rotate selected image |
-| ```right click``` | select image under mouse pointer |
-| ```right click + drag``` | select image and move (translate) under mouse |
-| ```scroll wheel``` | zoom canvas |
+| Control  | Action | Selects image using
+| ------------- | ------------- | ------------- |
+| ```left click + drag``` | pan canvas 
+| ```middle click + drag``` | drag rotate image | last selection
+| ```right click``` | select image | mouse pointer 
+| ```right click + drag``` | move (translate) image | mouse pointer
+| ```scroll wheel``` | zoom canvas about mouse pointer
+| ```shift``` | show image corners and image reference point | last selection
+| ```shift + left click``` | select reference point for image | last selection
+| ```shift + middle click + drag``` | drag rotate image about image reference point | last selection
+| ```shift + right click + drag``` | drag zoom image about image reference point | last selection
+| ```shift + scroll wheel``` | zoom image about image reference point | last selection
+| ```ctrl``` | show center of screen
+| ```ctrl + middle click + drag``` | drag rotate canvas about center of screen
+| ```ctrl + right click + drag``` | move (translate) image | last selection
+| ```ctrl + scroll wheel``` | zoom image under mouse pointer about mouse pointer | mouse pointer (temp)
+| ```tab``` | show canvas reference point
+| ```tab + left click``` | select reference point for canvas
+| ```tab + middle click + drag``` | drag rotate canvas about canvas reference point
+| ```tab + right click + drag``` | drag zoom canvas about canvas reference point
+| ```tab + scroll wheel``` | zoom canvas about canvas reference point
