@@ -1,7 +1,5 @@
 #include "controls.h"
 
-#include <stdbool.h>
-
 // modes
 bool canvas_rotating_center = 0;  // for rotation of canvas about center of screen
 bool canvas_rotating_point = 0;
@@ -68,7 +66,7 @@ void controls_process(SDL_Event e) {
         } else if (tab_held) {
           canvas_drag_zoom = 1;
         } else if (ctrl_held) {
-          mouseover_selects_imi();  // select image
+          image_dragging = 1;
         } else {
           if (mouseover_selects_imi_or_none() > -1) image_dragging = 1;
         }
@@ -105,9 +103,9 @@ void controls_process(SDL_Event e) {
     case SDL_MOUSEWHEEL: {
       if (ctrl_held) {
         if (e.wheel.y > 0)
-          image_zoom_by(mouseover_selects_imi_or_none(), ZOOM_FACTOR);
+          image_zoom_by(image_point_on(mouse_canvas_x, mouse_canvas_y), ZOOM_FACTOR);
         else if (e.wheel.y < 0)
-          image_zoom_by(mouseover_selects_imi_or_none(), 1 / ZOOM_FACTOR);
+          image_zoom_by(image_point_on(mouse_canvas_x, mouse_canvas_y), 1 / ZOOM_FACTOR);
       } else if (shift_held) {
         if (e.wheel.y > 0)
           images[cv.selected_imi].z *= ZOOM_FACTOR;
@@ -124,7 +122,6 @@ void controls_process(SDL_Event e) {
         else if (e.wheel.y < 0)
           canvas_zoom_by(1 / ZOOM_FACTOR);
       }
-
     } break;
     case SDL_KEYUP:
       switch (e.key.keysym.sym) {  // unmodified keys up
@@ -145,6 +142,9 @@ void controls_process(SDL_Event e) {
           break;
         case SDLK_c:
           crop_held = 0;
+          break;
+        case SDLK_SPACE:
+          show_image_reference_marks = 0;
           break;
       }
       break;
@@ -205,6 +205,7 @@ void controls_process(SDL_Event e) {
           break;
         case SDLK_SPACE:
           mouseover_selects_imi();
+          show_image_reference_marks = 1;
           break;
         case SDLK_BACKQUOTE:
           canvas_zoom_center_fitall();
@@ -221,7 +222,7 @@ void controls_process(SDL_Event e) {
           }
           crop_held = 1;
           break;
-        case SDLK_f:
+        case SDLK_d:
           image_uncrop(mouseover_or_selected_imi());
           break;
         case SDLK_w: {

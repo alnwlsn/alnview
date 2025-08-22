@@ -66,3 +66,12 @@ make clean
 make
 ./alnview.exe img
 ```
+
+# Controls
+Alnview is key driven, and has minimal GUI elements to maximize the amount of image visible on screen. Besides the images themselves, the only on-screen elements are small pointers which indicate certain points (like the corners of the selected image), and text overlays (where applicable).
+
+| ```left click + drag``` | pan canvas |
+| ```middle click + drag``` | rotate selected image |
+| ```right click``` | select image under mouse pointer |
+| ```right click + drag``` | select image and move (translate) under mouse |
+| ```scroll wheel``` | zoom canvas |
