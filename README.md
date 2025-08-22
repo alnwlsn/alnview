@@ -70,7 +70,7 @@ make
 # Controls
 Alnview is key driven, and has minimal GUI elements to maximize the amount of image visible on screen. Besides the images themselves, the only on-screen elements are small markers which indicate certain points (like the corners of the selected image), and text overlays (where applicable).
 
-Operations on images chose the image to affect in a few ways:
+Operations on images chooses the image to affect in a few ways:
 - **last** - uses the last selected image
 - **mouse** - uses the image under the mouse pointer. After the operation, it will become the last image selected
 - **mouse (temporary)** - temporarily uses the image under the mouse pointer, but does not change the last selected image 
@@ -80,7 +80,7 @@ Operations on images chose the image to affect in a few ways:
 | Control  | Action | Selects image using
 | ------------- | ------------- | ------------- |
 | ```left click + drag``` | pan canvas 
-| ```middle click + drag``` | drag rotate image | last
+| ```middle click + drag``` | drag rotate image about image reference point | last
 | ```right click``` | select image | mouse
 | ```right click + drag``` | move (translate) image | mouse
 | ```scroll wheel``` | zoom canvas about mouse pointer
