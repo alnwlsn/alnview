@@ -1,5 +1,5 @@
-# alnview - multi image viewer
-****alnview**** is a tool for quickly viewing, arranging, aligning, and overlaying multiple images on a canvas. 
+# Alnview - multi image viewer
+****Alnview**** is a tool for quickly viewing, arranging, aligning, and overlaying multiple images on a canvas. 
 
 ![screenshot](demo_img/screenshot.png)
 

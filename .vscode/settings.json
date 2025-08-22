@@ -3,6 +3,9 @@
         "math.h": "c",
         "controls.h": "c",
         "cmath": "c",
-        "sdl.h": "c"
+        "sdl.h": "c",
+        "stdbool.h": "c",
+        "macros.h": "c",
+        "images.h": "c"
     }
 }

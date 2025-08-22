@@ -1,4 +1,5 @@
 #pragma once
+
 //handles the canvas
 #include "render.h"
 
@@ -32,3 +33,4 @@ void canvas_zoom_reset();                                               // zoom 
 void canvas_rotate_about_point_by(double rx, double ry, double angle);  // rotate canvas by angle by point on canvas
 void canvas_zoom_by_at_point(double cx, double cy, double zoom_factor); // zoom centered on specified canvas point
 void canvas_to_screen(double canvas_x, double canvas_y, double *screen_x, double *screen_y);  // coordinate conversion
+

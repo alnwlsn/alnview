@@ -737,7 +737,7 @@ void images_render() {
   }
 }
 
-void images_unload(){
+void images_unload() {
   for (int i = 0; i < images_count; ++i) SDL_DestroyTexture(images[i].texture);
   images_count = 0;
 }

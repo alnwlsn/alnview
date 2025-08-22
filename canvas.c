@@ -1,4 +1,5 @@
 #include "canvas.h"
+
 #include <math.h>
 
 CanvasView cv;  // current view
@@ -27,13 +28,13 @@ void canvas_update_cursor() {
   mouse_angle_about_center = (180 / M_PI) * atan2(mouse_screen_y, mouse_screen_x);
 }
 
-void canvas_to_screen(double canvas_x, double canvas_y, double *screen_x, double *screen_y){
+void canvas_to_screen(double canvas_x, double canvas_y, double *screen_x, double *screen_y) {
   double sdx = canvas_x - cv.x;
   double sdy = canvas_y - cv.y;
   double cx = sdx * cos(cv.r * M_PI / 180) - sdy * sin(cv.r * M_PI / 180);
   double cy = sdy * cos(cv.r * M_PI / 180) + sdx * sin(cv.r * M_PI / 180);
-  *screen_x = cx*cv.z;
-  *screen_y = cy*cv.z;
+  *screen_x = cx * cv.z;
+  *screen_y = cy * cv.z;
 }
 
 void canvas_init() {
@@ -109,7 +110,7 @@ void canvas_zoom_by_at_point(double cx, double cy, double zoom_factor) {
   // zoom centered on specific canvas point
   // find old and new position; offset view accordingly
   double sx, sy;
-  canvas_to_screen(cx,cy, &sx, &sy);
+  canvas_to_screen(cx, cy, &sx, &sy);
   double scx1 = (sx / cv.z);
   double scy1 = (sy / cv.z);
   cv.z *= zoom_factor;
@@ -123,12 +124,10 @@ void canvas_zoom_by_at_point(double cx, double cy, double zoom_factor) {
   cv.y -= cdy;
 }
 
-
-void canvas_zoom_reset(){
-  canvas_zoom_by(1/cv.z);
+void canvas_zoom_reset() {
+  canvas_zoom_by(1 / cv.z);
   cv.z = 1;
 }
-
 
 void canvas_rotate_about_point_by(double rx, double ry, double angle) {  // rotate canvas by angle about point on canvas
   cv.r -= angle;
@@ -139,3 +138,4 @@ void canvas_rotate_about_point_by(double rx, double ry, double angle) {  // rota
   cv.x = cv.x - (cx - rx);
   cv.y = cv.y - (cy - ry);
 }
+

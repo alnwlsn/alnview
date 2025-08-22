@@ -22,8 +22,6 @@ bool crop_held = 0;
 bool antialiasing = 0;
 
 // move references
-int mouse_raw_last_x = 0, mouse_raw_last_y = 0;           // for mouse dragging positioning
-double mouse_screen_last_x = 0, mouse_screen_last_y = 0;  // for mouse dragging rotation
 double canvas_initial_rotation = 0;
 double mouse_initial_angle = 0;
 
@@ -32,8 +30,6 @@ int animation_step = 0;
 
 // globals
 int selected_imi = 0;
-double canvas_rotation_point_x = 0;
-double canvas_rotation_point_y = 0;
 
 // render options
 bool show_center_mark = 0;            // for rendering, show a center mark if true
@@ -54,6 +50,8 @@ int mouseover_selects_imi() {  // same as or, but selects the mouseovered image 
   }
   return selected_imi;
 }
+
+int mouseover_or_none() { return image_point_on(mouse_canvas_x, mouse_canvas_y); }
 
 void controls_process(SDL_Event e) {
   switch (e.type) {
@@ -154,25 +152,8 @@ void controls_process(SDL_Event e) {
                                         atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
         canvas_rotate_about_point_by(canvas_rotation_point_x, canvas_rotation_point_y, dAngle);
       }
-      if (image_drag_zoom) {
-        double screen_reference_x, screen_reference_y;
-        canvas_to_screen(images[selected_imi].x + images[selected_imi].rx, images[selected_imi].y + images[selected_imi].ry, &screen_reference_x,
-                         &screen_reference_y);
-        double distance1 = sqrt((screen_reference_x - mouse_screen_last_x) * (screen_reference_x - mouse_screen_last_x) +
-                                (screen_reference_y - mouse_screen_last_y) * (screen_reference_y - mouse_screen_last_y));
-        double distance2 = sqrt((screen_reference_x - mouse_screen_x) * (screen_reference_x - mouse_screen_x) +
-                                (screen_reference_y - mouse_screen_y) * (screen_reference_y - mouse_screen_y));
-        images[selected_imi].z *= distance2 / distance1;
-      }
-      if (canvas_drag_zoom) {
-        double screen_reference_x, screen_reference_y;
-        canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &screen_reference_x, &screen_reference_y);
-        double distance1 = sqrt((screen_reference_x - mouse_screen_last_x) * (screen_reference_x - mouse_screen_last_x) +
-                                (screen_reference_y - mouse_screen_last_y) * (screen_reference_y - mouse_screen_last_y));
-        double distance2 = sqrt((screen_reference_x - mouse_screen_x) * (screen_reference_x - mouse_screen_x) +
-                                (screen_reference_y - mouse_screen_y) * (screen_reference_y - mouse_screen_y));
-        canvas_zoom_by_at_point(canvas_rotation_point_x, canvas_rotation_point_y, distance2 / distance1);
-      }
+      if (image_drag_zoom) super_image_drag_zoom();
+      if (canvas_drag_zoom) super_canvas_drag_zoom();
       mouse_raw_last_x = e.motion.x;
       mouse_raw_last_y = e.motion.y;
       mouse_screen_last_x = mouse_screen_x;
@@ -181,9 +162,9 @@ void controls_process(SDL_Event e) {
     case SDL_MOUSEWHEEL: {
       if (ctrl_held) {
         if (e.wheel.y > 0)
-          image_zoom_by(mouseover_or_selected_imi(), ZOOM_FACTOR);
+          image_zoom_by(mouseover_or_none(), ZOOM_FACTOR);
         else if (e.wheel.y < 0)
-          image_zoom_by(mouseover_or_selected_imi(), 1 / ZOOM_FACTOR);
+          image_zoom_by(mouseover_or_none(), 1 / ZOOM_FACTOR);
       } else if (shift_held) {
         if (e.wheel.y > 0)
           images[selected_imi].z *= ZOOM_FACTOR;
@@ -242,10 +223,10 @@ void controls_process(SDL_Event e) {
           break;
         case SDLK_a: {
           antialiasing = !antialiasing;
-          for(int i=0; i<images_count; i++){
+          for (int i = 0; i < images_count; i++) {
             if (antialiasing) {
               SDL_SetTextureScaleMode(images[i].texture, SDL_ScaleModeLinear);
-            }else{
+            } else {
               SDL_SetTextureScaleMode(images[i].texture, SDL_ScaleModeNearest);
             }
           }
