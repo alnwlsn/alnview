@@ -22,23 +22,23 @@ int mouseover_or_selected_imi() {  // use either the mouseovered imi or the last
   if (imi > -1) {
     return imi;
   }
-  return selected_imi;
+  return cv.selected_imi;
 }
 int mouseover_selects_imi() {  // same as or, but selects the mouseovered image if there is one
   int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
   if (imi > -1) {
     image_series_set(imi);
-    selected_imi = imi;
+    cv.selected_imi = imi;
   }
-  return selected_imi;
+  return cv.selected_imi;
 }
 
 int mouseover_selects_imi_or_none() {  // if mouseovered, select image else don't
   int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
   if (imi > -1) {
     image_series_set(imi);
-    selected_imi = imi;
-    return selected_imi;
+    cv.selected_imi = imi;
+    return cv.selected_imi;
   } else {
     return -1;
   }
@@ -51,7 +51,7 @@ void controls_process(SDL_Event e) {
       if (e.button.button == SDL_BUTTON_LEFT) {
         canvas_dragging = 1;
         if (tab_held) super_canvas_rotation_init();
-        if (shift_held) image_rotation_point_set_new(selected_imi, mouse_canvas_x, mouse_canvas_y);
+        if (shift_held) image_rotation_point_set_new(cv.selected_imi, mouse_canvas_x, mouse_canvas_y);
       } else if (e.button.button == SDL_BUTTON_MIDDLE) {
         if (tab_held) {  // rotate canvas about reference
           canvas_rotating_point = 1;
@@ -90,9 +90,9 @@ void controls_process(SDL_Event e) {
       }
       break;
     case SDL_MOUSEMOTION:
-      if (crop_held) image_crop(selected_imi);
+      if (crop_held) image_crop(cv.selected_imi);
       if (canvas_dragging) canvas_drag_screen_by(e.motion.x - mouse_raw_last_x, mouse_raw_last_y - e.motion.y);
-      if (image_dragging) image_drag_screen_by(selected_imi, e.motion.x - mouse_raw_last_x, mouse_raw_last_y - e.motion.y);
+      if (image_dragging) image_drag_screen_by(cv.selected_imi, e.motion.x - mouse_raw_last_x, mouse_raw_last_y - e.motion.y);
       if (image_rotating) super_image_rotating();
       if (canvas_rotating_center)
         super_canvas_rotating_center();
@@ -110,9 +110,9 @@ void controls_process(SDL_Event e) {
           image_zoom_by(mouseover_selects_imi_or_none(), 1 / ZOOM_FACTOR);
       } else if (shift_held) {
         if (e.wheel.y > 0)
-          images[selected_imi].z *= ZOOM_FACTOR;
+          images[cv.selected_imi].z *= ZOOM_FACTOR;
         else if (e.wheel.y < 0)
-          images[selected_imi].z /= ZOOM_FACTOR;
+          images[cv.selected_imi].z /= ZOOM_FACTOR;
       } else if (tab_held) {
         if (e.wheel.y > 0)
           canvas_zoom_by_at_point(canvas_rotation_point_x, canvas_rotation_point_y, ZOOM_FACTOR);
@@ -180,43 +180,44 @@ void controls_process(SDL_Event e) {
           image_rotate_snap(mouseover_selects_imi(), 90);
           break;
         case SDLK_COMMA:
-          image_to_on_bottom(selected_imi);
+          image_to_on_bottom(cv.selected_imi);
           break;
         case SDLK_PERIOD:
-          image_to_on_top(selected_imi);
+          image_to_on_top(cv.selected_imi);
           break;
         case SDLK_r:
-          image_rotate_by(mouseover_selects_imi(), 90);
+          image_rotate_by(mouseover_selects_imi(), -90);
           break;
         case SDLK_SLASH:
-          image_rotation_point_set_center(selected_imi);
+          image_rotation_point_set_center(cv.selected_imi);
           break;
-        case SDLK_RETURN: {
-          int imi = mouseover_selects_imi();
-          canvas_center_on_image_fit(imi);
-          image_series_set(imi);
-        } break;
+        case SDLK_RETURN:
+          canvas_center_on_image_fit(mouseover_selects_imi());
+          break;
         case SDLK_PAGEUP:
           image_center_series_prev();
           break;
         case SDLK_PAGEDOWN:
           image_center_series_next();
           break;
+        case SDLK_v:
+          canvas_center_on_image(cv.selected_imi);
+          break;
         case SDLK_SPACE:
-          canvas_center_on_image(mouseover_selects_imi());
+          mouseover_selects_imi();
           break;
         case SDLK_BACKQUOTE:
           canvas_zoom_center_fitall();
           break;
         case SDLK_z:
-          images[selected_imi].opacity -= 16;
+          super_opacity_decrease();
           break;
         case SDLK_x:
-          images[selected_imi].opacity += 16;
+          super_opacity_increase();
           break;
         case SDLK_c:
           if (crop_held == 0) {
-            image_crop(selected_imi);
+            image_crop(cv.selected_imi);
           }
           crop_held = 1;
           break;
@@ -229,20 +230,23 @@ void controls_process(SDL_Event e) {
           loader_uni(0);
           cv = gv;
         } break;
+        case SDLK_e:
+          super_reload_single_image(mouseover_or_selected_imi());
+          break;
         case SDLK_s:
           save_state();
           break;
         case SDLK_UP:
-          canvas_center_on_nearest_image_in_direction(selected_imi, 90);
+          canvas_center_on_nearest_image_in_direction(cv.selected_imi, 90);
           break;
         case SDLK_DOWN:
-          canvas_center_on_nearest_image_in_direction(selected_imi, 270);
+          canvas_center_on_nearest_image_in_direction(cv.selected_imi, 270);
           break;
         case SDLK_LEFT:
-          canvas_center_on_nearest_image_in_direction(selected_imi, 180);
+          canvas_center_on_nearest_image_in_direction(cv.selected_imi, 180);
           break;
         case SDLK_RIGHT:
-          canvas_center_on_nearest_image_in_direction(selected_imi, 0);
+          canvas_center_on_nearest_image_in_direction(cv.selected_imi, 0);
           break;
         case SDLK_F11:
           super_toggle_fullscreen();
@@ -251,10 +255,10 @@ void controls_process(SDL_Event e) {
       if (shift_held) {  // keys + shift key held
         switch (e.key.keysym.sym) {
           case SDLK_LEFTBRACKET:
-            image_rotate_by(selected_imi, ROTATE_STEP);
+            image_rotate_by(cv.selected_imi, ROTATE_STEP);
             break;
           case SDLK_RIGHTBRACKET:
-            image_rotate_by(selected_imi, -ROTATE_STEP);
+            image_rotate_by(cv.selected_imi, -ROTATE_STEP);
             break;
           case SDLK_0:
             cvp[0] = cv;
@@ -306,33 +310,43 @@ void controls_process(SDL_Event e) {
             break;
           case SDLK_0:
             cv = cvp[0];
+            image_series_set(cv.selected_imi);
             break;
           case SDLK_1:
             cv = cvp[1];
+            image_series_set(cv.selected_imi);
             break;
           case SDLK_2:
             cv = cvp[2];
+            image_series_set(cv.selected_imi);
             break;
           case SDLK_3:
             cv = cvp[3];
+            image_series_set(cv.selected_imi);
             break;
           case SDLK_4:
             cv = cvp[4];
+            image_series_set(cv.selected_imi);
             break;
           case SDLK_5:
             cv = cvp[5];
+            image_series_set(cv.selected_imi);
             break;
           case SDLK_6:
             cv = cvp[6];
+            image_series_set(cv.selected_imi);
             break;
           case SDLK_7:
             cv = cvp[7];
+            image_series_set(cv.selected_imi);
             break;
           case SDLK_8:
             cv = cvp[8];
+            image_series_set(cv.selected_imi);
             break;
           case SDLK_9:
             cv = cvp[9];
+            image_series_set(cv.selected_imi);
             break;
         }
       }

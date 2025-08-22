@@ -3,7 +3,6 @@
 Image *images = NULL;
 int images_count = 0;
 int series_current = 0;
-int selected_imi = 0;
 
 // sorting options
 // call sort_images_by(compare_some_option)
@@ -205,7 +204,7 @@ void images_load_dir(const char *directory, bool show) {  // load all images fro
       }
     }
   }
-  selected_imi = images[0].sort_index;
+  cv.selected_imi = images[0].sort_index;
   if (no_savefile) images_arrange_in_grid();
 }
 
@@ -465,8 +464,8 @@ void canvas_center_on_image(int imi) {
   // double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
   // cv.x = cX;  // center view
   // cv.y = cY;
-  selected_imi = imi;
-  series_current = images[selected_imi].series_order;
+  cv.selected_imi = imi;
+  series_current = images[cv.selected_imi].series_order;
 }
 
 void canvas_center_on_nearest_image_in_direction(int imi, double direction) {

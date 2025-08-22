@@ -43,7 +43,6 @@ typedef struct {
 } rectangleCorners;
 
 extern int images_count;
-extern int selected_imi;
 extern Image *images;
 
 void images_unload();                                    // call before reloading images

@@ -14,7 +14,7 @@ void save_state() {
   fwrite(&rev, sizeof(uint16_t), 1, f);
   fwrite(&cv, sizeof(CanvasView), 1, f);
   fwrite(&images_count, sizeof(int), 1, f);
-  fwrite(&selected_imi, sizeof(int), 1, f);
+  fwrite(&cv.selected_imi, sizeof(int), 1, f);
 
   int max_canvas2 = MAX_CANVAS;
   fwrite(&max_canvas2, sizeof(int), 1, f);
@@ -64,7 +64,7 @@ bool load_state(bool show) {
   fread(&cv, sizeof(CanvasView), 1, f);
   int images_count_load = 0;
   fread(&images_count_load, sizeof(int), 1, f);
-  fread(&selected_imi, sizeof(int), 1, f);
+  fread(&cv.selected_imi, sizeof(int), 1, f);
 
   int cvp_i = 0;
   fread(&cvp_i, sizeof(int), 1, f);

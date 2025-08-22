@@ -1,13 +1,13 @@
 #include "super.h"
 
-double canvas_rotation_point_x = 0;
-double canvas_rotation_point_y = 0;
 int mouse_raw_last_x = 0;
 int mouse_raw_last_y = 0;  // for mouse dragging positioning
 double mouse_screen_last_x = 0;
 double mouse_screen_last_y = 0;      // for mouse dragging rotation
 double canvas_initial_rotation = 0;  // for canvas rotation about center
 double mouse_initial_angle = 0;
+double canvas_rotation_point_x = 0;
+double canvas_rotation_point_y = 0;
 
 bool antialiasing = 0;
 
@@ -23,13 +23,13 @@ void super_canvas_drag_zoom() {
 
 void super_image_drag_zoom() {
   double screen_reference_x, screen_reference_y;
-  canvas_to_screen(images[selected_imi].x + images[selected_imi].rx, images[selected_imi].y + images[selected_imi].ry, &screen_reference_x,
+  canvas_to_screen(images[cv.selected_imi].x + images[cv.selected_imi].rx, images[cv.selected_imi].y + images[cv.selected_imi].ry, &screen_reference_x,
                    &screen_reference_y);
   double distance1 = sqrt((screen_reference_x - mouse_screen_last_x) * (screen_reference_x - mouse_screen_last_x) +
                           (screen_reference_y - mouse_screen_last_y) * (screen_reference_y - mouse_screen_last_y));
   double distance2 = sqrt((screen_reference_x - mouse_screen_x) * (screen_reference_x - mouse_screen_x) +
                           (screen_reference_y - mouse_screen_y) * (screen_reference_y - mouse_screen_y));
-  images[selected_imi].z *= distance2 / distance1;
+  images[cv.selected_imi].z *= distance2 / distance1;
 }
 
 void super_mouse_last(SDL_Event e) {
@@ -51,11 +51,11 @@ void super_canvas_rotation_init() {
 
 void super_image_rotating() {
   double screen_reference_x, screen_reference_y;
-  canvas_to_screen(images[selected_imi].x + images[selected_imi].rx, images[selected_imi].y + images[selected_imi].ry, &screen_reference_x,
+  canvas_to_screen(images[cv.selected_imi].x + images[cv.selected_imi].rx, images[cv.selected_imi].y + images[cv.selected_imi].ry, &screen_reference_x,
                    &screen_reference_y);
   double dAngle = (180 / M_PI) * (atan2(screen_reference_y - mouse_screen_last_y, screen_reference_x - mouse_screen_last_x) -
                                   atan2(screen_reference_y - mouse_screen_y, screen_reference_x - mouse_screen_x));
-  image_rotate_by(selected_imi, -dAngle);
+  image_rotate_by(cv.selected_imi, -dAngle);
 }
 
 void super_canvas_rotating_center() { cv.r = canvas_initial_rotation + (mouse_angle_about_center - mouse_initial_angle); }
@@ -85,5 +85,42 @@ void super_toggle_fullscreen() {
     SDL_SetWindowFullscreen(window, 0);  // Back to windowed
   } else {
     SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);  // Fullscreen
+  }
+}
+
+void super_opacity_increase() {
+  int t = images[cv.selected_imi].opacity + 16;
+  if (t > 255) {
+    images[cv.selected_imi].opacity = 255;
+  } else {
+    images[cv.selected_imi].opacity = t;
+  }
+}
+void super_opacity_decrease() {
+  int t = images[cv.selected_imi].opacity - 16;
+  if (t < 0) {
+    images[cv.selected_imi].opacity = 0;
+  } else {
+    images[cv.selected_imi].opacity = t;
+  }
+}
+
+void super_reload_single_image(int imi) {
+  if (imi < 0) return;
+  SDL_DestroyTexture(images[imi].texture);
+  SDL_Surface *surface = IMG_Load(images[imi].filepath);
+  if (surface) {
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+    if (texture) {
+      Image *img = &images[imi];
+      img->texture = texture;
+      img->width = surface->w;
+      img->height = surface->h;
+      img->inited = 1;
+    } else {
+      fprintf(stderr, "Failed to create texture: %s\n", SDL_GetError());
+    }
+    SDL_FreeSurface(surface);
   }
 }

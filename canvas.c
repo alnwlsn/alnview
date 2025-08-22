@@ -1,7 +1,5 @@
 #include "canvas.h"
 
-#include <math.h>
-
 CanvasView cv;  // current view
 CanvasView cvp[MAX_CANVAS];
 int screen_size_x;
@@ -43,24 +41,18 @@ void canvas_init() {
   cv.y = 0;
   cv.r = 0;
   cv.z = 1.0f;
+  cv.selected_imi = 0;
 
   for (int i = 0; i < MAX_CANVAS; i++) {
     cvp[i].x = 0;
     cvp[i].y = 0;
     cvp[i].r = 0;
     cvp[i].z = 1.0f;
+    cv.selected_imi = 0;
   }
 
   canvas_update_cursor();
 }
-
-double rx = 128, ry = -128;  // point to rotate canvas about
-
-// double ax = 0, ay = 0, bx = 0, by = 0;  // debugging
-
-// static int animation = 0;
-// static int animation_step = 0;
-// static const int animation_steps = 50;
 
 void canvas_render_pin(double x, double y) {
   double lX = x * cv.z;
@@ -138,4 +130,3 @@ void canvas_rotate_about_point_by(double rx, double ry, double angle) {  // rota
   cv.x = cv.x - (cx - rx);
   cv.y = cv.y - (cy - ry);
 }
-

@@ -9,6 +9,7 @@ typedef struct {
   double x;  // center X in canvas coords
   double y;  // center Y in canvas coords
   double z;  // zoom
+  int selected_imi;
 } CanvasView;
 
 // globals that control the whole thing
