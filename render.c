@@ -17,6 +17,10 @@ double imrefCy = 0;
 double imrefDx = 0;
 double imrefDy = 0;
 
+bool show_center_mark = 0;            // for rendering, show a center mark if true
+bool show_canvas_rotation_point = 0;  // for renderer to show another reference mark
+bool show_image_reference_marks = 0;  // show corners, base and rotation point of selected image
+
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 TTF_Font *font = NULL;

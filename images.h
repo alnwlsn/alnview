@@ -3,13 +3,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdbool.h>
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
 
-#include "canvas.h"
 #include "defines.h"
 
 typedef struct {
@@ -33,8 +29,6 @@ typedef struct {
   char filepath[FILEPATHLEN];
   bool inited;
 } Image;
-extern int images_count;
-
 typedef struct {
   double aX;
   double aY;
@@ -46,6 +40,8 @@ typedef struct {
   double dY;
 } rectangleCorners;
 
+extern int images_count;
+extern int selected_imi;
 extern Image *images;
 
 void images_unload();                                    // call before reloading images
@@ -53,13 +49,9 @@ void images_free();                                      // to be called when pr
 void images_load_dir(const char *directory, bool show);  // load all images from directory
 void images_arrange_in_grid();
 int image_load(char *filepath);  // load one image, returns images[] index
-
 int image_point_on(double x, double y);  // returns images[] index of image currently under the given point, or -1 if none
-
 void images_render();
-
 rectangleCorners image_find_corners(int si);
-
 void image_to_on_bottom(int imi);
 void image_to_on_top(int imi);
 void image_drag_screen_by(int imi, int dx, int dy);

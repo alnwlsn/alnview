@@ -1,8 +1,5 @@
 #include "controls.h"
-
 #include <stdbool.h>
-
-#include "loader.h"
 
 // modes
 bool canvas_rotating_center = 0;  // for rotation of canvas about center of screen
@@ -25,16 +22,9 @@ bool antialiasing = 0;
 double canvas_initial_rotation = 0;
 double mouse_initial_angle = 0;
 
-int animation = 0;
-int animation_step = 0;
+// int animation = 0;
+// int animation_step = 0;
 
-// globals
-int selected_imi = 0;
-
-// render options
-bool show_center_mark = 0;            // for rendering, show a center mark if true
-bool show_canvas_rotation_point = 0;  // for renderer to show another reference mark
-bool show_image_reference_marks = 0;  // show corners, base and rotation point of selected image
 
 int mouseover_or_selected_imi() {  // use either the mouseovered imi or the last selected one
   int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
@@ -278,24 +268,6 @@ void controls_process(SDL_Event e) {
         case SDLK_x:
           images[selected_imi].opacity += 16;
           break;
-        case SDLK_b:
-          global_testA += 1;
-          break;
-        case SDLK_v:
-          global_testA -= 1;
-          break;
-        case SDLK_l:
-          global_testB -= 1;
-          break;
-        case SDLK_k:
-          global_testB += 1;
-          break;
-        case SDLK_n:
-          global_testC -= 1;
-          break;
-        case SDLK_m:
-          global_testC += 1;
-          break;
         case SDLK_c:
           if (crop_held == 0) {
             image_crop(selected_imi);
@@ -308,7 +280,7 @@ void controls_process(SDL_Event e) {
         case SDLK_i: {
           CanvasView gv = cv;
           images_unload();
-          uniload(0);
+          loader_uni(0);
           cv = gv;
         } break;
         case SDLK_s:
@@ -425,5 +397,4 @@ void controls_process(SDL_Event e) {
       }
       break;
   }
-  global_testA = image_drag_zoom + image_rotating * 2;
 }

@@ -10,13 +10,10 @@ int main(int argc, char *argv[]) {
     strncpy(img_dir, argv[1], sizeof(img_dir) - 1);
     img_dir[sizeof(img_dir) - 1] = '\0';
   }
-  
 
   canvas_init();  // this actually makes the window
 
-  uniload(1);
-
-  // images[4].r = 30; //for test
+  loader_uni(1);
 
   int quit = 0;
   SDL_Event e;

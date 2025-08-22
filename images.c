@@ -6,6 +6,7 @@
 Image *images = NULL;
 int images_count = 0;
 int series_current = 0;
+int selected_imi = 0;
 
 // sorting options
 // call sort_images_by(compare_some_option)

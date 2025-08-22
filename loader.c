@@ -107,7 +107,7 @@ bool load_state(bool show) {
   return 1;
 }
 
-void uniload(bool show) {
+void loader_uni(bool show) {
   if (!load_state(show)) {
     images_load_dir(img_dir, show);  // load all the images
     canvas_zoom_center_fitall();

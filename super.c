@@ -1,4 +1,4 @@
-#include "global.h"
+#include "super.h"
 
 double canvas_rotation_point_x = 0;
 double canvas_rotation_point_y = 0;
@@ -27,3 +27,4 @@ void super_image_drag_zoom() {
                           (screen_reference_y - mouse_screen_y) * (screen_reference_y - mouse_screen_y));
   images[selected_imi].z *= distance2 / distance1;
 }
+

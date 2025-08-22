@@ -4,8 +4,6 @@
 #include "controls.h"
 #include <stdbool.h>
 
-extern char img_dir[FILEPATHLEN];
-
 typedef struct {
   // SDL_Texture *texture;   // ignored
   int width;
@@ -27,6 +25,8 @@ typedef struct {
   char filepath[FILEPATHLEN];
 } ImageSave;
 
+extern char img_dir[FILEPATHLEN];
+
 bool load_state(bool show);
 void save_state();
-void uniload(bool show); //universal load (from savefile or not)
+void loader_uni(bool show); //universal load (from savefile or not)
