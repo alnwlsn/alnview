@@ -9,7 +9,7 @@ In particular, you can zoom and rotate images about any arbitrary point, which m
 
 ![demo](demo_img/demo.gif)
 
-It also makes a good document viewer, much better than any PDF reader especially for scanned manuals which have schematics or other diagrams spanning multiple pages (this was the original use case I had in mind). IPages take no time to load, as they are already loaded (but must be converted to images first ahead of time).
+It also makes a good document viewer, much better than any PDF reader especially for scanned manuals which have schematics or other diagrams spanning multiple pages (this was the original use case I had in mind). Pages take no time to load, as they are already loaded (but must be converted to images first ahead of time).
 
 ![demo](demo_img/demo2.gif)
 
