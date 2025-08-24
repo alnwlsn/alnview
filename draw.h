@@ -6,4 +6,4 @@
 
 void draw_render();
 
-void draw_append_point(int x, int y);
+void draw_append_point(double x, double y);
