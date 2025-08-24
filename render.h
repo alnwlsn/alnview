@@ -25,6 +25,7 @@ extern char coordText[600];
 extern bool show_center_mark;            // for renderer to show center mark
 extern bool show_canvas_rotation_point;  // for renderer to show another reference mark
 extern bool show_image_reference_marks;
+extern bool show_hud_text;
 
 // extern double global_testA;
 // extern double global_testB;
