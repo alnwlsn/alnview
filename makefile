@@ -1,10 +1,10 @@
 # Compiler and flags
 CC = gcc
 CFLAGS = $(shell sdl2-config --cflags) -Wall -Wextra -g
-LDFLAGS = $(shell sdl2-config --libs) -lSDL2_image -lSDL2_ttf -lm
+LDFLAGS = $(shell sdl2-config --libs) -lSDL2_image -lSDL2_ttf -lSDL2_gfx -lm
 
 # Source files
-SRCS = main.c images.c canvas.c controls.c render.c loader.c super.c
+SRCS = main.c images.c canvas.c controls.c render.c loader.c super.c draw.c
 OBJS = $(SRCS:.c=.o)
 
 # Executable name

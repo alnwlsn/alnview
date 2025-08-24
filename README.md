@@ -34,7 +34,7 @@ Ubuntu / Debian based
 
 ```
 sudo apt-get update
-sudo apt-get install gcc libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev git make
+sudo apt-get install gcc libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-gfx-dev git make
 git clone https://github.com/alnwlsn/alnview
 cd alnview
 make clean
@@ -55,6 +55,7 @@ pacman -S mingw-w64-x86_64-gcc \
           mingw-w64-x86_64-SDL2 \
           mingw-w64-x86_64-SDL2_image \
           mingw-w64-x86_64-SDL2_ttf \
+          mingw-w64-x86_64-SDL2_gfx \
           git make
 ```
 

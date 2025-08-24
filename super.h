@@ -6,6 +6,7 @@
 #include "controls.h"
 #include "images.h"
 #include "loader.h"
+#include "draw.h"
 
 extern int mouse_raw_last_x;
 extern int mouse_raw_last_y;  // for mouse dragging positioning

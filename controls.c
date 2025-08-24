@@ -253,6 +253,9 @@ bool controls_process(SDL_Event e) {
         case SDLK_F11:
           super_toggle_fullscreen();
           break;
+        case SDLK_g:
+          draw_append_point(mouse_canvas_x, mouse_canvas_y);
+          break;
       }
       if (shift_held) {  // keys + shift key held
         switch (e.key.keysym.sym) {

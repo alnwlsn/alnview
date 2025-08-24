@@ -88,7 +88,6 @@ void render_init() {
   window = SDL_CreateWindow("alnview", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_INIT_X, WINDOW_INIT_Y,
                             SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);  //| SDL_WINDOW_MAXIMIZED);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-  SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 }
 
 void render_canvas() {
@@ -125,16 +124,19 @@ void render_canvas() {
   canvas_render_pin(imrefCx, imrefCy);
   canvas_render_pin(imrefDx, imrefDy);
 
+  draw_render();
+
+  SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
   // debugging text
   // snprintf(coordText, sizeof(coordText), "X: %.1f Y: %.1f R: %.1f Z: %.1f", cv.x, cv.y, cv.r, cv.z);
   // render_text(coordText, 2, 0);
   // snprintf(coordText, sizeof(coordText), "X: %.1f Y: %.1f A: %.1f", mouse_screen_x, mouse_screen_y, mouse_angle_about_center);
-  render_text(coordText, 2, 0);
+  // render_text(coordText, 2, 0);
   snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mouse_canvas_x, mouse_canvas_y);
-  // render_text(coordText, 2, 32);
-  // snprintf(coordText, sizeof(coordText), "gtA: %.1f gtB: %.1f gtC: %.1f gtD: %.1f", global_testA, global_testB, global_testC, global_testD);
-  // render_text(coordText, 2, 48);
-
+  render_text(coordText, 2, 0);
+  snprintf(coordText, sizeof(coordText), "gtA: %.1f gtB: %.1f gtC: %.1f gtD: %.1f", global_testA, global_testB, global_testC, global_testD);
+  render_text(coordText, 2, 19);
 
 
   SDL_SetRenderDrawColor(renderer, BGCOLOR_R, BGCOLOR_G, BGCOLOR_B, 255);  // background color

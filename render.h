@@ -11,6 +11,8 @@
 #include "images.h"
 #include "super.h"
 
+#include "draw.h"
+
 void render_init();
 void render_text(char *coordText, int x, int y);
 void render_canvas();
@@ -27,15 +29,15 @@ extern bool show_canvas_rotation_point;  // for renderer to show another referen
 extern bool show_image_reference_marks;
 extern bool show_hud_text;
 
-// extern double global_testA;
-// extern double global_testB;
-// extern double global_testC;
-// extern double global_testD;
-// extern double imrefAx;
-// extern double imrefAy;
-// extern double imrefBx;
-// extern double imrefBy;
-// extern double imrefCx;
-// extern double imrefCy;
-// extern double imrefDx;
-// extern double imrefDy;
+extern double global_testA;
+extern double global_testB;
+extern double global_testC;
+extern double global_testD;
+extern double imrefAx;
+extern double imrefAy;
+extern double imrefBx;
+extern double imrefBy;
+extern double imrefCx;
+extern double imrefCy;
+extern double imrefDx;
+extern double imrefDy;
