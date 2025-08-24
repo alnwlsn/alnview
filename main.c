@@ -32,15 +32,8 @@ int main(int argc, char *argv[]) {
         case SDL_QUIT:
           quit = 1;
           break;
-        case SDL_KEYDOWN:
-          switch (e.key.keysym.sym) {
-            case SDLK_ESCAPE:
-              quit = 1;
-              break;
-          }
-          break;
       }
-      controls_process(e);  // control loop
+      if(controls_process(e)) quit = 1;  // control loop
     }
 
     render_canvas();

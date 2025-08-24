@@ -3,4 +3,4 @@
 
 #include "super.h"
 
-void controls_process(SDL_Event e);
+bool controls_process(SDL_Event e);

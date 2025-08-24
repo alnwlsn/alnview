@@ -42,7 +42,8 @@ int mouseover_selects_imi_or_none() {  // if mouseovered, select image else don'
   }
 }
 
-void controls_process(SDL_Event e) {
+bool controls_process(SDL_Event e) {
+  bool quit = 0;
   switch (e.type) {
     case SDL_MOUSEBUTTONDOWN:
       super_mouse_last(e);
@@ -291,6 +292,9 @@ void controls_process(SDL_Event e) {
           case SDLK_9:
             cvp[9] = cv;
             break;
+          case SDLK_q:
+            quit = 1;
+            break;
         }
       } else if (tab_held) {  // key
         switch (e.key.keysym.sym) {
@@ -353,4 +357,5 @@ void controls_process(SDL_Event e) {
       }
       break;
   }
+  return quit;
 }

@@ -135,6 +135,7 @@ Operations on images chooses the image to affect in a few ways:
 | ```F11``` | toggle full screen mode
 | ```shift + [numbers 0-9]``` | set current canvas view as preset
 | ```[numbers 0-9]``` | jump to previously set canvas view preset
+| ```shift + Q``` | quit program (does not save on exit)
 
 # Other notes
 (not nessacarily related to Alnview)
