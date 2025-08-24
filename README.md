@@ -67,6 +67,15 @@ make
 ./alnview.exe img
 ```
 
+# Usage
+```alnview [DIRECTORY]```
+
+This will attempt to load all images in the directory. It does not traverse subfolders. If no directory is specified, then the current directory is used. 
+
+If there is a ```view.aln``` savefile present, it will use it. If a savefile is created with ```S```, it will be stored in the directory as this file. The savefile contains image positioning, and canvas views.
+
+On Windows, it works to drag a folder onto ```alnview.exe```.
+
 # Controls
 Alnview is key driven, and has minimal GUI elements to maximize the amount of image visible on screen. Besides the images themselves, the only on-screen elements are small markers which indicate certain points (like the corners of the selected image), and text overlays (where applicable).
 
@@ -126,3 +135,11 @@ Operations on images chooses the image to affect in a few ways:
 | ```F11``` | toggle full screen mode
 | ```shift + [numbers 0-9]``` | set current canvas view as preset
 | ```[numbers 0-9]``` | jump to previously set canvas view preset
+
+# Other notes
+(not nessacarily related to Alnview)
+* To convert a PDF to a bunch of images on Linux:
+
+    ```pdftoppm -r 200 -png *.pdf page```
+
+    Makes a bunch of PNGs at 200 DPI: page-001.png, page-002.png, etc.

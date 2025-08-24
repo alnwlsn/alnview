@@ -25,8 +25,6 @@ typedef struct {
   char filepath[FILEPATHLEN];
 } ImageSave;
 
-extern char img_dir[FILEPATHLEN];
-
 bool load_state(bool show);
 void save_state();
 void loader_uni(bool show); //universal load (from savefile or not)

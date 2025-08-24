@@ -47,7 +47,7 @@ extern Image *images;
 
 void images_unload();                                    // call before reloading images
 void images_free();                                      // to be called when program exits
-void images_load_dir(const char *directory, bool show);  // load all images from directory
+void images_load_dir(bool show);  // load all images from working directory
 void images_arrange_in_grid();
 int image_load(char *filepath);  // load one image, returns images[] index
 int image_point_on(double x, double y);  // returns images[] index of image currently under the given point, or -1 if none

@@ -131,9 +131,9 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
   // fprintf(stdout, "img %d\n", images_count);
 }
 
-void images_load_dir(const char *directory, bool show) {  // load all images from directory
+void images_load_dir(bool show) {  // load all images from directory
   bool no_savefile = 1;
-  DIR *dir = opendir(directory);
+  DIR *dir = opendir(".");
   if (!dir) {
     perror("Failed to open image directory");
     exit(1);
@@ -143,7 +143,7 @@ void images_load_dir(const char *directory, bool show) {  // load all images fro
   while ((entry = readdir(dir))) {
     if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0 || strcmp(entry->d_name, SAVEFILE) == 0) continue;
     char path[512];
-    snprintf(path, sizeof(path) - 8, "%s/%s", directory, entry->d_name);
+    snprintf(path, sizeof(path) - 8, "%s", entry->d_name);
     struct stat path_stat;
     if (stat(path, &path_stat) != 0 || !S_ISREG(path_stat.st_mode)) continue;
 

@@ -1,7 +1,5 @@
 #include "loader.h"
 
-char img_dir[FILEPATHLEN] = ".";
-
 // void save_state(const char *filename, Image *images, int count) {
 void save_state() {
   FILE *f = fopen(SAVEFILE, "wb");
@@ -109,9 +107,9 @@ bool load_state(bool show) {
 
 void loader_uni(bool show) {
   if (!load_state(show)) {
-    images_load_dir(img_dir, show);  // load all the images
+    images_load_dir(show);  // load all the images
     canvas_zoom_center_fitall();
   } else {
-    images_load_dir(img_dir, show);  // still load extra imgs
+    images_load_dir(show);  // still load extra imgs
   }
 }

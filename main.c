@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "canvas.h"
 #include "controls.h"
 #include "images.h"
@@ -6,9 +10,12 @@
 
 int main(int argc, char *argv[]) {
   render_init();
-  if (argc > 1) {
-    strncpy(img_dir, argv[1], sizeof(img_dir) - 1);
-    img_dir[sizeof(img_dir) - 1] = '\0';
+  if (argc > 1) {  // given argument is the image folder to use; chdir to it
+    if (chdir(argv[1]) != 0) {
+      perror("chdir failed");
+      // return 1;
+      // fail here means current working directory will be used instead
+    }
   }
 
   canvas_init();  // this actually makes the window
