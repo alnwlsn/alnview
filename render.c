@@ -49,7 +49,7 @@ void render_text(char *text, int x, int y) {  // for rendering text on screen
   SDL_Rect textRectBg = {x-2, y, textSurface->w+4, textSurface->h};
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 192);
   SDL_RenderFillRect(renderer, &textRectBg);
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 192);
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
   SDL_FreeSurface(textSurface);
   SDL_DestroyTexture(textTexture);
@@ -60,6 +60,10 @@ void render_text_center(char *text, int x, int y) {  // for rendering text on sc
   SDL_Surface *textSurface = TTF_RenderText_Blended(font, text, textColor);
   SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
   SDL_Rect textRect = {x - (textSurface->w / 2), y - (textSurface->h / 2), textSurface->w, textSurface->h};
+  SDL_Rect textRectBg = {x - (textSurface->w / 2)-2, y - (textSurface->h / 2), textSurface->w+4, textSurface->h};
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 192);
+  SDL_RenderFillRect(renderer, &textRectBg);
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
   SDL_FreeSurface(textSurface);
   SDL_DestroyTexture(textTexture);
