@@ -19,12 +19,17 @@ CanvasView draw_cv_last;
 int draw_len_last = -1;
 SDL_Texture *draw_tex = NULL;
 
+bool draw_pick = 0;
+#define pick_n 15
+#define pick_w 20
+#define pick_b 2
+
 void draw_init() {
   for (int i = 0; i < draw_points_max; i++) {
-    draw_points[i].type = dp_none;
+    draw_points[i].t = dp_none;
     draw_points[i].x = 0;
     draw_points[i].y = 0;
-    draw_points[i].thickness = draw_default_thickness;
+    draw_points[i].z = draw_default_thickness;
   }
   draw_cv_last = cv;
   draw_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_TARGET, MAX_SCREEN_X, MAX_SCREEN_Y);
@@ -77,7 +82,7 @@ bool line_intersects_rect(float x1, float y1, float x2, float y2, float rect_x, 
 
 void draw_line_thickness(double x1, double y1, double x2, double y2, double thickness) {
   // if the line doesn't even cross the screen, don't draw it
-  if (!line_intersects_rect(x1, y1, x2, y2, -thickness, -thickness, screen_size_x + thickness*2, screen_size_y + thickness*2)) return;
+  if (!line_intersects_rect(x1, y1, x2, y2, -thickness, -thickness, screen_size_x + thickness * 2, screen_size_y + thickness * 2)) return;
 
   int n = ((int)thickness / 6) + 2;  // approximate number of sides to draw on caps
   if (n > 36) n = 36;
@@ -146,14 +151,11 @@ void draw_line_thickness(double x1, double y1, double x2, double y2, double thic
 }
 
 void draw_circle(double x, double y, double r, int n) {
-  // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-
+  // from ChatGPT
   SDL_Vertex verts[n];
   int indices[3 * (n - 2)];  // triangle indices for triangle fan
-
   // Center vertex (used for triangle fan)
   SDL_FPoint center = {x, y};
-
   for (int i = 0; i < n; i++) {
     float angle = 2.0f * M_PI * i / n;
     verts[i].position.x = x + r * cosf(angle);
@@ -165,15 +167,12 @@ void draw_circle(double x, double y, double r, int n) {
     verts[i].tex_coord.x = 0;  // not used
     verts[i].tex_coord.y = 0;  // not used
   }
-
   // Build indices for triangle fan
   for (int i = 0; i < n - 2; i++) {
     indices[3 * i + 0] = 0;  // center of fan
     indices[3 * i + 1] = i + 1;
     indices[3 * i + 2] = i + 2;
   }
-
-  // Draw triangle fan
   SDL_RenderGeometry(renderer, NULL, verts, n, indices, 3 * (n - 2));
 }
 
@@ -188,6 +187,73 @@ void draw_line_thickness_canvas(double x1, double y1, double x2, double y2, doub
   y1s += (screen_size_y / 2);
   y2s += (screen_size_y / 2);
   draw_line_thickness(x1s, y1s, x2s, y2s, thickness * cv.z);
+}
+
+void draw_render_pick() {
+  int ox = pick_n * (pick_w + pick_b);
+  SDL_Rect p = {screen_size_x - ox, 0, ox, pick_w + pick_b + pick_b};  // background
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 192);
+  SDL_RenderFillRect(renderer, &p);
+  p.h = pick_w;
+  p.w = pick_w;
+  p.y = pick_b;
+  p.x = screen_size_x - ox + pick_b;
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  SDL_RenderFillRect(renderer, &p);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_RenderFillRect(renderer, &p);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+  SDL_RenderFillRect(renderer, &p);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 255, 128, 0, 255);
+  SDL_RenderFillRect(renderer, &p);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+  SDL_RenderFillRect(renderer, &p);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+  SDL_RenderFillRect(renderer, &p);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+  SDL_RenderFillRect(renderer, &p);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+  SDL_RenderFillRect(renderer, &p);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 128, 0, 255, 255);
+  SDL_RenderFillRect(renderer, &p);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
+  SDL_RenderFillRect(renderer, &p);
+  p.x += pick_b + pick_w + (pick_w / 2);
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 1, 17);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 3, 17);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 6, 17);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 8, 17);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 10, 17);
+}
+int draw_pick_select() {
+  int pick = -1;
+  int ox = pick_n * (pick_w + pick_b);
+  int mousePickY = mouse_screen_raw_y;
+  int mousePickX = mouse_screen_raw_x+ox-screen_size_x;
+  if(mousePickY < pick_w + pick_b + pick_b && mousePickX > 0){
+    mousePickX -= pick_b;
+    pick = mousePickX/(pick_w + pick_b);
+    for(int i=0;i<pick;i++)printf("##");
+  }
+  printf("%d\n",pick);
 }
 
 void draw_render() {
@@ -205,17 +271,17 @@ void draw_render() {
       draw_start = 0;
     }
     for (int i = draw_start; i < draw_len; i++) {
-      switch (draw_points[i].type) {
+      switch (draw_points[i].t) {
         case dp_drop:
-          if (draw_points[i + 1].type != dp_move) {
-            draw_line_thickness_canvas(draw_points[i].x, draw_points[i].y, draw_points[i].x, draw_points[i].y, draw_points[i].thickness);
+          if (draw_points[i + 1].t != dp_move) {
+            draw_line_thickness_canvas(draw_points[i].x, draw_points[i].y, draw_points[i].x, draw_points[i].y, draw_points[i].z);
           } else {
             draw_last_x = draw_points[i].x;
             draw_last_y = draw_points[i].y;
           }
           break;
         case dp_move:
-          draw_line_thickness_canvas(draw_last_x, draw_last_y, draw_points[i].x, draw_points[i].y, draw_points[i].thickness);
+          draw_line_thickness_canvas(draw_last_x, draw_last_y, draw_points[i].x, draw_points[i].y, draw_points[i].z);
 
           draw_last_x = draw_points[i].x;
           draw_last_y = draw_points[i].y;
@@ -228,41 +294,53 @@ void draw_render() {
 
     // printf("\n");
     // for (int i = 0; i < draw_len; i++) {
-    // printf("%d",draw_points[i].type);
+    // printf("%d",draw_points[i].t);
     //   if((i+1)%100==0)printf("\n");
     // }
     // printf("\n");
   }
 
   SDL_Rect dst = {0, 0, MAX_SCREEN_X, MAX_SCREEN_Y};
+  // SDL_SetTextureAlphaMod(draw_tex, 255); //change alpha of whole texture
   SDL_RenderCopy(renderer, draw_tex, NULL, &dst);
+
+  if (draw_pick) {
+    draw_render_pick();
+    draw_pick_select();
+  }
 }
 
 void draw_lift_pen() {
   if (draw_len >= draw_points_max) return;
-  draw_points[draw_len].type = dp_lift;
+  draw_points[draw_len].t = dp_lift;
   draw_len++;
 }
 void draw_drop_pen(double x, double y) {
   if (draw_len >= draw_points_max) return;
   draw_points[draw_len].x = x;
   draw_points[draw_len].y = y;
-  draw_points[draw_len].type = dp_drop;
+  draw_points[draw_len].t = dp_drop;
   draw_len++;
 }
 void draw_move_pen(double x, double y) {
   if (draw_len >= draw_points_max) return;
   draw_points[draw_len].x = x;
   draw_points[draw_len].y = y;
-  draw_points[draw_len].type = dp_move;
+  draw_points[draw_len].t = dp_move;
   draw_len++;
 }
 void draw_back_pen() {
   int i = draw_len;
   while (i > 0) {
-    if (draw_points[i].type == dp_drop) break;
+    if (draw_points[i].t == dp_drop) break;
     i--;
   }
   if (i > 0) i--;
   draw_len = i;
+}
+
+void draw_pick_open() { draw_pick = 1; }
+void draw_pick_close() {
+  draw_pick = 0;
+  draw_pick_select();
 }

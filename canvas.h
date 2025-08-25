@@ -17,6 +17,8 @@ extern CanvasView cv;
 extern CanvasView cvp[];
 extern int screen_size_x;
 extern int screen_size_y;
+extern int mouse_screen_raw_x;
+extern int mouse_screen_raw_y;
 extern double mouse_screen_x;
 extern double mouse_screen_y;
 extern double mouse_canvas_x;

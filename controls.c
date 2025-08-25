@@ -15,6 +15,7 @@ bool ctrl_held = 0;   // control key held
 bool tab_held = 0;    // tab key held
 bool crop_held = 0;
 bool draw_held = 0;
+bool draw_pick_held = 0;
 
 int mouseover_or_selected_imi() {  // use either the mouseovered imi or the last selected one
   int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
@@ -152,6 +153,10 @@ bool controls_process(SDL_Event e) {
           draw_held = 0;
           draw_lift_pen();
           break;
+        case SDLK_f:
+          draw_pick_held = 0;
+          draw_pick_close();
+          break;
         case SDLK_SPACE:
           show_image_reference_marks = 0;
           break;
@@ -267,6 +272,12 @@ bool controls_process(SDL_Event e) {
             draw_drop_pen(mouse_canvas_x, mouse_canvas_y);
           }
           draw_held = 1;
+          break;
+        case SDLK_f:
+          if (draw_pick_held == 0) {
+            draw_pick_open();
+          }
+          draw_pick_held = 1;
           break;
         case SDLK_BACKSPACE:
           draw_back_pen();

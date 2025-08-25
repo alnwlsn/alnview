@@ -4,6 +4,8 @@ CanvasView cv;  // current view
 CanvasView cvp[MAX_CANVAS];
 int screen_size_x;
 int screen_size_y;
+int mouse_screen_raw_x;
+int mouse_screen_raw_y;
 double mouse_screen_x;
 double mouse_screen_y;
 double mouse_canvas_x;
@@ -11,12 +13,11 @@ double mouse_canvas_y;
 double mouse_angle_about_center;
 
 void canvas_update_cursor() {
-  int mouseX_raw, mouseY_raw;
-  SDL_GetMouseState(&mouseX_raw, &mouseY_raw);
+  SDL_GetMouseState(&mouse_screen_raw_x, &mouse_screen_raw_y);
   SDL_GetWindowSize(window, &screen_size_x, &screen_size_y);
 
-  mouse_screen_x = mouseX_raw - (screen_size_x / 2.0f);  // mouse screen coords, with 0 at center on screen
-  mouse_screen_y = -mouseY_raw + (screen_size_y / 2.0f);
+  mouse_screen_x = mouse_screen_raw_x - (screen_size_x / 2.0f);  // mouse screen coords, with 0 at center on screen
+  mouse_screen_y = -mouse_screen_raw_y + (screen_size_y / 2.0f);
 
   mouse_canvas_x = (mouse_screen_x / cv.z) * cos(-cv.r * M_PI / 180) - (mouse_screen_y / cv.z) * sin(-cv.r * M_PI / 180);  // convert mouse to canvas coords
   mouse_canvas_y = (mouse_screen_y / cv.z) * cos(-cv.r * M_PI / 180) + (mouse_screen_x / cv.z) * sin(-cv.r * M_PI / 180);

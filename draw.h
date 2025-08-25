@@ -7,8 +7,8 @@
 typedef struct {
   double x;
   double y;
-  int type;
-  int thickness;
+  int t;
+  double z;
 } DrawPoint;
 
 #define draw_points_max 100000
@@ -22,3 +22,6 @@ void draw_lift_pen();
 void draw_drop_pen(double x, double y);
 void draw_move_pen(double x, double y);
 void draw_back_pen();
+
+void draw_pick_open();
+void draw_pick_close();

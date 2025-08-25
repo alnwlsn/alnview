@@ -48,8 +48,8 @@ void save_state() {
     DrawPoint s;
     s.x = draw_points[i].x;
     s.y = draw_points[i].y;
-    s.type = draw_points[i].type;
-    s.thickness = draw_points[i].thickness;
+    s.t = draw_points[i].t;
+    s.z = draw_points[i].z;
     fwrite(&s, sizeof(DrawPoint), 1, f);
   }
 
@@ -116,10 +116,9 @@ bool load_state(bool show) {
     fread(&s, sizeof(DrawPoint), 1, f);
     draw_points[i].x = s.x;
     draw_points[i].y = s.y;
-    draw_points[i].type = s.type;
-    draw_points[i].thickness = s.thickness;
+    draw_points[i].t = s.t;
+    draw_points[i].z = s.z;
   }
-  
 
   fclose(f);
 
