@@ -10,10 +10,11 @@ bool image_drag_zoom = 0;
 bool canvas_drag_zoom = 0;
 
 // states
-int shift_held = 0;  // shift key held
-int ctrl_held = 0;   // control key held
-int tab_held = 0;    // tab key held
+bool shift_held = 0;  // shift key held
+bool ctrl_held = 0;   // control key held
+bool tab_held = 0;    // tab key held
 bool crop_held = 0;
+bool draw_held = 0;
 
 int mouseover_or_selected_imi() {  // use either the mouseovered imi or the last selected one
   int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
@@ -99,6 +100,9 @@ bool controls_process(SDL_Event e) {
         super_canvas_rotating_point();
       if (image_drag_zoom) super_image_drag_zoom();
       if (canvas_drag_zoom) super_canvas_drag_zoom();
+      if (draw_held) {
+        draw_move_pen(mouse_canvas_x, mouse_canvas_y);
+      }
       super_mouse_last(e);
       break;
     case SDL_MOUSEWHEEL: {
@@ -143,6 +147,10 @@ bool controls_process(SDL_Event e) {
           break;
         case SDLK_c:
           crop_held = 0;
+          break;
+        case SDLK_d:
+          draw_held = 0;
+          draw_lift_pen();
           break;
         case SDLK_SPACE:
           show_image_reference_marks = 0;
@@ -223,7 +231,7 @@ bool controls_process(SDL_Event e) {
           }
           crop_held = 1;
           break;
-        case SDLK_d:
+        case SDLK_g:
           image_uncrop(mouseover_or_selected_imi());
           break;
         case SDLK_w: {
@@ -253,8 +261,15 @@ bool controls_process(SDL_Event e) {
         case SDLK_F11:
           super_toggle_fullscreen();
           break;
-        case SDLK_g:
-          draw_append_point(mouse_canvas_x, mouse_canvas_y);
+        case SDLK_d:
+          if (draw_held == 0) {
+            super_mouse_last(e);
+            draw_drop_pen(mouse_canvas_x, mouse_canvas_y);
+          }
+          draw_held = 1;
+          break;
+        case SDLK_BACKSPACE:
+          draw_back_pen();
           break;
       }
       if (shift_held) {  // keys + shift key held

@@ -43,6 +43,16 @@ void save_state() {
     fwrite(&s, sizeof(ImageSave), 1, f);
   }
 
+  fwrite(&draw_len, sizeof(int), 1, f);
+  for (int i = 0; i < draw_len; i++) {
+    DrawPoint s;
+    s.x = draw_points[i].x;
+    s.y = draw_points[i].y;
+    s.type = draw_points[i].type;
+    s.thickness = draw_points[i].thickness;
+    fwrite(&s, sizeof(DrawPoint), 1, f);
+  }
+
   fclose(f);
 }
 
@@ -99,6 +109,17 @@ bool load_state(bool show) {
     images[imi].draw_order = s.draw_order;
     images[imi].sort_index = s.sort_index;
   }
+
+  fread(&draw_len, sizeof(int), 1, f);
+  for (int i = 0; i < draw_len; i++){
+    DrawPoint s;
+    fread(&s, sizeof(DrawPoint), 1, f);
+    draw_points[i].x = s.x;
+    draw_points[i].y = s.y;
+    draw_points[i].type = s.type;
+    draw_points[i].thickness = s.thickness;
+  }
+  
 
   fclose(f);
 

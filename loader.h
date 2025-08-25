@@ -2,6 +2,7 @@
 #include "canvas.h"
 #include "images.h"
 #include "controls.h"
+#include "draw.h"
 #include <stdbool.h>
 
 typedef struct {
