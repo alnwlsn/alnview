@@ -25,6 +25,7 @@ int draw_re_thickness = 3;
 CanvasView draw_cv_last;
 int draw_len_last = -1;
 SDL_Texture *draw_tex = NULL;
+SDL_Texture *draw_alpha = NULL;
 
 bool draw_pick = 0;
 #define pick_n 15
@@ -49,6 +50,7 @@ void draw_init() {
   }
   draw_cv_last = cv;
   draw_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_TARGET, MAX_SCREEN_X, MAX_SCREEN_Y);
+  draw_alpha = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_TARGET, MAX_SCREEN_X, MAX_SCREEN_Y);
   SDL_SetTextureBlendMode(draw_tex, SDL_BLENDMODE_BLEND);
   SDL_SetRenderTarget(renderer, draw_tex);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
@@ -331,7 +333,7 @@ void draw_render() {
       draw_re_color_red = 255;
       draw_re_color_blue = 255;
       draw_re_color_green = 255;
-      draw_re_color_alpha = 255;
+      draw_re_color_alpha = 128;
       draw_re_thickness = 3;
     }
     for (int i = draw_start; i < draw_len; i++) {
