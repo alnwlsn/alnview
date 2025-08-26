@@ -6,14 +6,21 @@
 #define dp_lift 1
 #define dp_move 2
 #define dp_drop 3
+#define dp_color 4
+#define dp_thickness 5
 
 #define draw_default_thickness 3
 
 DrawPoint draw_points[draw_points_max];
 int draw_len = 0;
 
-double draw_last_x = 0;
-double draw_last_y = 0;
+double draw_re_last_x = 0;
+double draw_re_last_y = 0;
+int draw_re_color_red = 255;
+int draw_re_color_blue = 255;
+int draw_re_color_green = 255;
+int draw_re_color_alpha = 255;
+int draw_re_thickness = 3;
 
 CanvasView draw_cv_last;
 int draw_len_last = -1;
@@ -139,10 +146,10 @@ void draw_line_thickness(double x1, double y1, double x2, double y2, double thic
   }
 
   for (int i = 0; i < z; i++) {  // initalize rest of it
-    verts[i].color.r = 255;
-    verts[i].color.g = 255;
-    verts[i].color.b = 255;
-    verts[i].color.a = 255;
+    verts[i].color.r = draw_re_color_red;
+    verts[i].color.g = draw_re_color_blue;
+    verts[i].color.b = draw_re_color_green;
+    verts[i].color.a = draw_re_color_alpha;
     verts[i].tex_coord.x = 0;  // not used
     verts[i].tex_coord.y = 0;  // not used
   }
@@ -160,10 +167,10 @@ void draw_circle(double x, double y, double r, int n) {
     float angle = 2.0f * M_PI * i / n;
     verts[i].position.x = x + r * cosf(angle);
     verts[i].position.y = y + r * sinf(angle);
-    verts[i].color.r = 255;
-    verts[i].color.g = 255;
-    verts[i].color.b = 255;
-    verts[i].color.a = 255;
+    verts[i].color.r = draw_re_color_red;
+    verts[i].color.g = draw_re_color_blue;
+    verts[i].color.b = draw_re_color_green;
+    verts[i].color.a = draw_re_color_alpha;
     verts[i].tex_coord.x = 0;  // not used
     verts[i].tex_coord.y = 0;  // not used
   }
@@ -198,62 +205,169 @@ void draw_render_pick() {
   p.w = pick_w;
   p.y = pick_b;
   p.x = screen_size_x - ox + pick_b;
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);  // white
   SDL_RenderFillRect(renderer, &p);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // black
   SDL_RenderFillRect(renderer, &p);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+  SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // red
   SDL_RenderFillRect(renderer, &p);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 255, 128, 0, 255);
+  SDL_SetRenderDrawColor(renderer, 255, 128, 0, 255);  // orange
   SDL_RenderFillRect(renderer, &p);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+  SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);  // yellow
   SDL_RenderFillRect(renderer, &p);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+  SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);  // green
   SDL_RenderFillRect(renderer, &p);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+  SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);  // cyan
   SDL_RenderFillRect(renderer, &p);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+  SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);  // blue
   SDL_RenderFillRect(renderer, &p);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 128, 0, 255, 255);
+  SDL_SetRenderDrawColor(renderer, 128, 0, 255, 255);  // purple
   SDL_RenderFillRect(renderer, &p);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
+  SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);  // magenta
   SDL_RenderFillRect(renderer, &p);
   p.x += pick_b + pick_w + (pick_w / 2);
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 1, 17);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 3, 17);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 6, 17);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 8, 17);
   p.x += pick_b + pick_w;
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 10, 17);
 }
 int draw_pick_select() {
   int pick = -1;
   int ox = pick_n * (pick_w + pick_b);
   int mousePickY = mouse_screen_raw_y;
-  int mousePickX = mouse_screen_raw_x+ox-screen_size_x;
-  if(mousePickY < pick_w + pick_b + pick_b && mousePickX > 0){
+  int mousePickX = mouse_screen_raw_x + ox - screen_size_x;
+  if (mousePickY < pick_w + pick_b + pick_b && mousePickX > 0) {
     mousePickX -= pick_b;
-    pick = mousePickX/(pick_w + pick_b);
-    for(int i=0;i<pick;i++)printf("##");
+    pick = mousePickX / (pick_w + pick_b);
+    // for(int i=0;i<pick;i++)printf("##");
   }
-  printf("%d\n",pick);
+  // printf("%d\n",pick);
+  switch (pick) {
+    case 0:  // color white
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].x = 255;
+      draw_points[draw_len].y = 255;
+      draw_points[draw_len].z = 255;
+      draw_points[draw_len].t = dp_color;
+      draw_len++;
+      break;
+    case 1:  // color black
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].x = 0;
+      draw_points[draw_len].y = 0;
+      draw_points[draw_len].z = 0;
+      draw_points[draw_len].t = dp_color;
+      draw_len++;
+      break;
+    case 2:  // color red
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].x = 255;
+      draw_points[draw_len].y = 0;
+      draw_points[draw_len].z = 0;
+      draw_points[draw_len].t = dp_color;
+      draw_len++;
+      break;
+    case 3:  // color orange
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].x = 255;
+      draw_points[draw_len].y = 128;
+      draw_points[draw_len].z = 0;
+      draw_points[draw_len].t = dp_color;
+      draw_len++;
+      break;
+    case 4:  // color yellow
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].x = 255;
+      draw_points[draw_len].y = 255;
+      draw_points[draw_len].z = 0;
+      draw_points[draw_len].t = dp_color;
+      draw_len++;
+      break;
+    case 5:  // color green
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].x = 0;
+      draw_points[draw_len].y = 255;
+      draw_points[draw_len].z = 0;
+      draw_points[draw_len].t = dp_color;
+      draw_len++;
+      break;
+    case 6:  // color cyan
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].x = 0;
+      draw_points[draw_len].y = 255;
+      draw_points[draw_len].z = 255;
+      draw_points[draw_len].t = dp_color;
+      draw_len++;
+      break;
+    case 7:  // color blue
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].x = 0;
+      draw_points[draw_len].y = 0;
+      draw_points[draw_len].z = 255;
+      draw_points[draw_len].t = dp_color;
+      draw_len++;
+      break;
+    case 8:  // color purple
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].x = 128;
+      draw_points[draw_len].y = 0;
+      draw_points[draw_len].z = 255;
+      draw_points[draw_len].t = dp_color;
+      draw_len++;
+      break;
+    case 9:  // color magenta
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].x = 255;
+      draw_points[draw_len].y = 0;
+      draw_points[draw_len].z = 255;
+      draw_points[draw_len].t = dp_color;
+      draw_len++;
+      break;
+    case 10:
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].z = 1;
+      draw_points[draw_len].t = dp_thickness;
+      draw_len++;
+      break;
+    case 11:
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].z = 3;
+      draw_points[draw_len].t = dp_thickness;
+      draw_len++;
+      break;
+    case 12:
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].z = 10;
+      draw_points[draw_len].t = dp_thickness;
+      draw_len++;
+      break;
+    case 13:
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].z = 20;
+      draw_points[draw_len].t = dp_thickness;
+      draw_len++;
+      break;
+        case 14:
+      if (draw_len >= draw_points_max) return;
+      draw_points[draw_len].z = 30;
+      draw_points[draw_len].t = dp_thickness;
+      draw_len++;
+      break;
+  }
 }
 
 void draw_render() {
@@ -269,22 +383,37 @@ void draw_render() {
       SDL_RenderClear(renderer);
       draw_cv_last = cv;
       draw_start = 0;
+      draw_re_last_x = 0;
+      draw_re_last_y = 0;
+      draw_re_color_red = 255;
+      draw_re_color_blue = 255;
+      draw_re_color_green = 255;
+      draw_re_color_alpha = 255;
+      draw_re_thickness = 3;
     }
     for (int i = draw_start; i < draw_len; i++) {
       switch (draw_points[i].t) {
         case dp_drop:
           if (draw_points[i + 1].t != dp_move) {
-            draw_line_thickness_canvas(draw_points[i].x, draw_points[i].y, draw_points[i].x, draw_points[i].y, draw_points[i].z);
+            draw_line_thickness_canvas(draw_points[i].x, draw_points[i].y, draw_points[i].x, draw_points[i].y, draw_re_thickness);
           } else {
-            draw_last_x = draw_points[i].x;
-            draw_last_y = draw_points[i].y;
+            draw_re_last_x = draw_points[i].x;
+            draw_re_last_y = draw_points[i].y;
           }
           break;
         case dp_move:
-          draw_line_thickness_canvas(draw_last_x, draw_last_y, draw_points[i].x, draw_points[i].y, draw_points[i].z);
+          draw_line_thickness_canvas(draw_re_last_x, draw_re_last_y, draw_points[i].x, draw_points[i].y, draw_re_thickness);
 
-          draw_last_x = draw_points[i].x;
-          draw_last_y = draw_points[i].y;
+          draw_re_last_x = draw_points[i].x;
+          draw_re_last_y = draw_points[i].y;
+          break;
+        case dp_color:
+          draw_re_color_red = draw_points[i].x;
+          draw_re_color_blue = draw_points[i].y;
+          draw_re_color_green = draw_points[i].z;
+          break;
+        case dp_thickness:
+          draw_re_thickness = draw_points[i].z;
           break;
       }
       // draw_line_thickness_canvas(draw_points[i].x, draw_points[i].y, draw_points[i + 1].x, draw_points[i + 1].y, 3);
@@ -306,7 +435,6 @@ void draw_render() {
 
   if (draw_pick) {
     draw_render_pick();
-    draw_pick_select();
   }
 }
 
