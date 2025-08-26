@@ -31,6 +31,15 @@ bool draw_pick = 0;
 #define pick_w 20
 #define pick_b 2
 
+void draw_add(double x, double y, double z, int t) {
+  if (draw_len >= draw_points_max) return;
+  draw_points[draw_len].x = x;
+  draw_points[draw_len].y = y;
+  draw_points[draw_len].z = z;
+  draw_points[draw_len].t = t;
+  draw_len++;
+}
+
 void draw_init() {
   for (int i = 0; i < draw_points_max; i++) {
     draw_points[i].t = dp_none;
@@ -162,7 +171,6 @@ void draw_circle(double x, double y, double r, int n) {
   SDL_Vertex verts[n];
   int indices[3 * (n - 2)];  // triangle indices for triangle fan
   // Center vertex (used for triangle fan)
-  SDL_FPoint center = {x, y};
   for (int i = 0; i < n; i++) {
     float angle = 2.0f * M_PI * i / n;
     verts[i].position.x = x + r * cosf(angle);
@@ -245,7 +253,7 @@ void draw_render_pick() {
   p.x += pick_b + pick_w;
   draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 10, 17);
 }
-int draw_pick_select() {
+void draw_pick_select() {
   int pick = -1;
   int ox = pick_n * (pick_w + pick_b);
   int mousePickY = mouse_screen_raw_y;
@@ -257,115 +265,50 @@ int draw_pick_select() {
   }
   // printf("%d\n",pick);
   switch (pick) {
-    case 0:  // color white
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].x = 255;
-      draw_points[draw_len].y = 255;
-      draw_points[draw_len].z = 255;
-      draw_points[draw_len].t = dp_color;
-      draw_len++;
+    case 0:
+      draw_add(255, 255, 255, dp_color);  // color white
       break;
-    case 1:  // color black
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].x = 0;
-      draw_points[draw_len].y = 0;
-      draw_points[draw_len].z = 0;
-      draw_points[draw_len].t = dp_color;
-      draw_len++;
+    case 1:
+      draw_add(0, 0, 0, dp_color);  // color black
       break;
-    case 2:  // color red
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].x = 255;
-      draw_points[draw_len].y = 0;
-      draw_points[draw_len].z = 0;
-      draw_points[draw_len].t = dp_color;
-      draw_len++;
+    case 2:
+      draw_add(255, 0, 0, dp_color);  // color red
       break;
-    case 3:  // color orange
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].x = 255;
-      draw_points[draw_len].y = 128;
-      draw_points[draw_len].z = 0;
-      draw_points[draw_len].t = dp_color;
-      draw_len++;
+    case 3:
+      draw_add(255, 128, 0, dp_color);  // color orange
       break;
-    case 4:  // color yellow
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].x = 255;
-      draw_points[draw_len].y = 255;
-      draw_points[draw_len].z = 0;
-      draw_points[draw_len].t = dp_color;
-      draw_len++;
+    case 4:
+      draw_add(255, 255, 0, dp_color);  // color yellow
       break;
-    case 5:  // color green
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].x = 0;
-      draw_points[draw_len].y = 255;
-      draw_points[draw_len].z = 0;
-      draw_points[draw_len].t = dp_color;
-      draw_len++;
+    case 5:
+      draw_add(0, 255, 0, dp_color);  // color green
       break;
-    case 6:  // color cyan
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].x = 0;
-      draw_points[draw_len].y = 255;
-      draw_points[draw_len].z = 255;
-      draw_points[draw_len].t = dp_color;
-      draw_len++;
+    case 6:
+      draw_add(0, 255, 255, dp_color);  // color cyan
       break;
-    case 7:  // color blue
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].x = 0;
-      draw_points[draw_len].y = 0;
-      draw_points[draw_len].z = 255;
-      draw_points[draw_len].t = dp_color;
-      draw_len++;
+    case 7:
+      draw_add(0, 0, 255, dp_color);  // color blue
       break;
-    case 8:  // color purple
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].x = 128;
-      draw_points[draw_len].y = 0;
-      draw_points[draw_len].z = 255;
-      draw_points[draw_len].t = dp_color;
-      draw_len++;
+    case 8:
+      draw_add(128, 0, 255, dp_color);  // color purple
       break;
-    case 9:  // color magenta
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].x = 255;
-      draw_points[draw_len].y = 0;
-      draw_points[draw_len].z = 255;
-      draw_points[draw_len].t = dp_color;
-      draw_len++;
+    case 9:
+      draw_add(255, 0, 255, dp_color);  // color magenta
       break;
     case 10:
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].z = 1;
-      draw_points[draw_len].t = dp_thickness;
-      draw_len++;
+      draw_add(0, 0, 1, dp_thickness);
       break;
     case 11:
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].z = 3;
-      draw_points[draw_len].t = dp_thickness;
-      draw_len++;
+      draw_add(0, 0, 3, dp_thickness);
       break;
     case 12:
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].z = 10;
-      draw_points[draw_len].t = dp_thickness;
-      draw_len++;
+      draw_add(0, 0, 9, dp_thickness);
       break;
     case 13:
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].z = 20;
-      draw_points[draw_len].t = dp_thickness;
-      draw_len++;
+      draw_add(0, 0, 36, dp_thickness);
       break;
-        case 14:
-      if (draw_len >= draw_points_max) return;
-      draw_points[draw_len].z = 30;
-      draw_points[draw_len].t = dp_thickness;
-      draw_len++;
+    case 14:
+      draw_add(0, 0, 72, dp_thickness);
       break;
   }
 }
@@ -438,25 +381,9 @@ void draw_render() {
   }
 }
 
-void draw_lift_pen() {
-  if (draw_len >= draw_points_max) return;
-  draw_points[draw_len].t = dp_lift;
-  draw_len++;
-}
-void draw_drop_pen(double x, double y) {
-  if (draw_len >= draw_points_max) return;
-  draw_points[draw_len].x = x;
-  draw_points[draw_len].y = y;
-  draw_points[draw_len].t = dp_drop;
-  draw_len++;
-}
-void draw_move_pen(double x, double y) {
-  if (draw_len >= draw_points_max) return;
-  draw_points[draw_len].x = x;
-  draw_points[draw_len].y = y;
-  draw_points[draw_len].t = dp_move;
-  draw_len++;
-}
+void draw_lift_pen() { draw_add(0, 0, 0, dp_lift); }
+void draw_drop_pen(double x, double y) { draw_add(x, y, 0, dp_drop); }
+void draw_move_pen(double x, double y) { draw_add(x, y, 0, dp_move); }
 void draw_back_pen() {
   int i = draw_len;
   while (i > 0) {
@@ -466,7 +393,16 @@ void draw_back_pen() {
   if (i > 0) i--;
   draw_len = i;
 }
-
+void draw_forward_pen() {
+  int i = draw_len+1;
+  while (i < draw_points_max) {
+    if (draw_points[i].t == dp_lift) break;
+    if (draw_points[i].t == dp_none) return;
+    i++;
+  }
+  // if (i > 0) i--;
+  draw_len = i;
+}
 void draw_pick_open() { draw_pick = 1; }
 void draw_pick_close() {
   draw_pick = 0;

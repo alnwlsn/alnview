@@ -1,6 +1,5 @@
 #pragma once
 #include <SDL2/SDL.h>
-#include <SDL2/SDL2_gfxPrimitives.h>
 
 #include "render.h"
 
@@ -22,6 +21,7 @@ void draw_lift_pen();
 void draw_drop_pen(double x, double y);
 void draw_move_pen(double x, double y);
 void draw_back_pen();
+void draw_forward_pen();
 
 void draw_pick_open();
 void draw_pick_close();

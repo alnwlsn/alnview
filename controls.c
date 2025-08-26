@@ -279,9 +279,6 @@ bool controls_process(SDL_Event e) {
           }
           draw_pick_held = 1;
           break;
-        case SDLK_BACKSPACE:
-          draw_back_pen();
-          break;
       }
       if (shift_held) {  // keys + shift key held
         switch (e.key.keysym.sym) {
@@ -323,6 +320,9 @@ bool controls_process(SDL_Event e) {
             break;
           case SDLK_q:
             quit = 1;
+            break;
+          case SDLK_BACKSPACE:
+            draw_forward_pen();
             break;
         }
       } else if (tab_held) {  // key
@@ -381,6 +381,9 @@ bool controls_process(SDL_Event e) {
           case SDLK_9:
             cv = cvp[9];
             image_series_set(cv.selected_imi);
+            break;
+          case SDLK_BACKSPACE:
+            draw_back_pen();
             break;
         }
       }
