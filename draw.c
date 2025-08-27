@@ -8,6 +8,8 @@
 #define dp_drop 3
 #define dp_color 4
 #define dp_thickness 5
+#define dp_alpha 6
+#define dp_opaque 7
 
 #define draw_default_thickness 3
 
@@ -19,16 +21,16 @@ double draw_re_last_y = 0;
 int draw_re_color_red = 255;
 int draw_re_color_blue = 255;
 int draw_re_color_green = 255;
-int draw_re_color_alpha = 255;
 int draw_re_thickness = 3;
+bool draw_re_alpha = 0;
 
 CanvasView draw_cv_last;
 int draw_len_last = -1;
 SDL_Texture *draw_tex = NULL;
-SDL_Texture *draw_alpha = NULL;
+SDL_Texture *draw_tex_a = NULL;
 
 bool draw_pick = 0;
-#define pick_n 15
+#define pick_n 17
 #define pick_w 20
 #define pick_b 2
 
@@ -46,13 +48,17 @@ void draw_init() {
     draw_points[i].t = dp_none;
     draw_points[i].x = 0;
     draw_points[i].y = 0;
-    draw_points[i].z = draw_default_thickness;
+    draw_points[i].z = 0;
   }
   draw_cv_last = cv;
   draw_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_TARGET, MAX_SCREEN_X, MAX_SCREEN_Y);
-  draw_alpha = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_TARGET, MAX_SCREEN_X, MAX_SCREEN_Y);
+  draw_tex_a = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_TARGET, MAX_SCREEN_X, MAX_SCREEN_Y);
   SDL_SetTextureBlendMode(draw_tex, SDL_BLENDMODE_BLEND);
+  SDL_SetTextureBlendMode(draw_tex_a, SDL_BLENDMODE_BLEND);
   SDL_SetRenderTarget(renderer, draw_tex);
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+  SDL_RenderClear(renderer);
+  SDL_SetRenderTarget(renderer, draw_tex_a);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
   SDL_RenderClear(renderer);
   SDL_SetRenderTarget(renderer, NULL);
@@ -158,9 +164,9 @@ void draw_line_thickness(double x1, double y1, double x2, double y2, double thic
 
   for (int i = 0; i < z; i++) {  // initalize rest of it
     verts[i].color.r = draw_re_color_red;
-    verts[i].color.g = draw_re_color_blue;
-    verts[i].color.b = draw_re_color_green;
-    verts[i].color.a = draw_re_color_alpha;
+    verts[i].color.g = draw_re_color_green;
+    verts[i].color.b = draw_re_color_blue;
+    verts[i].color.a = 255;
     verts[i].tex_coord.x = 0;  // not used
     verts[i].tex_coord.y = 0;  // not used
   }
@@ -178,9 +184,9 @@ void draw_circle(double x, double y, double r, int n) {
     verts[i].position.x = x + r * cosf(angle);
     verts[i].position.y = y + r * sinf(angle);
     verts[i].color.r = draw_re_color_red;
-    verts[i].color.g = draw_re_color_blue;
-    verts[i].color.b = draw_re_color_green;
-    verts[i].color.a = draw_re_color_alpha;
+    verts[i].color.g = draw_re_color_green;
+    verts[i].color.b = draw_re_color_blue;
+    verts[i].color.a = 255;
     verts[i].tex_coord.x = 0;  // not used
     verts[i].tex_coord.y = 0;  // not used
   }
@@ -254,6 +260,12 @@ void draw_render_pick() {
   draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 8, 17);
   p.x += pick_b + pick_w;
   draw_circle(p.x, (pick_w + pick_b + pick_b) / 2, 10, 17);
+  p.x += pick_b + (pick_w / 2);
+  SDL_SetRenderDrawColor(renderer, draw_re_color_red, draw_re_color_green, draw_re_color_blue, 128);
+  SDL_RenderFillRect(renderer, &p);
+  p.x += pick_b + pick_w;
+  SDL_SetRenderDrawColor(renderer, draw_re_color_red, draw_re_color_green, draw_re_color_blue, 255);
+  SDL_RenderFillRect(renderer, &p);
 }
 void draw_pick_select() {
   int pick = -1;
@@ -312,6 +324,14 @@ void draw_pick_select() {
     case 14:
       draw_add(0, 0, 72, dp_thickness);
       break;
+    case 15:
+      draw_add(0, 0, 0, dp_alpha);
+      draw_re_alpha = 1;
+      break;
+    case 16:
+      draw_add(0, 0, 0, dp_opaque);
+      draw_re_alpha = 0;
+      break;
   }
 }
 
@@ -321,9 +341,12 @@ void draw_render() {
   bool canvas_changed = (cv.r != draw_cv_last.r || cv.x != draw_cv_last.x || cv.y != draw_cv_last.y || cv.r != draw_cv_last.r);
   bool draw_changed = (draw_len != draw_len_last);
   if (canvas_changed || draw_changed) {
-    SDL_SetRenderTarget(renderer, draw_tex);
     int draw_start = draw_len_last - 1;
     if (canvas_changed || draw_len < draw_len_last) {
+      SDL_SetRenderTarget(renderer, draw_tex_a);
+      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+      SDL_RenderClear(renderer);
+      SDL_SetRenderTarget(renderer, draw_tex);
       SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
       SDL_RenderClear(renderer);
       draw_cv_last = cv;
@@ -333,8 +356,13 @@ void draw_render() {
       draw_re_color_red = 255;
       draw_re_color_blue = 255;
       draw_re_color_green = 255;
-      draw_re_color_alpha = 128;
       draw_re_thickness = 3;
+      draw_re_alpha = 0;
+    }
+    if (draw_re_alpha) {
+      SDL_SetRenderTarget(renderer, draw_tex_a);
+    } else {
+      SDL_SetRenderTarget(renderer, draw_tex);
     }
     for (int i = draw_start; i < draw_len; i++) {
       switch (draw_points[i].t) {
@@ -354,11 +382,19 @@ void draw_render() {
           break;
         case dp_color:
           draw_re_color_red = draw_points[i].x;
-          draw_re_color_blue = draw_points[i].y;
-          draw_re_color_green = draw_points[i].z;
+          draw_re_color_green = draw_points[i].y;
+          draw_re_color_blue = draw_points[i].z;
           break;
         case dp_thickness:
           draw_re_thickness = draw_points[i].z;
+          break;
+        case dp_alpha:
+          SDL_SetRenderTarget(renderer, draw_tex_a);
+          draw_re_alpha = 1;
+          break;
+        case dp_opaque:
+          SDL_SetRenderTarget(renderer, draw_tex);
+          draw_re_alpha = 0;
           break;
       }
       // draw_line_thickness_canvas(draw_points[i].x, draw_points[i].y, draw_points[i + 1].x, draw_points[i + 1].y, 3);
@@ -375,7 +411,9 @@ void draw_render() {
   }
 
   SDL_Rect dst = {0, 0, MAX_SCREEN_X, MAX_SCREEN_Y};
-  // SDL_SetTextureAlphaMod(draw_tex, 255); //change alpha of whole texture
+  SDL_SetTextureAlphaMod(draw_tex_a, 128);  // change alpha of whole texture
+  SDL_RenderCopy(renderer, draw_tex_a, NULL, &dst);
+  SDL_SetTextureAlphaMod(draw_tex, 255);
   SDL_RenderCopy(renderer, draw_tex, NULL, &dst);
 
   if (draw_pick) {
@@ -396,7 +434,7 @@ void draw_back_pen() {
   draw_len = i;
 }
 void draw_forward_pen() {
-  int i = draw_len+1;
+  int i = draw_len + 1;
   while (i < draw_points_max) {
     if (draw_points[i].t == dp_lift) break;
     if (draw_points[i].t == dp_none) return;
