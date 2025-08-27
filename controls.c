@@ -17,6 +17,9 @@ bool crop_held = 0;
 bool draw_held = 0;
 bool draw_pick_held = 0;
 
+double mouse_canvas_constrain_x = 0;
+double mouse_canvas_constrain_y = 0;
+
 int mouseover_or_selected_imi() {  // use either the mouseovered imi or the last selected one
   int imi = image_point_on(mouse_canvas_x, mouse_canvas_y);
   if (imi > -1) {
@@ -102,7 +105,13 @@ bool controls_process(SDL_Event e) {
       if (image_drag_zoom) super_image_drag_zoom();
       if (canvas_drag_zoom) super_canvas_drag_zoom();
       if (draw_held) {
-        draw_move_pen(mouse_canvas_x, mouse_canvas_y);
+        if (shift_held) {
+          draw_move_pen(mouse_canvas_x, mouse_canvas_constrain_y);
+        } else if (ctrl_held) {
+          draw_move_pen(mouse_canvas_constrain_x, mouse_canvas_y);
+        } else {
+          draw_move_pen(mouse_canvas_x, mouse_canvas_y);
+        }
       }
       super_mouse_last(e);
       break;
@@ -166,11 +175,13 @@ bool controls_process(SDL_Event e) {
       switch (e.key.keysym.sym) {  // keys regardless of modifiers
         case SDLK_LSHIFT:
         case SDLK_RSHIFT:
+          if (shift_held == 0) mouse_canvas_constrain_y = mouse_canvas_y;
           shift_held = 1;
           show_image_reference_marks = 1;
           break;
         case SDLK_LCTRL:
         case SDLK_RCTRL:
+          if (ctrl_held == 0) mouse_canvas_constrain_x = mouse_canvas_x;
           ctrl_held = 1;
           show_center_mark = 1;
           break;
