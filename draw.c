@@ -18,11 +18,14 @@ int draw_len = 0;
 
 double draw_re_last_x = 0;
 double draw_re_last_y = 0;
+double draw_re_test_x = 0;
+double draw_re_test_y = 0;
 int draw_re_color_red = 255;
 int draw_re_color_blue = 255;
 int draw_re_color_green = 255;
 int draw_re_thickness = 3;
 bool draw_re_alpha = 0;
+bool draw_re_test = 0;
 
 CanvasView draw_cv_last;
 int draw_len_last = -1;
@@ -54,7 +57,7 @@ void draw_init() {
   draw_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_TARGET, MAX_SCREEN_X, MAX_SCREEN_Y);
   draw_tex_a = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_TARGET, MAX_SCREEN_X, MAX_SCREEN_Y);
   SDL_SetTextureBlendMode(draw_tex, SDL_BLENDMODE_BLEND);
-  SDL_SetTextureBlendMode(draw_tex_a, SDL_BLENDMODE_BLEND);
+  SDL_SetTextureBlendMode(draw_tex_a, SDL_BLENDMODE_MUL);
   SDL_SetRenderTarget(renderer, draw_tex);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
   SDL_RenderClear(renderer);
@@ -316,13 +319,13 @@ void draw_pick_select() {
       draw_add(0, 0, 3, dp_thickness);
       break;
     case 12:
-      draw_add(0, 0, 9, dp_thickness);
+      draw_add(0, 0, 25, dp_thickness);
       break;
     case 13:
-      draw_add(0, 0, 36, dp_thickness);
+      draw_add(0, 0, 75, dp_thickness);
       break;
     case 14:
-      draw_add(0, 0, 72, dp_thickness);
+      draw_add(0, 0, 150, dp_thickness);
       break;
     case 15:
       draw_add(0, 0, 0, dp_alpha);
@@ -410,6 +413,10 @@ void draw_render() {
     // printf("\n");
   }
 
+  if (draw_re_test) {
+    draw_line_thickness_canvas(draw_re_last_x, draw_re_last_y, draw_re_test_x, draw_re_test_y, draw_re_thickness);
+  }
+
   SDL_Rect dst = {0, 0, MAX_SCREEN_X, MAX_SCREEN_Y};
   SDL_SetTextureAlphaMod(draw_tex_a, 128);  // change alpha of whole texture
   SDL_RenderCopy(renderer, draw_tex_a, NULL, &dst);
@@ -422,8 +429,16 @@ void draw_render() {
 }
 
 void draw_lift_pen() { draw_add(0, 0, 0, dp_lift); }
-void draw_drop_pen(double x, double y) { draw_add(x, y, 0, dp_drop); }
-void draw_move_pen(double x, double y) { draw_add(x, y, 0, dp_move); }
+void draw_drop_pen(double x, double y) {
+  draw_add(x, y, 0, dp_drop);
+  draw_re_last_x = x;
+  draw_re_last_y = y;
+}
+void draw_move_pen(double x, double y) {
+  draw_add(x, y, 0, dp_move);
+  draw_re_last_x = x;
+  draw_re_last_y = y;
+}
 void draw_back_pen() {
   int i = draw_len;
   while (i > 0) {
@@ -447,4 +462,15 @@ void draw_pick_open() { draw_pick = 1; }
 void draw_pick_close() {
   draw_pick = 0;
   draw_pick_select();
+}
+void draw_test_pen(double x, double y) {
+  draw_re_test_x = x;
+  draw_re_test_y = y;
+  draw_re_test = 1;
+}
+void draw_commit_pen() {
+  draw_re_test = 0;
+  draw_drop_pen(draw_re_last_x, draw_re_last_y);
+  draw_move_pen(draw_re_test_x, draw_re_test_y);
+  draw_lift_pen();
 }

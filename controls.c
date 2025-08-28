@@ -16,6 +16,7 @@ bool tab_held = 0;    // tab key held
 bool crop_held = 0;
 bool draw_held = 0;
 bool draw_pick_held = 0;
+bool draw_test_held = 0;
 
 double mouse_canvas_constrain_x = 0;
 double mouse_canvas_constrain_y = 0;
@@ -113,6 +114,9 @@ bool controls_process(SDL_Event e) {
           draw_move_pen(mouse_canvas_x, mouse_canvas_y);
         }
       }
+      if(draw_test_held){
+        draw_test_pen(mouse_canvas_x, mouse_canvas_y);
+      }
       super_mouse_last(e);
       break;
     case SDL_MOUSEWHEEL: {
@@ -162,9 +166,13 @@ bool controls_process(SDL_Event e) {
           draw_held = 0;
           draw_lift_pen();
           break;
-        case SDLK_f:
+        case SDLK_g:
           draw_pick_held = 0;
           draw_pick_close();
+          break;
+        case SDLK_f:
+          draw_test_held = 0;
+          draw_commit_pen();
           break;
         case SDLK_SPACE:
           show_image_reference_marks = 0;
@@ -247,7 +255,14 @@ bool controls_process(SDL_Event e) {
           }
           crop_held = 1;
           break;
-        case SDLK_g:
+        case SDLK_f:
+          if (draw_test_held == 0) {
+            super_mouse_last(e);
+            draw_test_pen(mouse_canvas_x, mouse_canvas_y);
+          }
+          draw_test_held = 1;
+          break;
+        case SDLK_j:
           image_uncrop(mouseover_or_selected_imi());
           break;
         case SDLK_w: {
@@ -284,7 +299,7 @@ bool controls_process(SDL_Event e) {
           }
           draw_held = 1;
           break;
-        case SDLK_f:
+        case SDLK_g:
           if (draw_pick_held == 0) {
             draw_pick_open();
           }
