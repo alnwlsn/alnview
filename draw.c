@@ -23,6 +23,7 @@ double draw_re_test_y = 0;
 int draw_re_color_red = 255;
 int draw_re_color_blue = 255;
 int draw_re_color_green = 255;
+int draw_re_color_alpha = 255;
 int draw_re_thickness = 3;
 bool draw_re_alpha = 0;
 bool draw_re_test = 0;
@@ -57,11 +58,13 @@ void draw_init() {
   draw_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_TARGET, MAX_SCREEN_X, MAX_SCREEN_Y);
   draw_tex_a = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_TARGET, MAX_SCREEN_X, MAX_SCREEN_Y);
   SDL_SetTextureBlendMode(draw_tex, SDL_BLENDMODE_BLEND);
-  SDL_SetTextureBlendMode(draw_tex_a, SDL_BLENDMODE_MUL);
+  SDL_SetTextureAlphaMod(draw_tex, 255);
   SDL_SetRenderTarget(renderer, draw_tex);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
   SDL_RenderClear(renderer);
+  SDL_SetTextureBlendMode(draw_tex_a, SDL_BLENDMODE_MUL);
   SDL_SetRenderTarget(renderer, draw_tex_a);
+  SDL_SetTextureAlphaMod(draw_tex_a, 128);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
   SDL_RenderClear(renderer);
   SDL_SetRenderTarget(renderer, NULL);
@@ -169,7 +172,7 @@ void draw_line_thickness(double x1, double y1, double x2, double y2, double thic
     verts[i].color.r = draw_re_color_red;
     verts[i].color.g = draw_re_color_green;
     verts[i].color.b = draw_re_color_blue;
-    verts[i].color.a = 255;
+    verts[i].color.a = draw_re_color_alpha;
     verts[i].tex_coord.x = 0;  // not used
     verts[i].tex_coord.y = 0;  // not used
   }
@@ -189,7 +192,7 @@ void draw_circle(double x, double y, double r, int n) {
     verts[i].color.r = draw_re_color_red;
     verts[i].color.g = draw_re_color_green;
     verts[i].color.b = draw_re_color_blue;
-    verts[i].color.a = 255;
+    verts[i].color.a = draw_re_color_alpha;
     verts[i].tex_coord.x = 0;  // not used
     verts[i].tex_coord.y = 0;  // not used
   }
@@ -343,6 +346,7 @@ void draw_render() {
   // draw_line_thickness_canvas(0, 0, xp, yp, 3);
   bool canvas_changed = (cv.r != draw_cv_last.r || cv.x != draw_cv_last.x || cv.y != draw_cv_last.y || cv.r != draw_cv_last.r);
   bool draw_changed = (draw_len != draw_len_last);
+  draw_re_color_alpha = 255;
   if (canvas_changed || draw_changed) {
     int draw_start = draw_len_last - 1;
     if (canvas_changed || draw_len < draw_len_last) {
@@ -413,15 +417,16 @@ void draw_render() {
     // printf("\n");
   }
 
+  SDL_Rect dst = {0, 0, MAX_SCREEN_X, MAX_SCREEN_Y};
+
+  SDL_SetRenderTarget(renderer, NULL);
+  SDL_RenderCopy(renderer, draw_tex_a, NULL, &dst);
+  SDL_RenderCopy(renderer, draw_tex, NULL, &dst);
+
   if (draw_re_test) {
+    if (draw_re_alpha) {draw_re_color_alpha = 128;} //not quite correct, but at least you can see through the line
     draw_line_thickness_canvas(draw_re_last_x, draw_re_last_y, draw_re_test_x, draw_re_test_y, draw_re_thickness);
   }
-
-  SDL_Rect dst = {0, 0, MAX_SCREEN_X, MAX_SCREEN_Y};
-  SDL_SetTextureAlphaMod(draw_tex_a, 128);  // change alpha of whole texture
-  SDL_RenderCopy(renderer, draw_tex_a, NULL, &dst);
-  SDL_SetTextureAlphaMod(draw_tex, 255);
-  SDL_RenderCopy(renderer, draw_tex, NULL, &dst);
 
   if (draw_pick) {
     draw_render_pick();

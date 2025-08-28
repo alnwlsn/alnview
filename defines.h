@@ -14,5 +14,5 @@
 #define BGCOLOR_B 30
 #define SAVEFILE "view.aln"
 
-#define MAX_SCREEN_X 4000
-#define MAX_SCREEN_Y 6000
+#define MAX_SCREEN_X 8000
+#define MAX_SCREEN_Y 4500
