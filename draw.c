@@ -411,8 +411,8 @@ void draw_render() {
 
     // printf("\n");
     // for (int i = 0; i < draw_len; i++) {
-    // printf("%d",draw_points[i].t);
-    //   if((i+1)%100==0)printf("\n");
+    //   printf("%d", draw_points[i].t);
+    //   if ((i + 1) % 100 == 0) printf("\n");
     // }
     // printf("\n");
   }
@@ -424,7 +424,9 @@ void draw_render() {
   SDL_RenderCopy(renderer, draw_tex, NULL, &dst);
 
   if (draw_re_test) {
-    if (draw_re_alpha) {draw_re_color_alpha = 128;} //not quite correct, but at least you can see through the line
+    if (draw_re_alpha) {
+      draw_re_color_alpha = 128;
+    }  // not quite correct, but at least you can see through the line
     draw_line_thickness_canvas(draw_re_last_x, draw_re_last_y, draw_re_test_x, draw_re_test_y, draw_re_thickness);
   }
 
@@ -445,13 +447,17 @@ void draw_move_pen(double x, double y) {
   draw_re_last_y = y;
 }
 void draw_back_pen() {
-  int i = draw_len;
+  int i = draw_len - 1;
+  if (i < 0) {
+    i = 0;
+    return;
+  }
   while (i > 0) {
     if (draw_points[i].t == dp_drop) break;
     i--;
   }
   if (i > 0) i--;
-  draw_len = i;
+  draw_len = i + 1;
 }
 void draw_forward_pen() {
   int i = draw_len + 1;
@@ -461,7 +467,7 @@ void draw_forward_pen() {
     i++;
   }
   // if (i > 0) i--;
-  draw_len = i;
+  draw_len = i+1;
 }
 void draw_pick_open() { draw_pick = 1; }
 void draw_pick_close() {

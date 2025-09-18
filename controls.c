@@ -9,6 +9,8 @@ bool image_rotating = 0;
 bool image_drag_zoom = 0;
 bool canvas_drag_zoom = 0;
 
+bool draw_mode = 0;
+
 // states
 bool shift_held = 0;  // shift key held
 bool ctrl_held = 0;   // control key held
@@ -53,45 +55,71 @@ bool controls_process(SDL_Event e) {
   switch (e.type) {
     case SDL_MOUSEBUTTONDOWN:
       super_mouse_last(e);
-      if (e.button.button == SDL_BUTTON_LEFT) {
-        canvas_dragging = 1;
-        if (tab_held) super_canvas_rotation_init();
-        if (shift_held) image_rotation_point_set_new(cv.selected_imi, mouse_canvas_x, mouse_canvas_y);
-      } else if (e.button.button == SDL_BUTTON_MIDDLE) {
-        if (tab_held) {  // rotate canvas about reference
-          canvas_rotating_point = 1;
-        } else if (ctrl_held) {  // rotate canvas about center
-          super_canvas_center_rotation_init();
-          canvas_rotating_center = 1;
-        } else {  // shift or no shift; rotate image
-          image_rotating = 1;
-          show_image_reference_marks = 1;
+      if (draw_mode) {
+        if (e.button.button == SDL_BUTTON_LEFT) {
+          if (!draw_held) {
+            draw_drop_pen(mouse_canvas_x, mouse_canvas_y);
+          }
+          draw_held = 1;
+        } else if (e.button.button == SDL_BUTTON_MIDDLE) {
+          canvas_dragging = 1;
+        } else if (e.button.button == SDL_BUTTON_RIGHT) {
+          if (!draw_test_held) {
+            draw_test_pen(mouse_canvas_x, mouse_canvas_y);
+          }
+          draw_test_held = 1;
+          break;
         }
-      } else if (e.button.button == SDL_BUTTON_RIGHT) {
-        if (shift_held) {
-          image_drag_zoom = 1;
-        } else if (tab_held) {
-          canvas_drag_zoom = 1;
-        } else if (ctrl_held) {
-          image_dragging = 1;
-        } else {
-          if (mouseover_selects_imi_or_none() > -1) image_dragging = 1;
+      } else {
+        if (e.button.button == SDL_BUTTON_LEFT) {
+          canvas_dragging = 1;
+          if (tab_held) super_canvas_rotation_init();
+          if (shift_held) image_rotation_point_set_new(cv.selected_imi, mouse_canvas_x, mouse_canvas_y);
+        } else if (e.button.button == SDL_BUTTON_MIDDLE) {
+          if (tab_held) {  // rotate canvas about reference
+            canvas_rotating_point = 1;
+          } else if (ctrl_held) {  // rotate canvas about center
+            super_canvas_center_rotation_init();
+            canvas_rotating_center = 1;
+          } else {  // shift or no shift; rotate image
+            image_rotating = 1;
+            show_image_reference_marks = 1;
+          }
+        } else if (e.button.button == SDL_BUTTON_RIGHT) {
+          if (shift_held) {
+            image_drag_zoom = 1;
+          } else if (tab_held) {
+            canvas_drag_zoom = 1;
+          } else if (ctrl_held) {
+            image_dragging = 1;
+          } else {
+            if (mouseover_selects_imi_or_none() > -1) image_dragging = 1;
+          }
         }
       }
       break;
     case SDL_MOUSEBUTTONUP:
       if (e.button.button == SDL_BUTTON_LEFT) {
         canvas_dragging = 0;
+        if (draw_held) {
+          draw_held = 0;
+          draw_lift_pen();
+        }
       } else if (e.button.button == SDL_BUTTON_MIDDLE) {
         canvas_rotating_center = 0;
         show_canvas_rotation_point = 0;
         canvas_rotating_point = 0;
         image_rotating = 0;
+        canvas_dragging = 0;
         if (!shift_held) show_image_reference_marks = 0;
       } else if (e.button.button == SDL_BUTTON_RIGHT) {
         image_dragging = 0;
         image_drag_zoom = 0;
         canvas_drag_zoom = 0;
+        if (draw_test_held) {
+          draw_test_held = 0;
+          draw_commit_pen();
+        }
       }
       break;
     case SDL_MOUSEMOTION:
@@ -114,7 +142,7 @@ bool controls_process(SDL_Event e) {
           draw_move_pen(mouse_canvas_x, mouse_canvas_y);
         }
       }
-      if(draw_test_held){
+      if (draw_test_held) {
         draw_test_pen(mouse_canvas_x, mouse_canvas_y);
       }
       super_mouse_last(e);
@@ -162,30 +190,29 @@ bool controls_process(SDL_Event e) {
         case SDLK_c:
           crop_held = 0;
           break;
-        case SDLK_d:
-          draw_held = 0;
-          draw_lift_pen();
-          break;
-        case SDLK_g:
-          draw_pick_held = 0;
-          draw_pick_close();
-          break;
-        case SDLK_f:
-          draw_test_held = 0;
-          draw_commit_pen();
-          break;
         case SDLK_SPACE:
           show_image_reference_marks = 0;
+          if (draw_pick_held) {
+            draw_pick_held = 0;
+            draw_pick_close();
+          }
           break;
       }
       break;
     case SDL_KEYDOWN:
       switch (e.key.keysym.sym) {  // keys regardless of modifiers
+        case SDLK_ESCAPE:
+          draw_mode = 0;
+          break;
         case SDLK_LSHIFT:
         case SDLK_RSHIFT:
-          if (shift_held == 0) mouse_canvas_constrain_y = mouse_canvas_y;
+          if (draw_mode) {
+          } else {
+            if (shift_held == 0) mouse_canvas_constrain_y = mouse_canvas_y;
+            shift_held = 1;
+            show_image_reference_marks = 1;
+          }
           shift_held = 1;
-          show_image_reference_marks = 1;
           break;
         case SDLK_LCTRL:
         case SDLK_RCTRL:
@@ -225,7 +252,12 @@ bool controls_process(SDL_Event e) {
           image_rotation_point_set_center(cv.selected_imi);
           break;
         case SDLK_RETURN:
-          canvas_center_on_image_fit(mouseover_selects_imi());
+          if (draw_mode) {
+            draw_drop_pen(mouse_canvas_x, mouse_canvas_y);
+            draw_lift_pen();
+          } else {
+            canvas_center_on_image_fit(mouseover_selects_imi());
+          }
           break;
         case SDLK_PAGEUP:
           image_center_series_prev();
@@ -237,8 +269,15 @@ bool controls_process(SDL_Event e) {
           canvas_center_on_image(cv.selected_imi);
           break;
         case SDLK_SPACE:
-          mouseover_selects_imi();
-          show_image_reference_marks = 1;
+          if (draw_mode) {
+            if (!draw_pick_held) {
+              draw_pick_open();
+            }
+            draw_pick_held = 1;
+          } else {
+            mouseover_selects_imi();
+            show_image_reference_marks = 1;
+          }
           break;
         case SDLK_BACKQUOTE:
           canvas_zoom_center_fitall();
@@ -255,13 +294,7 @@ bool controls_process(SDL_Event e) {
           }
           crop_held = 1;
           break;
-        case SDLK_f:
-          if (draw_test_held == 0) {
-            super_mouse_last(e);
-            draw_test_pen(mouse_canvas_x, mouse_canvas_y);
-          }
-          draw_test_held = 1;
-          break;
+
         case SDLK_j:
           image_uncrop(mouseover_or_selected_imi());
           break;
@@ -293,17 +326,7 @@ bool controls_process(SDL_Event e) {
           super_toggle_fullscreen();
           break;
         case SDLK_d:
-          if (draw_held == 0) {
-            super_mouse_last(e);
-            draw_drop_pen(mouse_canvas_x, mouse_canvas_y);
-          }
-          draw_held = 1;
-          break;
-        case SDLK_g:
-          if (draw_pick_held == 0) {
-            draw_pick_open();
-          }
-          draw_pick_held = 1;
+          draw_mode = 1;
           break;
       }
       if (shift_held) {  // keys + shift key held

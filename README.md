@@ -132,14 +132,28 @@ Operations on images chooses the image to affect in a few ways:
 | ```W``` | reload all images from disk
 | ```E``` | reload single image from disk | mouse or last
 | ```S``` | create/update save file (save setup)
-| ```D + hold``` | drop pen and draw
-| ```D + release``` | pick up pen; stop drawing
-| ```[backspace]``` | delete last pen stroke
+| ```D``` | enters '''draw mode (see below)'''
 | ```F``` | pick pen for drawing
 | ```F11``` | toggle full screen mode
 | ```shift + [numbers 0-9]``` | set current canvas view as preset
 | ```[numbers 0-9]``` | jump to previously set canvas view preset
 | ```shift + Q``` | quit program (does not save on exit)
+
+## Draw Mode
+
+To make it easier to draw with a pen, a separate mouse map is used when draw mode (```D```) is selected.
+
+| Control  | Action 
+| ------------- | ------------- |
+| ```escape``` | exit draw mode (return to normal mode)
+| ```left click + drag``` | free draw with currently selected pen
+| ```middle click + drag``` | pan canvas
+| ```right click + drag``` | draw straight line from last drawn point
+| ```space + hold``` | pick pen for drawing. Opens a menu at the top right of the screen. Mouseover what you want, then release space.
+| ```enter``` | drop and lift up pen (makes dot, sets position for right click lines)
+| ```[backspace]``` | delete last pen stroke
+| ```shift + [backspace]``` | undelete last pen stroke
+
 
 # Other notes
 (not nessacarily related to Alnview)
