@@ -132,7 +132,7 @@ Operations on images chooses the image to affect in a few ways:
 | ```W``` | reload all images from disk
 | ```E``` | reload single image from disk | mouse or last
 | ```S``` | create/update save file (save setup)
-| ```D``` | enters '''draw mode (see below)'''
+| ```D``` | enters draw mode (see below)
 | ```F``` | pick pen for drawing
 | ```F11``` | toggle full screen mode
 | ```shift + [numbers 0-9]``` | set current canvas view as preset
