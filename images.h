@@ -12,6 +12,7 @@
 
 typedef struct {
   SDL_Texture *texture;
+  SDL_Texture *texture_small;
   int width;
   int height;
   double x;
@@ -30,6 +31,7 @@ typedef struct {
   int sort_index;  // when sorted, this points to images[index] of sorted list
   char filepath[FILEPATHLEN];
   bool inited;
+  bool use_small;
 } Image;
 typedef struct {
   double aX;

@@ -5,8 +5,8 @@
 #define FILEPATHLEN 256
 #define MAX_IMAGES 50000
 #define MAX_CANVAS 512
-#define WINDOW_INIT_X 800
-#define WINDOW_INIT_Y 600
+#define WINDOW_INIT_X 1330
+#define WINDOW_INIT_Y 1000
 #define ZOOM_FACTOR 1.1f
 #define ROTATE_STEP 15.0f
 #define BGCOLOR_R 30
@@ -16,3 +16,5 @@
 
 #define MAX_SCREEN_X 8000
 #define MAX_SCREEN_Y 4500
+
+#define SMALL_REDUCTION 8

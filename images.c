@@ -102,6 +102,27 @@ void canvas_zoom_center_fitall() {
   cv.z /= 1.05;
 }
 
+SDL_Surface *ScaleSurface(SDL_Surface *surface, int reduce) {
+  if (!surface || reduce <= 1) return NULL;
+  int new_w = (int)(surface->w / reduce);
+  int new_h = (int)(surface->h / reduce);
+  SDL_Surface *scaled = SDL_CreateRGBSurfaceWithFormat(0, new_w, new_h, surface->format->BitsPerPixel, surface->format->format);
+  if (!scaled) {
+    printf("SDL_CreateRGBSurfaceWithFormat failed: %s\n", SDL_GetError());
+    return NULL;
+  }
+  SDL_Rect srcRect = {0, 0, surface->w, surface->h};
+  SDL_Rect dstRect = {0, 0, new_w, new_h};
+
+  if (SDL_BlitScaled(surface, &srcRect, scaled, &dstRect) < 0) {
+    printf("SDL_BlitScaled failed: %s\n", SDL_GetError());
+    SDL_FreeSurface(scaled);
+    return NULL;
+  }
+
+  return scaled;
+}
+
 int image_load(char *filepath) {  // loads image at filepath, inits width and height
   if (images_count >= MAX_IMAGES) {
     fprintf(stderr, "Too many images to load\n");
@@ -109,6 +130,7 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
   // img->texture = load_texture(renderer, filepath, &img->width, &img->height);
   SDL_Surface *surface = IMG_Load(filepath);
   if (surface) {
+    SDL_Surface *surface_small = ScaleSurface(surface, SMALL_REDUCTION);
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
     if (texture) {
@@ -118,12 +140,17 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
       img->width = surface->w;
       img->height = surface->h;
       img->inited = 0;
+      SDL_Texture *texture_small = SDL_CreateTextureFromSurface(renderer, surface_small);
+      img->texture_small = texture_small;
+      img->use_small = 1;
       memcpy(img->filepath, filepath, FILEPATHLEN);
+      // SDL_DestroyTexture(texture);
       images_count++;
     } else {
       fprintf(stderr, "Failed to create texture: %s\n", SDL_GetError());
     }
     SDL_FreeSurface(surface);
+    SDL_FreeSurface(surface_small);
   } else {
     fprintf(stderr, "Failed to load %s: %s\n", filepath, IMG_GetError());
   }
@@ -729,13 +756,23 @@ void images_render() {
     dst.h = (int)(src.h * cv.z * images[si].z);
 
     SDL_Point rp = {0, 0};
-    SDL_SetTextureAlphaMod(images[si].texture, images[si].opacity);
-    SDL_RenderCopyEx(renderer, images[si].texture, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
+    if (images[si].use_small) {
+      SDL_SetTextureAlphaMod(images[si].texture_small, images[si].opacity);
+      SDL_RenderCopyEx(renderer, images[si].texture_small, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
+    } else {
+      if (images[si].texture) {
+        SDL_SetTextureAlphaMod(images[si].texture, images[si].opacity);
+        SDL_RenderCopyEx(renderer, images[si].texture, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
+      }
+    }
   }
 }
 
 void images_unload() {
-  for (int i = 0; i < images_count; ++i) SDL_DestroyTexture(images[i].texture);
+  for (int i = 0; i < images_count; ++i) {
+    SDL_DestroyTexture(images[i].texture);
+    SDL_DestroyTexture(images[i].texture_small);
+  }
   images_count = 0;
 }
 

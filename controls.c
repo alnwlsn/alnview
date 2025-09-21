@@ -328,6 +328,9 @@ bool controls_process(SDL_Event e) {
         case SDLK_d:
           draw_mode = 1;
           break;
+        case SDLK_BACKSLASH:  // test only, remove this later
+          images[mouseover_or_selected_imi()].use_small ^= true;
+          break;
       }
       if (shift_held) {  // keys + shift key held
         switch (e.key.keysym.sym) {
