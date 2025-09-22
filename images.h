@@ -22,6 +22,7 @@ typedef struct {
   int height;
   int pitch;
   bool fullres_exists;
+  int offscreen_frame_count;
   double x;
   double y;
   double r;  // rotation angle, and rotation points

@@ -836,7 +836,12 @@ void images_render() {
     dst.w = (int)(src.w * cv.z * images[si].z);
     dst.h = (int)(src.h * cv.z * images[si].z);
 
+    if(cv.z * images[si].z <= 1.0/SMALL_REDUCTION){
+      image_discard_fullres(si);
+    }
+
     if (rect_is_onscreen(&dst, (-cv.r - images[si].r))) {
+      images[si].offscreen_frame_count = 0;
       SDL_Point rp = {0, 0};
       if (images[si].fullres_exists) {
         SDL_SetTextureAlphaMod(images[si].texture_fullres, images[si].opacity);
@@ -845,9 +850,15 @@ void images_render() {
         SDL_SetTextureAlphaMod(images[si].texture_small, images[si].opacity);
         SDL_RenderCopyEx(renderer, images[si].texture_small, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
       }
+    }else{
+      if(images[si].offscreen_frame_count <= UNLOAD_HIRES_IF_OFFSCREEN_FOR){
+        images[si].offscreen_frame_count++;
+        if(images[si].offscreen_frame_count >= UNLOAD_HIRES_IF_OFFSCREEN_FOR){
+          image_discard_fullres(si);
+        }
+      }
     }
   }
-  printf("\n");
 }
 
 void images_unload() {
