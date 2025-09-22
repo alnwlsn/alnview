@@ -1,5 +1,7 @@
 #include "images.h"
 
+bool antialiasing = false;
+
 Image *images = NULL;
 int images_count = 0;
 int series_current = 0;
@@ -143,6 +145,11 @@ void image_restore_fullres(int imi) {
   images[imi].texture_fullres = texture;
   SDL_FreeSurface(surface);
   images[imi].fullres_exists = true;
+  if (antialiasing) {
+    SDL_SetTextureScaleMode(images[imi].texture_fullres, SDL_ScaleModeLinear);
+  } else {
+    SDL_SetTextureScaleMode(images[imi].texture_fullres, SDL_ScaleModeNearest);
+  }
 }
 
 int image_load(char *filepath) {  // loads image at filepath, inits width and height
@@ -165,7 +172,6 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
     // img->texture_fullres = texture;
     img->texture_fullres = NULL;
     img->fullres_exists = false;
-
 
     SDL_Surface *surface_small = ScaleSurface(surface, SMALL_REDUCTION);
     SDL_Texture *texture_small = SDL_CreateTextureFromSurface(renderer, surface_small);

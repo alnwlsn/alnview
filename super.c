@@ -9,8 +9,6 @@ double mouse_initial_angle = 0;
 double canvas_rotation_point_x = 0;
 double canvas_rotation_point_y = 0;
 
-bool antialiasing = 0;
-
 void super_canvas_drag_zoom() {
   double screen_reference_x, screen_reference_y;
   canvas_to_screen(canvas_rotation_point_x, canvas_rotation_point_y, &screen_reference_x, &screen_reference_y);

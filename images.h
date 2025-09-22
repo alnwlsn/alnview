@@ -51,6 +51,7 @@ typedef struct {
   double dY;
 } rectangleCorners;
 
+extern bool antialiasing;
 extern int images_count;
 extern Image *images;
 
