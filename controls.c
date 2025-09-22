@@ -331,6 +331,12 @@ bool controls_process(SDL_Event e) {
         case SDLK_BACKSLASH:  // test only, remove this later
           images[mouseover_or_selected_imi()].use_small ^= true;
           break;
+        case SDLK_n:  // test only
+          image_discard_hires(mouseover_or_selected_imi());
+          break;
+        case SDLK_m:  // test only
+          image_restore_hires(mouseover_or_selected_imi());
+          break;
       }
       if (shift_held) {  // keys + shift key held
         switch (e.key.keysym.sym) {

@@ -73,8 +73,10 @@ void super_toggle_antialiasing() {
   for (int i = 0; i < images_count; i++) {
     if (antialiasing) {
       SDL_SetTextureScaleMode(images[i].texture, SDL_ScaleModeLinear);
+      SDL_SetTextureScaleMode(images[i].texture_small, SDL_ScaleModeLinear);
     } else {
       SDL_SetTextureScaleMode(images[i].texture, SDL_ScaleModeNearest);
+      SDL_SetTextureScaleMode(images[i].texture_small, SDL_ScaleModeNearest);
     }
   }
 }

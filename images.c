@@ -123,6 +123,26 @@ SDL_Surface *ScaleSurface(SDL_Surface *surface, int reduce) {
   return scaled;
 }
 
+void image_discard_hires(int imi) { SDL_DestroyTexture(images[imi].texture); }
+
+void image_restore_hires(int imi) {
+  // if (images[imi].texture != NULL) return;
+  printf("restore\n");
+  SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, images[imi].width, images[imi].height, images[imi].format->BitsPerPixel, images[imi].format->format);
+  int data_size = images[imi].height * images[imi].pitch;
+  // int decoded = LZ4_decompress_safe(images[imi].image_compressed, (char *)surface->pixels, images[imi].image_compressed_size, data_size);
+  // if (decoded != data_size) {
+  //   SDL_FreeSurface(surface);
+  //   printf("couldn't decompress image\n");
+  //   return;  // decompression failed
+  // }
+  printf("restored?\n");
+  // SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+  // SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);  // this enables opacity adjustment
+  // images[imi].texture = texture;
+  SDL_FreeSurface(surface);
+}
+
 int image_load(char *filepath) {  // loads image at filepath, inits width and height
   if (images_count >= MAX_IMAGES) {
     fprintf(stderr, "Too many images to load\n");
@@ -130,27 +150,48 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
   // img->texture = load_texture(renderer, filepath, &img->width, &img->height);
   SDL_Surface *surface = IMG_Load(filepath);
   if (surface) {
-    SDL_Surface *surface_small = ScaleSurface(surface, SMALL_REDUCTION);
+    images = realloc(images, sizeof(Image) * (images_count + 1));
+    Image *img = &images[images_count];
+    img->width = surface->w;
+    img->height = surface->h;
+    img->pitch = surface->pitch;
+    img->format = surface->format;
+    img->inited = 0;
+
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-    if (texture) {
-      images = realloc(images, sizeof(Image) * (images_count + 1));
-      Image *img = &images[images_count];
-      img->texture = texture;
-      img->width = surface->w;
-      img->height = surface->h;
-      img->inited = 0;
-      SDL_Texture *texture_small = SDL_CreateTextureFromSurface(renderer, surface_small);
-      img->texture_small = texture_small;
-      img->use_small = 1;
-      memcpy(img->filepath, filepath, FILEPATHLEN);
-      // SDL_DestroyTexture(texture);
-      images_count++;
-    } else {
-      fprintf(stderr, "Failed to create texture: %s\n", SDL_GetError());
-    }
-    SDL_FreeSurface(surface);
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND); //this enables opacity adjustment
+    img->texture = texture;
+    // img->texture = NULL;
+
+    SDL_Surface *surface_small = ScaleSurface(surface, SMALL_REDUCTION);
+    SDL_Texture *texture_small = SDL_CreateTextureFromSurface(renderer, surface_small);
+    SDL_SetTextureBlendMode(texture_small, SDL_BLENDMODE_BLEND);
+    img->texture_small = texture_small;
     SDL_FreeSurface(surface_small);
+
+    img->use_small = 1;
+
+    // store a compressed version of the surface
+    int data_size = surface->h * surface->pitch;
+    int max_dst_size = LZ4_compressBound(data_size);
+    char *dst = (char *)malloc(max_dst_size);  // Allocate destination buffer (max compressed size)
+    if (!dst) {
+      printf("couldn't allocate compressed buffer\n");
+    }
+    // int compressed_size = LZ4_compress_HC((const char *)surface->pixels, dst, data_size, max_dst_size, LZ4HC_CLEVEL_MAX);
+    int compressed_size = LZ4_compress_HC((const char *)surface->pixels, dst, data_size, max_dst_size, 6);
+    if (compressed_size <= 0) {
+      free(dst);
+      printf("couldn't compress\n");
+    }
+    img->image_compressed = dst;
+    img->image_compressed_size = compressed_size;
+    printf("comp %d, %d\n", data_size, compressed_size);
+
+    memcpy(img->filepath, filepath, FILEPATHLEN);
+    // SDL_DestroyTexture(texture);
+    images_count++;
+    SDL_FreeSurface(surface);
   } else {
     fprintf(stderr, "Failed to load %s: %s\n", filepath, IMG_GetError());
   }
