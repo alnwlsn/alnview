@@ -93,6 +93,7 @@ void render_init() {
 }
 
 void render_canvas() {
+  
   SDL_RenderClear(renderer);
   images_render();
 
@@ -131,10 +132,6 @@ void render_canvas() {
   SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
   // debugging text
-  // snprintf(coordText, sizeof(coordText), "X: %.1f Y: %.1f R: %.1f Z: %.1f", cv.x, cv.y, cv.r, cv.z);
-  // render_text(coordText, 2, 0);
-  // snprintf(coordText, sizeof(coordText), "X: %.1f Y: %.1f A: %.1f", mouse_screen_x, mouse_screen_y, mouse_angle_about_center);
-  // render_text(coordText, 2, 0);
   snprintf(coordText, sizeof(coordText), "X: %.1f  Y: %.1f", mouse_canvas_x, mouse_canvas_y);
   render_text(coordText, 2, 0);
   snprintf(coordText, sizeof(coordText), "gtA: %.1f gtB: %.1f gtC: %.1f gtD: %.1f", global_testA, global_testB, global_testC, global_testD);

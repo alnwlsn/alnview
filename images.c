@@ -181,7 +181,7 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
 
     img->use_small = 1;
 
-    // store a compressed version of the surface
+    // store a compressed version of the fullres image to reduce ram
     int data_size = surface->h * surface->pitch;
     int max_dst_size = LZ4_compressBound(data_size);
     char *dst = (char *)malloc(max_dst_size);  // Allocate destination buffer (max compressed size)
@@ -189,14 +189,14 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
       printf("couldn't allocate compressed buffer\n");
     }
     // int compressed_size = LZ4_compress_HC((const char *)surface->pixels, dst, data_size, max_dst_size, LZ4HC_CLEVEL_MAX);
-    int compressed_size = LZ4_compress_HC((const char *)surface->pixels, dst, data_size, max_dst_size, 6);
+    int compressed_size = LZ4_compress_HC((const char *)surface->pixels, dst, data_size, max_dst_size, 1);
     if (compressed_size <= 0) {
       free(dst);
       printf("couldn't compress\n");
     }
     img->image_compressed = dst;
     img->image_compressed_size = compressed_size;
-    printf("comp %d, %d\n", data_size, compressed_size);
+    printf("comp %4.1f, %d, %d\n", (float)100 * compressed_size / data_size, data_size, compressed_size);
 
     memcpy(img->filepath, filepath, FILEPATHLEN);
     // SDL_DestroyTexture(texture);
@@ -753,7 +753,37 @@ void image_uncrop(int imi) {
   images[imi].crop_right = 0;
 }
 
+bool rect_is_onscreen(const SDL_Rect *rect, double angle) {
+  // chatgpt did this
+  double rad = angle * M_PI / 180.0;
+  double c = fabs(cos(rad));
+  double s = fabs(sin(rad));
+
+  // axis-aligned bounding box of rotated rect
+  double aabb_w = c * rect->w + s * rect->h;
+  double aabb_h = s * rect->w + c * rect->h;
+
+  // center of the rect (rotation center)
+  double cx = rect->x + rect->w * 0.5;
+  double cy = rect->y + rect->h * 0.5;
+
+  // AABB coordinates
+  double minx = cx - aabb_w * 0.5;
+  double maxx = cx + aabb_w * 0.5;
+  double miny = cy - aabb_h * 0.5;
+  double maxy = cy + aabb_h * 0.5;
+
+  // check overlap with screen (0,0,screen_width,screen_height)
+  if (maxx < 0) return 0;
+  if (minx > screen_size_x) return 0;
+  if (maxy < 0) return 0;
+  if (miny > screen_size_y) return 0;
+
+  return 1;  // visible
+}
+
 void images_render() {
+  // return;
   sort_images_by(compare_draw_order);
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
     int si = images[i].sort_index;          // sorted index
@@ -806,17 +836,18 @@ void images_render() {
     dst.w = (int)(src.w * cv.z * images[si].z);
     dst.h = (int)(src.h * cv.z * images[si].z);
 
-    SDL_Point rp = {0, 0};
-    if (images[si].use_small) {
-      SDL_SetTextureAlphaMod(images[si].texture_small, images[si].opacity);
-      SDL_RenderCopyEx(renderer, images[si].texture_small, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
-    } else {
+    if (rect_is_onscreen(&dst, (-cv.r - images[si].r))) {
+      SDL_Point rp = {0, 0};
       if (images[si].fullres_exists) {
         SDL_SetTextureAlphaMod(images[si].texture_fullres, images[si].opacity);
         SDL_RenderCopyEx(renderer, images[si].texture_fullres, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
+      } else {
+        SDL_SetTextureAlphaMod(images[si].texture_small, images[si].opacity);
+        SDL_RenderCopyEx(renderer, images[si].texture_small, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
       }
     }
   }
+  printf("\n");
 }
 
 void images_unload() {
