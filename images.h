@@ -40,6 +40,8 @@ typedef struct {
   char filepath[FILEPATHLEN];
   bool inited;
   bool use_small;
+  int center_closeness_index;
+  double center_closeness;
 } Image;
 typedef struct {
   double aX;

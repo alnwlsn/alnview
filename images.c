@@ -21,6 +21,13 @@ int compare_draw_order(const void *a, const void *b) {
   if (sort_images[i].draw_order > sort_images[j].draw_order) return 1;
   return 0;
 }
+int compare_closeness_order(const void *a, const void *b) {
+  int i = *(const int *)a;
+  int j = *(const int *)b;
+  if (sort_images[i].center_closeness < sort_images[j].center_closeness) return -1;
+  if (sort_images[i].center_closeness > sort_images[j].center_closeness) return 1;
+  return 0;
+}
 int compare_series_order(const void *a, const void *b) {
   int i = *(const int *)a;
   int j = *(const int *)b;
@@ -126,6 +133,7 @@ SDL_Surface *ScaleSurface(SDL_Surface *surface, int reduce) {
 }
 
 void image_discard_fullres(int imi) {
+  if (!images[imi].fullres_exists) return;
   SDL_DestroyTexture(images[imi].texture_fullres);
   images[imi].fullres_exists = false;
 }
@@ -782,7 +790,21 @@ bool rect_is_onscreen(const SDL_Rect *rect, double angle) {
   return 1;  // visible
 }
 
+void images_calculate_center_closeness() {
+  for (int i = 0; i < images_count; ++i) {
+    double x, y;
+    image_find_center(i, &x, &y);
+    images[i].center_closeness = (x - cv.x) * (x - cv.x) + (y - cv.y) * (y - cv.y);
+  }
+  sort_images_by(compare_closeness_order);
+  for (int i = 0; i < images_count; ++i) {
+    int si = images[i].sort_index;
+    images[si].center_closeness_index = i;
+  }
+}
+
 void images_render() {
+  images_calculate_center_closeness();
   // return;
   sort_images_by(compare_draw_order);
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
@@ -836,11 +858,30 @@ void images_render() {
     dst.w = (int)(src.w * cv.z * images[si].z);
     dst.h = (int)(src.h * cv.z * images[si].z);
 
-    if(cv.z * images[si].z <= 1.0/SMALL_REDUCTION){
+    bool is_onscreen = rect_is_onscreen(&dst, (-cv.r - images[si].r));
+    bool no_reload = false;
+
+    if (cv.z * images[si].z <= 1.0 / SMALL_REDUCTION) {
       image_discard_fullres(si);
+      no_reload = true;
+    }
+    if(!is_onscreen) {
+      if (images[si].offscreen_frame_count <= UNLOAD_HIRES_IF_OFFSCREEN_FOR) {
+        images[si].offscreen_frame_count++;
+        if (images[si].offscreen_frame_count >= UNLOAD_HIRES_IF_OFFSCREEN_FOR) {
+          image_discard_fullres(si);
+          no_reload = true;
+        }
+      }
     }
 
-    if (rect_is_onscreen(&dst, (-cv.r - images[si].r))) {
+    if(!no_reload){
+      if(images[si].center_closeness_index <= COMPRESS_LOAD_MAX){
+        image_restore_fullres(si);
+      }
+    }
+
+    if (is_onscreen) {
       images[si].offscreen_frame_count = 0;
       SDL_Point rp = {0, 0};
       if (images[si].fullres_exists) {
@@ -850,20 +891,16 @@ void images_render() {
         SDL_SetTextureAlphaMod(images[si].texture_small, images[si].opacity);
         SDL_RenderCopyEx(renderer, images[si].texture_small, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
       }
-    }else{
-      if(images[si].offscreen_frame_count <= UNLOAD_HIRES_IF_OFFSCREEN_FOR){
-        images[si].offscreen_frame_count++;
-        if(images[si].offscreen_frame_count >= UNLOAD_HIRES_IF_OFFSCREEN_FOR){
-          image_discard_fullres(si);
-        }
-      }
-    }
+    } 
   }
 }
 
 void images_unload() {
   for (int i = 0; i < images_count; ++i) {
-    if (images[i].fullres_exists) SDL_DestroyTexture(images[i].texture_fullres);
+    if (images[i].fullres_exists) {
+      SDL_DestroyTexture(images[i].texture_fullres);
+      images[i].fullres_exists = false;
+    }
     SDL_DestroyTexture(images[i].texture_small);
   }
   images_count = 0;
