@@ -72,10 +72,10 @@ void super_toggle_antialiasing() {
   antialiasing = !antialiasing;
   for (int i = 0; i < images_count; i++) {
     if (antialiasing) {
-      SDL_SetTextureScaleMode(images[i].texture, SDL_ScaleModeLinear);
+      if (images[i].fullres_exists) SDL_SetTextureScaleMode(images[i].texture_fullres, SDL_ScaleModeLinear);
       SDL_SetTextureScaleMode(images[i].texture_small, SDL_ScaleModeLinear);
     } else {
-      SDL_SetTextureScaleMode(images[i].texture, SDL_ScaleModeNearest);
+      if (images[i].fullres_exists) SDL_SetTextureScaleMode(images[i].texture_fullres, SDL_ScaleModeNearest);
       SDL_SetTextureScaleMode(images[i].texture_small, SDL_ScaleModeNearest);
     }
   }
@@ -109,14 +109,14 @@ void super_opacity_decrease() {
 
 void super_reload_single_image(int imi) {
   if (imi < 0) return;
-  SDL_DestroyTexture(images[imi].texture);
+  SDL_DestroyTexture(images[imi].texture_fullres);
   SDL_Surface *surface = IMG_Load(images[imi].filepath);
   if (surface) {
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
     if (texture) {
       Image *img = &images[imi];
-      img->texture = texture;
+      img->texture_fullres = texture;
       img->width = surface->w;
       img->height = surface->h;
       img->inited = 1;

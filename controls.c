@@ -332,10 +332,10 @@ bool controls_process(SDL_Event e) {
           images[mouseover_or_selected_imi()].use_small ^= true;
           break;
         case SDLK_n:  // test only
-          image_discard_hires(mouseover_or_selected_imi());
+          image_discard_fullres(mouseover_or_selected_imi());
           break;
         case SDLK_m:  // test only
-          image_restore_hires(mouseover_or_selected_imi());
+          image_restore_fullres(mouseover_or_selected_imi());
           break;
       }
       if (shift_held) {  // keys + shift key held

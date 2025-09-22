@@ -123,24 +123,26 @@ SDL_Surface *ScaleSurface(SDL_Surface *surface, int reduce) {
   return scaled;
 }
 
-void image_discard_hires(int imi) { SDL_DestroyTexture(images[imi].texture); }
+void image_discard_fullres(int imi) {
+  SDL_DestroyTexture(images[imi].texture_fullres);
+  images[imi].fullres_exists = false;
+}
 
-void image_restore_hires(int imi) {
-  // if (images[imi].texture != NULL) return;
-  printf("restore\n");
-  SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, images[imi].width, images[imi].height, images[imi].format->BitsPerPixel, images[imi].format->format);
-  int data_size = images[imi].height * images[imi].pitch;
-  // int decoded = LZ4_decompress_safe(images[imi].image_compressed, (char *)surface->pixels, images[imi].image_compressed_size, data_size);
-  // if (decoded != data_size) {
-  //   SDL_FreeSurface(surface);
-  //   printf("couldn't decompress image\n");
-  //   return;  // decompression failed
-  // }
-  printf("restored?\n");
-  // SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-  // SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);  // this enables opacity adjustment
-  // images[imi].texture = texture;
+void image_restore_fullres(int imi) {
+  if (images[imi].fullres_exists) return;
+  SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, images[imi].width, images[imi].height, SDL_BITSPERPIXEL(images[imi].format), images[imi].format);
+  int data_size = surface->h * surface->pitch;
+  int decoded = LZ4_decompress_safe(images[imi].image_compressed, (char *)surface->pixels, images[imi].image_compressed_size, data_size);
+  if (decoded != data_size) {
+    SDL_FreeSurface(surface);
+    printf("couldn't decompress image\n");
+    return;  // decompression failed
+  }
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+  SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);  // this enables opacity adjustment
+  images[imi].texture_fullres = texture;
   SDL_FreeSurface(surface);
+  images[imi].fullres_exists = true;
 }
 
 int image_load(char *filepath) {  // loads image at filepath, inits width and height
@@ -155,13 +157,15 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
     img->width = surface->w;
     img->height = surface->h;
     img->pitch = surface->pitch;
-    img->format = surface->format;
+    img->format = surface->format->format;
     img->inited = 0;
 
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND); //this enables opacity adjustment
-    img->texture = texture;
-    // img->texture = NULL;
+    // SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    // SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);  // this enables opacity adjustment
+    // img->texture_fullres = texture;
+    img->texture_fullres = NULL;
+    img->fullres_exists = false;
+
 
     SDL_Surface *surface_small = ScaleSurface(surface, SMALL_REDUCTION);
     SDL_Texture *texture_small = SDL_CreateTextureFromSurface(renderer, surface_small);
@@ -801,9 +805,9 @@ void images_render() {
       SDL_SetTextureAlphaMod(images[si].texture_small, images[si].opacity);
       SDL_RenderCopyEx(renderer, images[si].texture_small, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
     } else {
-      if (images[si].texture) {
-        SDL_SetTextureAlphaMod(images[si].texture, images[si].opacity);
-        SDL_RenderCopyEx(renderer, images[si].texture, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
+      if (images[si].fullres_exists) {
+        SDL_SetTextureAlphaMod(images[si].texture_fullres, images[si].opacity);
+        SDL_RenderCopyEx(renderer, images[si].texture_fullres, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
       }
     }
   }
@@ -811,7 +815,7 @@ void images_render() {
 
 void images_unload() {
   for (int i = 0; i < images_count; ++i) {
-    SDL_DestroyTexture(images[i].texture);
+    if (images[i].fullres_exists) SDL_DestroyTexture(images[i].texture_fullres);
     SDL_DestroyTexture(images[i].texture_small);
   }
   images_count = 0;

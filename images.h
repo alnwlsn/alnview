@@ -12,15 +12,16 @@
 #include "render.h"
 
 typedef struct {
-  SDL_Texture *texture;
+  SDL_Texture *texture_fullres;
   SDL_Texture *texture_small;
   char *image_compressed;
   int image_compressed_size;
   int image_raw_size;
-  SDL_PixelFormat *format;  // SDL pixel format enum
+  Uint32 format; // SDL pixel format enum
   int width;
   int height;
   int pitch;
+  bool fullres_exists;
   double x;
   double y;
   double r;  // rotation angle, and rotation points
@@ -79,5 +80,5 @@ void image_center_series_next();
 void image_center_series_prev();
 void image_crop(int imi);
 void image_uncrop(int imi);
-void image_restore_hires(int imi);
-void image_discard_hires(int imi);
+void image_restore_fullres(int imi);
+void image_discard_fullres(int imi);
