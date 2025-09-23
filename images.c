@@ -133,12 +133,14 @@ SDL_Surface *ScaleSurface(SDL_Surface *surface, int reduce) {
 }
 
 void image_discard_fullres(int imi) {
+  if (NO_COMPRESS_IMAGES_IN_RAM) return;
   if (!images[imi].fullres_exists) return;
   SDL_DestroyTexture(images[imi].texture_fullres);
   images[imi].fullres_exists = false;
 }
 
 void image_restore_fullres(int imi) {
+  if (NO_COMPRESS_IMAGES_IN_RAM) return;
   if (images[imi].fullres_exists) return;
   SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, images[imi].width, images[imi].height, SDL_BITSPERPIXEL(images[imi].format), images[imi].format);
   int data_size = surface->h * surface->pitch;
@@ -175,36 +177,40 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
     img->format = surface->format->format;
     img->inited = 0;
 
-    // SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    // SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);  // this enables opacity adjustment
-    // img->texture_fullres = texture;
-    img->texture_fullres = NULL;
-    img->fullres_exists = false;
-
-    SDL_Surface *surface_small = ScaleSurface(surface, SMALL_REDUCTION);
-    SDL_Texture *texture_small = SDL_CreateTextureFromSurface(renderer, surface_small);
-    SDL_SetTextureBlendMode(texture_small, SDL_BLENDMODE_BLEND);
-    img->texture_small = texture_small;
-    SDL_FreeSurface(surface_small);
-
-    img->use_small = 1;
-
-    // store a compressed version of the fullres image to reduce ram
-    int data_size = surface->h * surface->pitch;
-    int max_dst_size = LZ4_compressBound(data_size);
-    char *dst = (char *)malloc(max_dst_size);  // Allocate destination buffer (max compressed size)
-    if (!dst) {
-      printf("couldn't allocate compressed buffer\n");
+    if (NO_COMPRESS_IMAGES_IN_RAM) {
+      SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+      SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);  // this enables opacity adjustment
+      img->texture_fullres = texture;
+      img->fullres_exists = true;
+      img->texture_small = NULL;
+    } else {
+      img->texture_fullres = NULL;
+      img->fullres_exists = false;
+      SDL_Surface *surface_small = ScaleSurface(surface, SMALL_REDUCTION);
+      SDL_Texture *texture_small = SDL_CreateTextureFromSurface(renderer, surface_small);
+      SDL_SetTextureBlendMode(texture_small, SDL_BLENDMODE_BLEND);
+      img->texture_small = texture_small;
+      SDL_FreeSurface(surface_small);
     }
-    // int compressed_size = LZ4_compress_HC((const char *)surface->pixels, dst, data_size, max_dst_size, LZ4HC_CLEVEL_MAX);
-    int compressed_size = LZ4_compress_HC((const char *)surface->pixels, dst, data_size, max_dst_size, 1);
-    if (compressed_size <= 0) {
-      free(dst);
-      printf("couldn't compress\n");
+
+    if (!NO_COMPRESS_IMAGES_IN_RAM) {
+      // store a compressed version of the fullres image to reduce ram
+      int data_size = surface->h * surface->pitch;
+      int max_dst_size = LZ4_compressBound(data_size);
+      char *dst = (char *)malloc(max_dst_size);  // Allocate destination buffer (max compressed size)
+      if (!dst) {
+        printf("couldn't allocate compressed buffer\n");
+      }
+      // int compressed_size = LZ4_compress_HC((const char *)surface->pixels, dst, data_size, max_dst_size, LZ4HC_CLEVEL_MAX);
+      int compressed_size = LZ4_compress_HC((const char *)surface->pixels, dst, data_size, max_dst_size, 1);
+      if (compressed_size <= 0) {
+        free(dst);
+        printf("couldn't compress\n");
+      }
+      img->image_compressed = dst;
+      img->image_compressed_size = compressed_size;
+      printf("comp %4.1f, %d, %d\n", (float)100 * compressed_size / data_size, data_size, compressed_size);
     }
-    img->image_compressed = dst;
-    img->image_compressed_size = compressed_size;
-    printf("comp %4.1f, %d, %d\n", (float)100 * compressed_size / data_size, data_size, compressed_size);
 
     memcpy(img->filepath, filepath, FILEPATHLEN);
     // SDL_DestroyTexture(texture);
@@ -810,18 +816,6 @@ void images_render() {
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
     int si = images[i].sort_index;          // sorted index
 
-    // // test override
-    // if (images[si].series_order == 1) {
-    //   // images[si].rx = 50;
-    //   // images[si].ry = -50;
-    //   // images[si].crop_left = global_testC;
-    //   // images[si].crop_top = global_testC / 2;
-    //   // images[si].crop_right = global_testC;
-    //   // images[si].crop_bottom = global_testC / 2;
-    //   // images[si].r = global_testA;
-    //   // images[si].z = (1.0f + global_testB / 10.0);
-    // }
-
     // crop can't be negative
     if (images[si].crop_left < 0) images[si].crop_left = 0;
     if (images[si].crop_right < 0) images[si].crop_right = 0;
@@ -865,7 +859,7 @@ void images_render() {
       image_discard_fullres(si);
       no_reload = true;
     }
-    if(!is_onscreen) {
+    if (!is_onscreen) {
       if (images[si].offscreen_frame_count <= UNLOAD_HIRES_IF_OFFSCREEN_FOR) {
         images[si].offscreen_frame_count++;
         if (images[si].offscreen_frame_count >= UNLOAD_HIRES_IF_OFFSCREEN_FOR) {
@@ -875,8 +869,8 @@ void images_render() {
       }
     }
 
-    if(!no_reload){
-      if(images[si].center_closeness_index <= COMPRESS_LOAD_MAX){
+    if (!no_reload) {
+      if (images[si].center_closeness_index <= COMPRESS_LOAD_MAX) {
         image_restore_fullres(si);
       }
     }
@@ -891,7 +885,7 @@ void images_render() {
         SDL_SetTextureAlphaMod(images[si].texture_small, images[si].opacity);
         SDL_RenderCopyEx(renderer, images[si].texture_small, &src, &dst, (-cv.r - images[si].r), &rp, SDL_FLIP_NONE);
       }
-    } 
+    }
   }
 }
 
