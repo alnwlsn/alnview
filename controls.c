@@ -288,16 +288,6 @@ bool controls_process(SDL_Event e) {
         case SDLK_x:
           super_opacity_increase();
           break;
-        case SDLK_c:
-          if (crop_held == 0) {
-            image_crop(cv.selected_imi);
-          }
-          crop_held = 1;
-          break;
-
-        case SDLK_j:
-          image_uncrop(mouseover_or_selected_imi());
-          break;
         case SDLK_w: {
           CanvasView gv = cv;
           images_unload();
@@ -328,13 +318,10 @@ bool controls_process(SDL_Event e) {
         case SDLK_d:
           draw_mode = 1;
           break;
-        case SDLK_BACKSLASH:  // test only, remove this later
-          images[mouseover_or_selected_imi()].use_small ^= true;
-          break;
-        case SDLK_n:  // test only
+        case SDLK_n:
           image_discard_fullres(mouseover_or_selected_imi());
           break;
-        case SDLK_m:  // test only
+        case SDLK_b:
           image_restore_fullres(mouseover_or_selected_imi());
           break;
       }
@@ -381,6 +368,12 @@ bool controls_process(SDL_Event e) {
             break;
           case SDLK_BACKSPACE:
             draw_forward_pen();
+            break;
+          case SDLK_c:
+            image_uncrop(mouseover_or_selected_imi());
+            break;
+          case SDLK_g:
+            image_auto_hires_restore(false);
             break;
         }
       } else if (tab_held) {  // key
@@ -442,6 +435,15 @@ bool controls_process(SDL_Event e) {
             break;
           case SDLK_BACKSPACE:
             draw_back_pen();
+            break;
+          case SDLK_c:
+            if (crop_held == 0) {
+              image_crop(cv.selected_imi);
+            }
+            crop_held = 1;
+            break;
+          case SDLK_g:
+            image_auto_hires_restore(true);
             break;
         }
       }

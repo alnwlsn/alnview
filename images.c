@@ -1,6 +1,12 @@
 #include "images.h"
 
 bool antialiasing = false;
+bool auto_hires_restore = false;
+bool auto_hires_discard = false;
+void image_auto_hires_restore(bool s){
+  auto_hires_restore = s;
+  auto_hires_discard = s;
+}
 
 Image *images = NULL;
 int images_count = 0;
@@ -138,7 +144,6 @@ void image_discard_fullres(int imi) {
   SDL_DestroyTexture(images[imi].texture_fullres);
   images[imi].fullres_exists = false;
 }
-
 void image_restore_fullres(int imi) {
   if (NO_COMPRESS_IMAGES_IN_RAM) return;
   if (images[imi].fullres_exists) return;
@@ -222,7 +227,6 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
   return images_count - 1;
   // fprintf(stdout, "img %d\n", images_count);
 }
-
 void images_load_dir(bool show) {  // load all images from directory
   bool no_savefile = 1;
   DIR *dir = opendir(".");
@@ -365,7 +369,6 @@ rectangleCorners image_find_corners(int si) {  // finds canvas coords for 4 corn
   s.dY += rpc_y;
   return s;
 }
-
 rectangleCorners image_find_corners_noncrop(int si) {  // finds canvas coords for 4 corners of image
   rectangleCorners s;
   s.aX = 0;
@@ -423,7 +426,6 @@ rectangleCorners image_find_corners_noncrop(int si) {  // finds canvas coords fo
 
   return s;
 }
-
 void image_find_center(int si, double *cX, double *cY) {
   rectangleCorners s = image_find_corners(si);
   *cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
@@ -448,7 +450,6 @@ int image_point_on(double x, double y) {  // tells which image is under the poin
   }
   return image_index;
 }
-
 void image_to_on_top(int imi) {
   if (imi < 0) return;
   int max_draw_order = -999999;
@@ -480,7 +481,6 @@ void image_drag_screen_by(int imi, int dx, int dy) {
   images[imi].x -= cdx;
   images[imi].y -= cdy;
 }
-
 void image_zoom_by(int imi, double zoom_factor) {
   if (imi < 0) return;
   double Ax = mouse_canvas_x - images[imi].x - images[imi].rx;
@@ -491,13 +491,11 @@ void image_zoom_by(int imi, double zoom_factor) {
   images[imi].x -= (Bx - Ax);
   images[imi].y -= (By - Ay);
 }
-
 void image_zoom_reset(int imi) {
   if (imi < 0) return;
   image_zoom_by(imi, 1 / images[imi].z);
   images[imi].z = 1;
 }
-
 void image_rotate_by(int imi, double dr) {
   if (imi < 0) return;
   images[imi].r += dr;
@@ -510,7 +508,6 @@ void image_rotate_snap(int imi, double r) {
   a *= r;
   images[imi].r = a;
 }
-
 void image_rotation_point_set_new(int imi, double x, double y) {
   if (imi < 0) return;
   // do this the cheat way: first, position before change
@@ -559,7 +556,6 @@ void canvas_center_on_image(int imi) {
   cv.selected_imi = imi;
   series_current = images[cv.selected_imi].series_order;
 }
-
 void canvas_center_on_nearest_image_in_direction(int imi, double direction) {
   double cX, cY;
   image_find_center(imi, &cX, &cY);
@@ -853,23 +849,23 @@ void images_render() {
     dst.h = (int)(src.h * cv.z * images[si].z);
 
     bool is_onscreen = rect_is_onscreen(&dst, (-cv.r - images[si].r));
-    bool no_reload = false;
+    bool stop_reload = false;
 
-    if (cv.z * images[si].z <= 1.0 / SMALL_REDUCTION) {
+    if (cv.z * images[si].z <= 1.0 / SMALL_REDUCTION && auto_hires_discard) { //discard on zoom out
       image_discard_fullres(si);
-      no_reload = true;
+      stop_reload = true;
     }
-    if (!is_onscreen) {
+    if (!is_onscreen && auto_hires_discard) { //discard if off screen
       if (images[si].offscreen_frame_count <= UNLOAD_HIRES_IF_OFFSCREEN_FOR) {
         images[si].offscreen_frame_count++;
         if (images[si].offscreen_frame_count >= UNLOAD_HIRES_IF_OFFSCREEN_FOR) {
           image_discard_fullres(si);
-          no_reload = true;
+          stop_reload = true;
         }
       }
     }
 
-    if (!no_reload) {
+    if (!stop_reload && auto_hires_restore) { //restore if onscreen
       if (images[si].center_closeness_index <= COMPRESS_LOAD_MAX) {
         image_restore_fullres(si);
       }

@@ -129,12 +129,11 @@ Operations on images chooses the image to affect in a few ways:
 | ```Z``` | decrease image opacity | last
 | ```X``` | increase image opacity | last
 | ```C (+ optional hold)``` | crop image (nearest edge or corner to mouse pointer) | last
-| ```G``` | uncrop image | last
+| ```shift + C``` | uncrop image | last
 | ```W``` | reload all images from disk
 | ```E``` | reload single image from disk | mouse or last
 | ```S``` | create/update save file (save setup)
 | ```D``` | enters draw mode (see below)
-| ```F``` | pick pen for drawing
 | ```F11``` | toggle full screen mode
 | ```shift + [numbers 0-9]``` | set current canvas view as preset
 | ```[numbers 0-9]``` | jump to previously set canvas view preset

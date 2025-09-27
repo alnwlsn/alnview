@@ -86,3 +86,4 @@ void image_crop(int imi);
 void image_uncrop(int imi);
 void image_restore_fullres(int imi);
 void image_discard_fullres(int imi);
+void image_auto_hires_restore(bool s);
