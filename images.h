@@ -54,6 +54,11 @@ typedef struct {
   double dY;
 } rectangleCorners;
 
+extern bool init_small_image_only;
+extern bool init_no_compress_images;
+extern int init_small_image_reduction;
+extern int init_max_restored_hires;
+
 extern bool antialiasing;
 extern int images_count;
 extern Image *images;

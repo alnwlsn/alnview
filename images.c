@@ -1,16 +1,22 @@
 #include "images.h"
 
+// default argument options
+bool init_small_image_only = false;
+bool init_no_compress_images = false;
+int init_small_image_reduction = 8;
+int init_max_restored_hires = 10;
+
 bool antialiasing = false;
+Image *images = NULL;
+int images_count = 0;
+
+int series_current = 0;
 bool auto_hires_restore = false;
 bool auto_hires_discard = false;
-void image_auto_hires_restore(bool s){
+void image_auto_hires_restore(bool s) {
   auto_hires_restore = s;
   auto_hires_discard = s;
 }
-
-Image *images = NULL;
-int images_count = 0;
-int series_current = 0;
 
 // sorting options
 // call sort_images_by(compare_some_option)
@@ -139,13 +145,13 @@ SDL_Surface *ScaleSurface(SDL_Surface *surface, int reduce) {
 }
 
 void image_discard_fullres(int imi) {
-  if (NO_COMPRESS_IMAGES_IN_RAM) return;
+  if (init_no_compress_images) return;
   if (!images[imi].fullres_exists) return;
   SDL_DestroyTexture(images[imi].texture_fullres);
   images[imi].fullres_exists = false;
 }
 void image_restore_fullres(int imi) {
-  if (NO_COMPRESS_IMAGES_IN_RAM) return;
+  if (init_no_compress_images) return;
   if (images[imi].fullres_exists) return;
   SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, images[imi].width, images[imi].height, SDL_BITSPERPIXEL(images[imi].format), images[imi].format);
   int data_size = surface->h * surface->pitch;
@@ -182,23 +188,33 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
     img->format = surface->format->format;
     img->inited = 0;
 
-    if (NO_COMPRESS_IMAGES_IN_RAM) {
-      SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-      SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);  // this enables opacity adjustment
-      img->texture_fullres = texture;
-      img->fullres_exists = true;
-      img->texture_small = NULL;
+    if (init_no_compress_images) {
+      if (init_small_image_only) { //use the small image as the fullres texture
+        SDL_Surface *surface_small = ScaleSurface(surface, init_small_image_reduction);
+        SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface_small);
+        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);  // this enables opacity adjustment
+        img->texture_fullres = texture;
+        img->fullres_exists = true;
+        img->texture_small = NULL;
+        SDL_FreeSurface(surface_small);
+      } else {
+        SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);  // this enables opacity adjustment
+        img->texture_fullres = texture;
+        img->fullres_exists = true;
+        img->texture_small = NULL;
+      }
     } else {
       img->texture_fullres = NULL;
       img->fullres_exists = false;
-      SDL_Surface *surface_small = ScaleSurface(surface, SMALL_REDUCTION);
+      SDL_Surface *surface_small = ScaleSurface(surface, init_small_image_reduction);
       SDL_Texture *texture_small = SDL_CreateTextureFromSurface(renderer, surface_small);
       SDL_SetTextureBlendMode(texture_small, SDL_BLENDMODE_BLEND);
       img->texture_small = texture_small;
       SDL_FreeSurface(surface_small);
     }
 
-    if (!NO_COMPRESS_IMAGES_IN_RAM) {
+    if (!init_no_compress_images) {
       // store a compressed version of the fullres image to reduce ram
       int data_size = surface->h * surface->pitch;
       int max_dst_size = LZ4_compressBound(data_size);
@@ -851,22 +867,22 @@ void images_render() {
     bool is_onscreen = rect_is_onscreen(&dst, (-cv.r - images[si].r));
     bool stop_reload = false;
 
-    if (cv.z * images[si].z <= 1.0 / SMALL_REDUCTION && auto_hires_discard) { //discard on zoom out
+    if (cv.z * images[si].z <= 1.0 / init_small_image_reduction && auto_hires_discard) {  // discard on zoom out
       image_discard_fullres(si);
       stop_reload = true;
     }
-    if (!is_onscreen && auto_hires_discard) { //discard if off screen
-      if (images[si].offscreen_frame_count <= UNLOAD_HIRES_IF_OFFSCREEN_FOR) {
+    if (!is_onscreen && auto_hires_discard) {  // discard if off screen
+      if (images[si].offscreen_frame_count <= DISCARD_HIRES_IF_OFFSCREEN_FOR) {
         images[si].offscreen_frame_count++;
-        if (images[si].offscreen_frame_count >= UNLOAD_HIRES_IF_OFFSCREEN_FOR) {
+        if (images[si].offscreen_frame_count >= DISCARD_HIRES_IF_OFFSCREEN_FOR) {
           image_discard_fullres(si);
           stop_reload = true;
         }
       }
     }
 
-    if (!stop_reload && auto_hires_restore) { //restore if onscreen
-      if (images[si].center_closeness_index <= COMPRESS_LOAD_MAX) {
+    if (!stop_reload && auto_hires_restore) {  // restore if onscreen
+      if (images[si].center_closeness_index <= init_max_restored_hires) {
         image_restore_fullres(si);
       }
     }

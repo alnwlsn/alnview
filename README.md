@@ -18,7 +18,9 @@ It supports quite extreme levels of zoom, and is great for just messing around.
 ![demo](demo_img/demo3.gif)
 
 ### What's the catch?
-All loaded images are stored uncompressed in RAM, which makes it very fast, but also very RAM heavy. On Windows, loading 101 PNGs of document scans at 300 DPI totaling 107MB, it takes more than 6GB of RAM. Even loading a bunch of BMPs comes in at about double the size they are on disk. It may be worth it to manually downscale your images first before loading them. But, this is why you have 32GB ram in your PC, right?
+Images need to be uncompressed to be shown, so if you have a lot of them, it can take a lot of RAM. On Windows, loading 101 PNGs of document scans at 300 DPI totaling 107MB, it takes more than 6GB of RAM if all are loaded at full resolution. Even loading a bunch of BMPs comes in at about double the size they are on disk. 
+
+Alnview can load reduced resolution versions of the images with the ```-s``` option. The full resolution images are stored compressed in RAM so they can be swapped back in quickly when needed, which can be done automatically or manually (```G```, ```B```, and ```N```). If the full-res versions are not needed, you can skip the compression step (takes time at startup) and use only the reduced-res version by combining ```-s``` and ```-u```. For the fastest performance (with most RAM), you can use only the full-res versions with ```-u``` alone.
 
 You might find this program similar to [Feh](https://github.com/derf/feh), [PureRef](https://www.pureref.com/), and [BeeRef](https://beeref.org/), if not Google Earth and other similar mapping tools.
 
@@ -69,11 +71,17 @@ make
 ```
 
 # Usage
-```alnview [DIRECTORY]```
+```alnview [OPTIONS] [DIRECTORY]```
 
-This will attempt to load all images in the directory. It does not traverse subfolders. If no directory is specified, then the current directory is used. 
+| Option  | Description
+| ------------- | -------------
+| ```-s <down_scale_value>``` | If specified, downscales the images loaded. ```-s 12``` reduces the resolution by a factor of 12. If not specified, default is 8. 
+| ```-u``` | Signals that alnview should not compress any hires images in RAM, only what is loaded will be used, and no swap between the two versions will be possible. If ```-s``` is used, the reduced-res version will be loaded, if not, the full image resolution will be used. Default is to use compressed images.
+| ```-n <count_hires_images>``` | In auto hires mode, the number of hires images to load at once. If not specified, default is 10. 
 
-If there is a ```view.aln``` savefile present, it will use it. If a savefile is created with ```S```, it will be stored in the directory as this file. The savefile contains image positioning, and canvas views.
+It will attempt to load all images in the directory. It does not traverse subfolders. If no directory is specified, then the current directory is used. 
+
+If there is a ```view.aln``` savefile present in the given directory, it will use it. If a savefile is created with ```S```, it will be stored in the directory as this file. The savefile contains image positioning, and canvas views.
 
 On Windows, it works to drag a folder onto ```alnview.exe```.
 
@@ -130,6 +138,10 @@ Operations on images chooses the image to affect in a few ways:
 | ```X``` | increase image opacity | last
 | ```C (+ optional hold)``` | crop image (nearest edge or corner to mouse pointer) | last
 | ```shift + C``` | uncrop image | last
+| ```G``` | use auto-hires mode. Automatically restores images close to the center of the window to full resolution, and unloads them if offscreen.
+| ```shift + G``` | use manual hires mode. High res versions of images and restored and unloaded with ```B``` and ```N```
+| ```B``` | restore the highres version of the image (manual hires mode only)
+| ```N``` | unload the highres version of the image, and use the reduced version instead (manual hires mode only)
 | ```W``` | reload all images from disk
 | ```E``` | reload single image from disk | mouse or last
 | ```S``` | create/update save file (save setup)
