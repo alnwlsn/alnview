@@ -113,11 +113,10 @@ void render_canvas() {
     // canvas_render_pin(images[cv.selected_imi].x, images[cv.selected_imi].y); //image origin
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     canvas_render_pin(images[cv.selected_imi].x + images[cv.selected_imi].rx, images[cv.selected_imi].y + images[cv.selected_imi].ry);
-    rectangleCorners s = image_find_corners(cv.selected_imi);
-    canvas_render_pin(s.aX, s.aY);
-    canvas_render_pin(s.bX, s.bY);
-    canvas_render_pin(s.cX, s.cY);
-    canvas_render_pin(s.dX, s.dY);
+    canvas_render_pin(images[cv.selected_imi].aX, images[cv.selected_imi].aY);
+    canvas_render_pin(images[cv.selected_imi].bX, images[cv.selected_imi].bY);
+    canvas_render_pin(images[cv.selected_imi].cX, images[cv.selected_imi].cY);
+    canvas_render_pin(images[cv.selected_imi].dX, images[cv.selected_imi].dY);
   }
 
   // SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);

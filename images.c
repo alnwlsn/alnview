@@ -96,9 +96,8 @@ void canvas_zoom_center_fitall() {
   double minx = DBL_MAX, miny = DBL_MAX;
   double maxx = -DBL_MAX, maxy = -DBL_MAX;
   for (int i = 0; i < images_count; i++) {
-    rectangleCorners s = image_find_corners(i);
-    double xs[] = {s.aX, s.bX, s.cX, s.dX};
-    double ys[] = {s.aY, s.bY, s.cY, s.dY};
+    double xs[] = {images[i].aX, images[i].bX, images[i].cX, images[i].dX};
+    double ys[] = {images[i].aY, images[i].bY, images[i].cY, images[i].dY};
     for (int j = 0; j <= 3; j++) {
       if (xs[j] <= minx) minx = xs[j];
       if (ys[j] <= miny) miny = ys[j];
@@ -134,13 +133,11 @@ SDL_Surface *ScaleSurface(SDL_Surface *surface, int reduce) {
   }
   SDL_Rect srcRect = {0, 0, surface->w, surface->h};
   SDL_Rect dstRect = {0, 0, new_w, new_h};
-
   if (SDL_BlitScaled(surface, &srcRect, scaled, &dstRect) < 0) {
     printf("SDL_BlitScaled failed: %s\n", SDL_GetError());
     SDL_FreeSurface(scaled);
     return NULL;
   }
-
   return scaled;
 }
 
@@ -193,9 +190,9 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
         SDL_Surface *surface_small = ScaleSurface(surface, init_small_image_reduction);
         SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface_small);
         SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);  // this enables opacity adjustment
-        img->texture_fullres = texture;
-        img->fullres_exists = true;
-        img->texture_small = NULL;
+        img->texture_fullres = NULL;
+        img->fullres_exists = false;
+        img->texture_small = texture;
         SDL_FreeSurface(surface_small);
       } else {
         SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -320,144 +317,77 @@ void images_load_dir(bool show) {  // load all images from directory
   if (no_savefile) images_arrange_in_grid();
 }
 
-int image_point_inside(double px, double py, rectangleCorners s) {
+bool image_point_inside(double px, double py, int si) {
   // take cross product of each point with target. if all in same direction, is inside
-  double c1 = (s.bX - s.aX) * (py - s.aY) - (s.bY - s.aY) * (px - s.aX);
-  double c2 = (s.cX - s.bX) * (py - s.bY) - (s.cY - s.bY) * (px - s.bX);
-  double c3 = (s.dX - s.cX) * (py - s.cY) - (s.dY - s.cY) * (px - s.cX);
-  double c4 = (s.aX - s.dX) * (py - s.dY) - (s.aY - s.dY) * (px - s.dX);
-
+  double c1 = (images[si].bX - images[si].aX) * (py - images[si].aY) - (images[si].bY - images[si].aY) * (px - images[si].aX);
+  double c2 = (images[si].cX - images[si].bX) * (py - images[si].bY) - (images[si].cY - images[si].bY) * (px - images[si].bX);
+  double c3 = (images[si].dX - images[si].cX) * (py - images[si].cY) - (images[si].dY - images[si].cY) * (px - images[si].cX);
+  double c4 = (images[si].aX - images[si].dX) * (py - images[si].dY) - (images[si].aY - images[si].dY) * (px - images[si].dX);
   return ((c1 >= 0 && c2 >= 0 && c3 >= 0 && c4 >= 0) || (c1 <= 0 && c2 <= 0 && c3 <= 0 && c4 <= 0));
 }
-rectangleCorners image_find_corners(int si) {  // finds canvas coords for 4 corners of image
-  rectangleCorners s;
-  s.aX = 0;
-  s.aY = 0;
-  s.bX = 0;
-  s.bY = 0;
-  s.cX = 0;
-  s.cY = 0;
-  s.dX = 0;
-  s.dY = 0;
+void image_calculate_handles(int si) {  // finds canvas coords for 4 corners of image, center, distance from center view
+  images[si].aX = 0;
+  images[si].aY = 0;
+  images[si].bX = 0;
+  images[si].bY = 0;
+  images[si].cX = 0;
+  images[si].cY = 0;
+  images[si].dX = 0;
+  images[si].dY = 0;
 
   double rpc_x = images[si].x + images[si].rx;
   double rpc_y = images[si].y + images[si].ry;
   double pxc_x = images[si].x + images[si].crop_left;
   double pxc_y = images[si].y - images[si].crop_top;
-  s.aX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
-  s.aY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
-  s.aX *= images[si].z;
-  s.aY *= images[si].z;
-  s.aX += rpc_x;
-  s.aY += rpc_y;
+  images[si].aX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
+  images[si].aY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
+  images[si].aX *= images[si].z;
+  images[si].aY *= images[si].z;
+  images[si].aX += rpc_x;
+  images[si].aY += rpc_y;
 
   rpc_x = images[si].x + images[si].rx;
   rpc_y = images[si].y + images[si].ry;
   pxc_x = images[si].x + images[si].width - images[si].crop_right;
   pxc_y = images[si].y - images[si].crop_top;
-  s.bX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
-  s.bY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
-  s.bX *= images[si].z;
-  s.bY *= images[si].z;
-  s.bX += rpc_x;
-  s.bY += rpc_y;
+  images[si].bX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
+  images[si].bY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
+  images[si].bX *= images[si].z;
+  images[si].bY *= images[si].z;
+  images[si].bX += rpc_x;
+  images[si].bY += rpc_y;
 
   rpc_x = images[si].x + images[si].rx;
   rpc_y = images[si].y + images[si].ry;
   pxc_x = images[si].x + images[si].width - images[si].crop_right;
   pxc_y = images[si].y - images[si].height + images[si].crop_bottom;
-  s.cX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
-  s.cY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
-  s.cX *= images[si].z;
-  s.cY *= images[si].z;
-  s.cX += rpc_x;
-  s.cY += rpc_y;
+  images[si].cX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
+  images[si].cY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
+  images[si].cX *= images[si].z;
+  images[si].cY *= images[si].z;
+  images[si].cX += rpc_x;
+  images[si].cY += rpc_y;
 
   rpc_x = images[si].x + images[si].rx;
   rpc_y = images[si].y + images[si].ry;
   pxc_x = images[si].x + images[si].crop_left;
   pxc_y = images[si].y - images[si].height + images[si].crop_bottom;
-  s.dX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
-  s.dY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
-  s.dX *= images[si].z;
-  s.dY *= images[si].z;
-  s.dX += rpc_x;
-  s.dY += rpc_y;
-  return s;
-}
-rectangleCorners image_find_corners_noncrop(int si) {  // finds canvas coords for 4 corners of image
-  rectangleCorners s;
-  s.aX = 0;
-  s.aY = 0;
-  s.bX = 0;
-  s.bY = 0;
-  s.cX = 0;
-  s.cY = 0;
-  s.dX = 0;
-  s.dY = 0;
-
-  double rpc_x = images[si].x + images[si].rx;
-  double rpc_y = images[si].y + images[si].ry;
-  double pxc_x = images[si].x;
-  double pxc_y = images[si].y;
-  s.aX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
-  s.aY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
-  s.aX *= images[si].z;
-  s.aY *= images[si].z;
-  s.aX += rpc_x;
-  s.aY += rpc_y;
-
-  rpc_x = images[si].x + images[si].rx;
-  rpc_y = images[si].y + images[si].ry;
-  pxc_x = images[si].x + images[si].width;
-  pxc_y = images[si].y;
-  s.bX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
-  s.bY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
-  s.bX *= images[si].z;
-  s.bY *= images[si].z;
-  s.bX += rpc_x;
-  s.bY += rpc_y;
-
-  rpc_x = images[si].x + images[si].rx;
-  rpc_y = images[si].y + images[si].ry;
-  pxc_x = images[si].x + images[si].width;
-  pxc_y = images[si].y - images[si].height;
-  s.cX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
-  s.cY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
-  s.cX *= images[si].z;
-  s.cY *= images[si].z;
-  s.cX += rpc_x;
-  s.cY += rpc_y;
-
-  rpc_x = images[si].x + images[si].rx;
-  rpc_y = images[si].y + images[si].ry;
-  pxc_x = images[si].x;
-  pxc_y = images[si].y - images[si].height;
-  s.dX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
-  s.dY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
-  s.dX *= images[si].z;
-  s.dY *= images[si].z;
-  s.dX += rpc_x;
-  s.dY += rpc_y;
-
-  return s;
-}
-void image_find_center(int si, double *cX, double *cY) {
-  rectangleCorners s = image_find_corners(si);
-  *cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
-  *cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
-}
-void image_find_center_noncrop(int si, double *cX, double *cY) {
-  rectangleCorners s = image_find_corners_noncrop(si);
-  *cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
-  *cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
+  images[si].dX = (pxc_x - rpc_x) * cos(images[si].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[si].r * M_PI / 180);
+  images[si].dY = (pxc_y - rpc_y) * cos(images[si].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[si].r * M_PI / 180);
+  images[si].dX *= images[si].z;
+  images[si].dY *= images[si].z;
+  images[si].dX += rpc_x;
+  images[si].dY += rpc_y;
+  images[si].center_x = (images[si].aX + images[si].bX + images[si].cX + images[si].dX) / 4.0f;
+  images[si].center_y = (images[si].aY + images[si].bY + images[si].cY + images[si].dY) / 4.0f;
+  images[si].center_closeness = sqrt((images[si].center_x - cv.x) * (images[si].center_x - cv.x) + (images[si].center_y - cv.y) * (images[si].center_y - cv.y));
 }
 
 int image_point_on(double x, double y) {  // tells which image is under the point
   int image_index = -1;
   int c_draw_order = -999999;
   for (int i = 0; i < images_count; ++i) {
-    if (image_point_inside(x, y, image_find_corners(i))) {
+    if (image_point_inside(x, y, i)) {
       if (images[i].draw_order >= c_draw_order) {
         c_draw_order = images[i].draw_order;
         image_index = i;
@@ -563,28 +493,20 @@ void image_rotation_point_set_new(int imi, double x, double y) {
 
 void canvas_center_on_image(int imi) {
   if (imi < 0) return;
-  image_find_center(imi, &cv.x, &cv.y);
-  // rectangleCorners s = image_find_corners(imi);
-  // double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
-  // double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
-  // cv.x = cX;  // center view
-  // cv.y = cY;
+  cv.x = images[imi].center_x;
+  cv.y = images[imi].center_y;
   cv.selected_imi = imi;
   series_current = images[cv.selected_imi].series_order;
 }
 void canvas_center_on_nearest_image_in_direction(int imi, double direction) {
-  double cX, cY;
-  image_find_center(imi, &cX, &cY);
   double nearestDistance = INFINITY;
   int cimi = -1;
 
   for (int i = 0; i < images_count; i++) {
     if (i != imi) {
-      double dX, dY;
-      image_find_center(i, &dX, &dY);
-
-      double distance = sqrt(((dX - cX) * (dX - cX)) + ((dY - cY) * (dY - cY)));
-      double angle = (180 / M_PI) * atan2((cY - dY), (dX - cX));
+      double distance = sqrt(((images[i].center_x - images[imi].center_x) * (images[i].center_x - images[imi].center_x)) +
+                             ((images[i].center_y - images[imi].center_y) * (images[i].center_y - images[imi].center_y)));
+      double angle = (180 / M_PI) * atan2((images[imi].center_y - images[i].center_y), (images[i].center_x - images[imi].center_x));
 
       angle += direction + 45 - cv.r;
       while (angle > 360) angle -= 360;
@@ -605,27 +527,22 @@ void canvas_center_on_nearest_image_in_direction(int imi, double direction) {
 
 void image_rotation_point_set_center(int imi) {  // return image rotation to center
   if (imi < 0) return;
-  double cX, cY;
-  image_find_center(imi, &cX, &cY);
-  image_rotation_point_set_new(imi, cX, cY);
+  image_rotation_point_set_new(imi, images[imi].center_x, images[imi].center_y);
 }
 void canvas_center_on_image_fit(int imi) {
   // currently doesn't work with rotated canvas
   if (imi < 0) return;
-  rectangleCorners s = image_find_corners(imi);
-  double cX = (s.aX + s.bX + s.cX + s.dX) / 4.0f;
-  double cY = (s.aY + s.bY + s.cY + s.dY) / 4.0f;
-  cv.x = cX;  // center view
-  cv.y = cY;
-  double eX = s.aX, eY = s.aY;
-  double xs[] = {s.aX, s.bX, s.cX, s.dX};
-  double ys[] = {s.aY, s.bY, s.cY, s.dY};
+  cv.x = images[imi].center_x;  // center view
+  cv.y = images[imi].center_y;
+  double eX = images[imi].aX, eY = images[imi].aY;
+  double xs[] = {images[imi].aX, images[imi].bX, images[imi].cX, images[imi].dX};
+  double ys[] = {images[imi].aY, images[imi].bY, images[imi].cY, images[imi].dY};
   for (int i = 0; i <= 3; i++) {
     if (xs[i] <= eX) eX = xs[i];
     if (ys[i] <= eY) eY = ys[i];
   }
-  eX = cX - eX;
-  eY = cY - eY;
+  eX = images[imi].center_x - eX;
+  eY = images[imi].center_y - eY;
   double im_rt = eY / eX;
   eY *= cv.z;
   eX *= cv.z;
@@ -679,35 +596,85 @@ void image_center_series_prev() {
 }
 
 void image_crop(int imi) {
-  rectangleCorners s = image_find_corners_noncrop(imi);
+  double taX = 0;
+  double taY = 0;
+  double tbX = 0;
+  double tbY = 0;
+  double tcX = 0;
+  double tcY = 0;
+  double tdX = 0;
+  double tdY = 0;
+
+  double rpc_x = images[imi].x + images[imi].rx;
+  double rpc_y = images[imi].y + images[imi].ry;
+  double pxc_x = images[imi].x;
+  double pxc_y = images[imi].y;
+  taX = (pxc_x - rpc_x) * cos(images[imi].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[imi].r * M_PI / 180);
+  taY = (pxc_y - rpc_y) * cos(images[imi].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[imi].r * M_PI / 180);
+  taX *= images[imi].z;
+  taY *= images[imi].z;
+  taX += rpc_x;
+  taY += rpc_y;
+
+  rpc_x = images[imi].x + images[imi].rx;
+  rpc_y = images[imi].y + images[imi].ry;
+  pxc_x = images[imi].x + images[imi].width;
+  pxc_y = images[imi].y;
+  tbX = (pxc_x - rpc_x) * cos(images[imi].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[imi].r * M_PI / 180);
+  tbY = (pxc_y - rpc_y) * cos(images[imi].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[imi].r * M_PI / 180);
+  tbX *= images[imi].z;
+  tbY *= images[imi].z;
+  tbX += rpc_x;
+  tbY += rpc_y;
+
+  rpc_x = images[imi].x + images[imi].rx;
+  rpc_y = images[imi].y + images[imi].ry;
+  pxc_x = images[imi].x + images[imi].width;
+  pxc_y = images[imi].y - images[imi].height;
+  tcX = (pxc_x - rpc_x) * cos(images[imi].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[imi].r * M_PI / 180);
+  tcY = (pxc_y - rpc_y) * cos(images[imi].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[imi].r * M_PI / 180);
+  tcX *= images[imi].z;
+  tcY *= images[imi].z;
+  tcX += rpc_x;
+  tcY += rpc_y;
+
+  rpc_x = images[imi].x + images[imi].rx;
+  rpc_y = images[imi].y + images[imi].ry;
+  pxc_x = images[imi].x;
+  pxc_y = images[imi].y - images[imi].height;
+  tdX = (pxc_x - rpc_x) * cos(images[imi].r * M_PI / 180) - (pxc_y - rpc_y) * sin(images[imi].r * M_PI / 180);
+  tdY = (pxc_y - rpc_y) * cos(images[imi].r * M_PI / 180) + (pxc_x - rpc_x) * sin(images[imi].r * M_PI / 180);
+  tdX *= images[imi].z;
+  tdY *= images[imi].z;
+  tdX += rpc_x;
+  tdY += rpc_y;
 
   // how we would apply crop to each side based on mouse
-  double crop_top_d = ((s.aY - mouse_canvas_y) * cos(images[imi].r * M_PI / 180) - (s.aX - mouse_canvas_x) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
+  double crop_top_d = ((taY - mouse_canvas_y) * cos(images[imi].r * M_PI / 180) - (taX - mouse_canvas_x) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
   double crop_bottom_d =
-      -((s.cY - mouse_canvas_y) * cos(images[imi].r * M_PI / 180) - (s.cX - mouse_canvas_x) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
-  double crop_left_d = -((s.aX - mouse_canvas_x) * cos(images[imi].r * M_PI / 180) + (s.aY - mouse_canvas_y) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
-  double crop_right_d = ((s.cX - mouse_canvas_x) * cos(images[imi].r * M_PI / 180) + (s.cY - mouse_canvas_y) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
+      -((tcY - mouse_canvas_y) * cos(images[imi].r * M_PI / 180) - (tcX - mouse_canvas_x) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
+  double crop_left_d = -((taX - mouse_canvas_x) * cos(images[imi].r * M_PI / 180) + (taY - mouse_canvas_y) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
+  double crop_right_d = ((tcX - mouse_canvas_x) * cos(images[imi].r * M_PI / 180) + (tcY - mouse_canvas_y) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
 
   // handles
-  s = image_find_corners(imi);
-  double abX = (s.aX + s.bX) / 2.0f;  // top
-  double abY = (s.aY + s.bY) / 2.0f;
-  double bcX = (s.cX + s.bX) / 2.0f;  // right
-  double bcY = (s.cY + s.bY) / 2.0f;
-  double cdX = (s.cX + s.dX) / 2.0f;  // bottom
-  double cdY = (s.cY + s.dY) / 2.0f;
-  double daX = (s.aX + s.dX) / 2.0f;  // left
-  double daY = (s.aY + s.dY) / 2.0f;
+  double abX = (images[imi].aX + images[imi].bX) / 2.0f;  // top
+  double abY = (images[imi].aY + images[imi].bY) / 2.0f;
+  double bcX = (images[imi].cX + images[imi].bX) / 2.0f;  // right
+  double bcY = (images[imi].cY + images[imi].bY) / 2.0f;
+  double cdX = (images[imi].cX + images[imi].dX) / 2.0f;  // bottom
+  double cdY = (images[imi].cY + images[imi].dY) / 2.0f;
+  double daX = (images[imi].aX + images[imi].dX) / 2.0f;  // left
+  double daY = (images[imi].aY + images[imi].dY) / 2.0f;
 
   // distance to each corner and side (handle distances)
   double d_t = sqrt((mouse_canvas_x - abX) * (mouse_canvas_x - abX) + (mouse_canvas_y - abY) * (mouse_canvas_y - abY));
-  double d_tr = sqrt((mouse_canvas_x - s.bX) * (mouse_canvas_x - s.bX) + (mouse_canvas_y - s.bY) * (mouse_canvas_y - s.bY));
+  double d_tr = sqrt((mouse_canvas_x - images[imi].bX) * (mouse_canvas_x - images[imi].bX) + (mouse_canvas_y - images[imi].bY) * (mouse_canvas_y - images[imi].bY));
   double d_r = sqrt((mouse_canvas_x - bcX) * (mouse_canvas_x - bcX) + (mouse_canvas_y - bcY) * (mouse_canvas_y - bcY));
-  double d_rb = sqrt((mouse_canvas_x - s.cX) * (mouse_canvas_x - s.cX) + (mouse_canvas_y - s.cY) * (mouse_canvas_y - s.cY));
+  double d_rb = sqrt((mouse_canvas_x - images[imi].cX) * (mouse_canvas_x - images[imi].cX) + (mouse_canvas_y - images[imi].cY) * (mouse_canvas_y - images[imi].cY));
   double d_b = sqrt((mouse_canvas_x - cdX) * (mouse_canvas_x - cdX) + (mouse_canvas_y - cdY) * (mouse_canvas_y - cdY));
-  double d_bl = sqrt((mouse_canvas_x - s.dX) * (mouse_canvas_x - s.dX) + (mouse_canvas_y - s.dY) * (mouse_canvas_y - s.dY));
+  double d_bl = sqrt((mouse_canvas_x - images[imi].dX) * (mouse_canvas_x - images[imi].dX) + (mouse_canvas_y - images[imi].dY) * (mouse_canvas_y - images[imi].dY));
   double d_l = sqrt((mouse_canvas_x - daX) * (mouse_canvas_x - daX) + (mouse_canvas_y - daY) * (mouse_canvas_y - daY));
-  double d_lt = sqrt((mouse_canvas_x - s.aX) * (mouse_canvas_x - s.aX) + (mouse_canvas_y - s.aY) * (mouse_canvas_y - s.aY));
+  double d_lt = sqrt((mouse_canvas_x - images[imi].aX) * (mouse_canvas_x - images[imi].aX) + (mouse_canvas_y - images[imi].aY) * (mouse_canvas_y - images[imi].aY));
 
   // find handle cursor is closest to
   int dimin = 0;
@@ -727,8 +694,8 @@ void image_crop(int imi) {
       images[imi].crop_top = (int)crop_top_d;
       break;
     case 1:  // top right
-      // imrefAx = s.bX;
-      // imrefAy = s.bY;
+      // imrefAx = images[imi].bX;
+      // imrefAy = images[imi].bY;
       images[imi].crop_top = (int)crop_top_d;
       images[imi].crop_right = (int)crop_right_d;
       break;
@@ -738,8 +705,8 @@ void image_crop(int imi) {
       images[imi].crop_right = (int)crop_right_d;
       break;
     case 3:  // right bottom
-      // imrefAx = s.cX;
-      // imrefAy = s.cY;
+      // imrefAx = images[imi].cX;
+      // imrefAy = images[imi].cY;
       images[imi].crop_right = (int)crop_right_d;
       images[imi].crop_bottom = (int)crop_bottom_d;
       break;
@@ -749,8 +716,8 @@ void image_crop(int imi) {
       images[imi].crop_bottom = (int)crop_bottom_d;
       break;
     case 5:  // bottom left
-      // imrefAx = s.dX;
-      // imrefAy = s.dY;
+      // imrefAx = images[imi].dX;
+      // imrefAy = images[imi].dY;
       images[imi].crop_bottom = (int)crop_bottom_d;
       images[imi].crop_left = (int)crop_left_d;
       break;
@@ -760,8 +727,8 @@ void image_crop(int imi) {
       images[imi].crop_left = (int)crop_left_d;
       break;
     case 7:  // left top
-      // imrefAx = s.aX;
-      // imrefAy = s.aY;
+      // imrefAx = images[imi].aX;
+      // imrefAy = images[imi].aY;
       images[imi].crop_left = (int)crop_left_d;
       images[imi].crop_top = (int)crop_top_d;
       break;
@@ -779,22 +746,11 @@ void image_uncrop(int imi) {
   images[imi].crop_right = 0;
 }
 
-void images_calculate_center_closeness() {
-  for (int i = 0; i < images_count; ++i) {
-    double x, y;
-    image_find_center(i, &x, &y);
-    images[i].center_closeness = sqrt((x - cv.x) * (x - cv.x) + (y - cv.y) * (y - cv.y));
-  }
-  sort_images_by(compare_closeness_order);
-  for (int i = 0; i < images_count; ++i) {
-    int si = images[i].sort_index;
-    images[si].center_closeness_index = i;
-  }
-}
-
 void images_render() {
-  images_calculate_center_closeness();
-  // return;
+  for (int i = 0; i < images_count; ++i) {
+    image_calculate_handles(i);
+  }
+
   sort_images_by(compare_draw_order);
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
     int si = images[i].sort_index;          // sorted index
@@ -812,10 +768,17 @@ void images_render() {
     double lX = (images[si].x - lrX) * cv.z;
     double lY = -(images[si].y - lrY) * cv.z;
     // rotation from crop offset
-    lX += (images[si].crop_left * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) -
-          (images[si].crop_top * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
-    lY += (images[si].crop_top * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) +
-          (images[si].crop_left * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
+    if (images[si].fullres_exists){
+      lX += (images[si].crop_left * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) -
+            (images[si].crop_top * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
+      lY += (images[si].crop_top * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) +
+            (images[si].crop_left * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
+    }else{
+      lX += ((int)(images[si].crop_left/init_small_image_reduction)*init_small_image_reduction * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) -
+            ((int)(images[si].crop_top/init_small_image_reduction)*init_small_image_reduction* cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
+      lY += ((int)(images[si].crop_top/init_small_image_reduction)*init_small_image_reduction * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) +
+            ((int)(images[si].crop_left/init_small_image_reduction)*init_small_image_reduction * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
+    }
     // rotation from canvas
     double tX = (lX + (-cv.x + images[si].rx) * cv.z) * cos(-cv.r * M_PI / 180) - (lY + (cv.y - images[si].ry) * cv.z) * sin(-cv.r * M_PI / 180) +
                 (screen_size_x / 2.0f);  // rotate image into place
@@ -828,12 +791,23 @@ void images_render() {
     src.y = images[si].crop_top;
     src.w = images[si].width - images[si].crop_left - images[si].crop_right;
     src.h = images[si].height - images[si].crop_top - images[si].crop_bottom;
+    if (!images[si].fullres_exists){
+      src.x = images[si].crop_left/init_small_image_reduction;
+      src.y = images[si].crop_top/init_small_image_reduction;
+      src.w = (images[si].width/init_small_image_reduction - images[si].crop_left/init_small_image_reduction - images[si].crop_right/init_small_image_reduction);
+      src.h = (images[si].height/init_small_image_reduction - images[si].crop_top/init_small_image_reduction - images[si].crop_bottom/init_small_image_reduction);
+    }
 
     SDL_Rect dst;
     dst.x = (int)(tX);
     dst.y = (int)(tY);
-    dst.w = (int)(src.w * cv.z * images[si].z);
-    dst.h = (int)(src.h * cv.z * images[si].z);
+    if (images[si].fullres_exists){
+      dst.w = (int)(src.w * cv.z * images[si].z);
+      dst.h = (int)(src.h * cv.z * images[si].z);
+    }else{
+      dst.w = (int)(src.w*init_small_image_reduction * cv.z * images[si].z);
+      dst.h = (int)(src.h*init_small_image_reduction * cv.z * images[si].z);
+    }
 
     bool is_not_offscreen = true;
     // since we already know the image center to the screen center, use it to tell if the image is fully offscreen
@@ -841,11 +815,10 @@ void images_render() {
         sqrt((images[si].width * images[si].width * images[si].z * images[si].z) + (images[si].height * images[si].height * images[si].z * images[si].z)) / 2;
     double screen_max_from_center = sqrt(((screen_size_x * screen_size_x) + (screen_size_y * screen_size_y)) / (cv.z * cv.z * 4));
     if (images[si].center_closeness > img_max_from_center + screen_max_from_center) {
-      is_not_offscreen =false;
+      is_not_offscreen = false;
     }
 
     bool stop_reload = false;
-
     if (cv.z * images[si].z <= 1.0 / init_small_image_reduction && auto_hires_discard) {  // discard on zoom out
       image_discard_fullres(si);
       stop_reload = true;
@@ -860,8 +833,9 @@ void images_render() {
       }
     }
 
-    if (!stop_reload && auto_hires_restore) {  // restore if onscreen
-      if (images[si].center_closeness_index <= init_max_restored_hires) {
+    if (!stop_reload && is_not_offscreen && auto_hires_restore) {  // restore if onscreen
+      // if (images[si].center_closeness_index <= init_max_restored_hires) {
+      if (image_point_inside(mouse_canvas_x, mouse_canvas_y, si)) {
         image_restore_fullres(si);
       }
     }
@@ -890,7 +864,6 @@ void images_unload() {
   }
   images_count = 0;
 }
-
 void images_free() {
   images_unload();
   free(images);

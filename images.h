@@ -39,12 +39,9 @@ typedef struct {
   int sort_index;  // when sorted, this points to images[index] of sorted list
   char filepath[FILEPATHLEN];
   bool inited;
-  bool use_small;
   int center_closeness_index;
   double center_closeness;
-} Image;
-typedef struct {
-  double aX;
+  double aX; //corners
   double aY;
   double bX;
   double bY;
@@ -52,7 +49,9 @@ typedef struct {
   double cY;
   double dX;
   double dY;
-} rectangleCorners;
+  double center_x; //center
+  double center_y;
+} Image;
 
 extern bool init_small_image_only;
 extern bool init_no_compress_images;
@@ -70,7 +69,7 @@ void images_arrange_in_grid();
 int image_load(char *filepath);  // load one image, returns images[] index
 int image_point_on(double x, double y);  // returns images[] index of image currently under the given point, or -1 if none
 void images_render();
-rectangleCorners image_find_corners(int si);
+void image_find_corners(int si);
 void image_to_on_bottom(int imi);
 void image_to_on_top(int imi);
 void image_drag_screen_by(int imi, int dx, int dy);
