@@ -76,8 +76,8 @@ make
 | Option  | Description
 | ------------- | -------------
 | ```-s <down_scale_value>``` | If specified, downscales the images loaded. ```-s 12``` reduces the resolution by a factor of 12. If not specified, default is 8. 
-| ```-u``` | Signals that alnview should not compress any hires images in RAM, only what is loaded will be used, and no swap between the two versions will be possible. If ```-s``` is used in conjunction, the reduced-res version will be loaded instead of the full-res, otherwise the full image resolution will be used. Default is to use compressed images.
-| ```-n <count_hires_images>``` | In auto hires mode, the number of hires images to load at once. If not specified, default is 10. 
+| ```-u``` | Signals that alnview should not compress any hires images in RAM, only what is loaded will be used, and no swap between the two versions will be possible. If ```-s``` is used in conjunction, the reduced-res version will be loaded instead of the full-res, otherwise the full image resolution will be used. Default is to have compressed images.
+| ```-n <count_hires_images>``` | The maximum number of hires images allowed to be restored at one time. Use to help prevent running out of RAM. If not specified, default is MAX_IMAGES. 
 
 It will attempt to load all images in the directory. It does not traverse subfolders. If no directory is specified, then the current directory is used. 
 
@@ -138,7 +138,7 @@ Operations on images chooses the image to affect in a few ways:
 | ```X``` | increase image opacity | last
 | ```C (+ optional hold)``` | crop image (nearest edge or corner to mouse pointer) | last
 | ```shift + C``` | uncrop image | last
-| ```G``` | use auto-hires mode. Automatically restores images close to the center of the window to full resolution, and unloads them if offscreen.
+| ```G``` | use auto-hires mode. Automatically restores images when you mouse over them, and unloads them if offscreen.
 | ```shift + G``` | use manual hires mode. High res versions of images and restored and unloaded with ```B``` and ```N```
 | ```B``` | restore the highres version of the image (manual hires mode only)
 | ```N``` | unload the highres version of the image, and use the reduced version instead (manual hires mode only)

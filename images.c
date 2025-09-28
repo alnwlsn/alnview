@@ -4,7 +4,7 @@
 bool init_small_image_only = false;
 bool init_no_compress_images = false;
 int init_small_image_reduction = 8;
-int init_max_restored_hires = 10;
+int init_max_restored_hires = MAX_IMAGES;
 
 bool antialiasing = false;
 Image *images = NULL;
@@ -13,6 +13,7 @@ int images_count = 0;
 int series_current = 0;
 bool auto_hires_restore = false;
 bool auto_hires_discard = false;
+int count_hires_restored = 0;
 void image_auto_hires_restore(bool s) {
   auto_hires_restore = s;
   auto_hires_discard = s;
@@ -204,10 +205,12 @@ void image_discard_fullres(int imi) {
   if (!images[imi].fullres_exists) return;
   SDL_DestroyTexture(images[imi].texture_fullres);
   images[imi].fullres_exists = false;
+  count_hires_restored -= 1;
 }
 void image_restore_fullres(int imi) {
   if (init_no_compress_images) return;
   if (images[imi].fullres_exists) return;
+  if(count_hires_restored >= init_max_restored_hires) return;
   SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, images[imi].width, images[imi].height, SDL_BITSPERPIXEL(images[imi].format), images[imi].format);
   int data_size = surface->h * surface->pitch;
   int decoded = LZ4_decompress_safe(images[imi].image_compressed, (char *)surface->pixels, images[imi].image_compressed_size, data_size);
@@ -226,6 +229,7 @@ void image_restore_fullres(int imi) {
   } else {
     SDL_SetTextureScaleMode(images[imi].texture_fullres, SDL_ScaleModeNearest);
   }
+  count_hires_restored += 1;
 }
 
 int image_load(char *filepath) {  // loads image at filepath, inits width and height
@@ -792,7 +796,6 @@ void images_render() {
     }
 
     if (!stop_reload && is_not_offscreen && auto_hires_restore) {  // restore if onscreen
-      // if (images[si].center_closeness_index <= init_max_restored_hires) {
       if (image_point_inside(mouse_canvas_x, mouse_canvas_y, si)) {
         image_restore_fullres(si);
       }
