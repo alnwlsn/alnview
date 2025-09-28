@@ -116,7 +116,6 @@ void draw_line_thickness(double x1, double y1, double x2, double y2, double thic
 
   int n = ((int)thickness / 6) + 2;  // approximate number of sides to draw on caps
   if (n > 36) n = 36;
-  global_testD = n;
   int z = 6 + (6 * n);
   double angle = atan2(y2 - y1, x2 - x1);
   double dx = sin(angle) * (thickness / 2.0);
@@ -342,7 +341,6 @@ void draw_pick_select() {
 }
 
 void draw_render() {
-  global_testA = draw_len;
   // draw_line_thickness_canvas(0, 0, xp, yp, 3);
   bool canvas_changed = (cv.r != draw_cv_last.r || cv.x != draw_cv_last.x || cv.y != draw_cv_last.y || cv.r != draw_cv_last.r);
   bool draw_changed = (draw_len != draw_len_last);

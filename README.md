@@ -76,7 +76,7 @@ make
 | Option  | Description
 | ------------- | -------------
 | ```-s <down_scale_value>``` | If specified, downscales the images loaded. ```-s 12``` reduces the resolution by a factor of 12. If not specified, default is 8. 
-| ```-u``` | Signals that alnview should not compress any hires images in RAM, only what is loaded will be used, and no swap between the two versions will be possible. If ```-s``` is used, the reduced-res version will be loaded, if not, the full image resolution will be used. Default is to use compressed images.
+| ```-u``` | Signals that alnview should not compress any hires images in RAM, only what is loaded will be used, and no swap between the two versions will be possible. If ```-s``` is used in conjunction, the reduced-res version will be loaded instead of the full-res, otherwise the full image resolution will be used. Default is to use compressed images.
 | ```-n <count_hires_images>``` | In auto hires mode, the number of hires images to load at once. If not specified, default is 10. 
 
 It will attempt to load all images in the directory. It does not traverse subfolders. If no directory is specified, then the current directory is used. 

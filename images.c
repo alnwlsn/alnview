@@ -189,7 +189,7 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
     img->inited = 0;
 
     if (init_no_compress_images) {
-      if (init_small_image_only) { //use the small image as the fullres texture
+      if (init_small_image_only) {  // use the small image as the fullres texture
         SDL_Surface *surface_small = ScaleSurface(surface, init_small_image_reduction);
         SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface_small);
         SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);  // this enables opacity adjustment
@@ -779,40 +779,11 @@ void image_uncrop(int imi) {
   images[imi].crop_right = 0;
 }
 
-bool rect_is_onscreen(const SDL_Rect *rect, double angle) {
-  // chatgpt did this
-  double rad = angle * M_PI / 180.0;
-  double c = fabs(cos(rad));
-  double s = fabs(sin(rad));
-
-  // axis-aligned bounding box of rotated rect
-  double aabb_w = c * rect->w + s * rect->h;
-  double aabb_h = s * rect->w + c * rect->h;
-
-  // center of the rect (rotation center)
-  double cx = rect->x + rect->w * 0.5;
-  double cy = rect->y + rect->h * 0.5;
-
-  // AABB coordinates
-  double minx = cx - aabb_w * 0.5;
-  double maxx = cx + aabb_w * 0.5;
-  double miny = cy - aabb_h * 0.5;
-  double maxy = cy + aabb_h * 0.5;
-
-  // check overlap with screen (0,0,screen_width,screen_height)
-  if (maxx < 0) return 0;
-  if (minx > screen_size_x) return 0;
-  if (maxy < 0) return 0;
-  if (miny > screen_size_y) return 0;
-
-  return 1;  // visible
-}
-
 void images_calculate_center_closeness() {
   for (int i = 0; i < images_count; ++i) {
     double x, y;
     image_find_center(i, &x, &y);
-    images[i].center_closeness = (x - cv.x) * (x - cv.x) + (y - cv.y) * (y - cv.y);
+    images[i].center_closeness = sqrt((x - cv.x) * (x - cv.x) + (y - cv.y) * (y - cv.y));
   }
   sort_images_by(compare_closeness_order);
   for (int i = 0; i < images_count; ++i) {
@@ -864,14 +835,22 @@ void images_render() {
     dst.w = (int)(src.w * cv.z * images[si].z);
     dst.h = (int)(src.h * cv.z * images[si].z);
 
-    bool is_onscreen = rect_is_onscreen(&dst, (-cv.r - images[si].r));
+    bool is_not_offscreen = true;
+    // since we already know the image center to the screen center, use it to tell if the image is fully offscreen
+    double img_max_from_center =
+        sqrt((images[si].width * images[si].width * images[si].z * images[si].z) + (images[si].height * images[si].height * images[si].z * images[si].z)) / 2;
+    double screen_max_from_center = sqrt(((screen_size_x * screen_size_x) + (screen_size_y * screen_size_y)) / (cv.z * cv.z * 4));
+    if (images[si].center_closeness > img_max_from_center + screen_max_from_center) {
+      is_not_offscreen =false;
+    }
+
     bool stop_reload = false;
 
     if (cv.z * images[si].z <= 1.0 / init_small_image_reduction && auto_hires_discard) {  // discard on zoom out
       image_discard_fullres(si);
       stop_reload = true;
     }
-    if (!is_onscreen && auto_hires_discard) {  // discard if off screen
+    if (!is_not_offscreen && auto_hires_discard) {  // discard if off screen
       if (images[si].offscreen_frame_count <= DISCARD_HIRES_IF_OFFSCREEN_FOR) {
         images[si].offscreen_frame_count++;
         if (images[si].offscreen_frame_count >= DISCARD_HIRES_IF_OFFSCREEN_FOR) {
@@ -887,7 +866,7 @@ void images_render() {
       }
     }
 
-    if (is_onscreen) {
+    if (is_not_offscreen) {
       images[si].offscreen_frame_count = 0;
       SDL_Point rp = {0, 0};
       if (images[si].fullres_exists) {
