@@ -232,8 +232,10 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
   if (images_count >= MAX_IMAGES) {
     fprintf(stderr, "Too many images to load\n");
   }
-  // img->texture = load_texture(renderer, filepath, &img->width, &img->height);
-  SDL_Surface *surface = IMG_Load(filepath);
+  SDL_Surface *surfaceRaw = IMG_Load(filepath);
+  SDL_Surface *surface = SDL_ConvertSurfaceFormat(surfaceRaw, SDL_PIXELFORMAT_ARGB8888, 0);
+  SDL_FreeSurface(surfaceRaw);
+  
   if (surface) {
     images = realloc(images, sizeof(Image) * (images_count + 1));
     Image *img = &images[images_count];
@@ -242,6 +244,7 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
     img->pitch = surface->pitch;
     img->format = surface->format->format;
     img->inited = 0;
+    memcpy(img->filepath, filepath, FILEPATHLEN);
 
     if (init_no_compress_images) {
       if (init_small_image_only) {  // use the small image as the fullres texture
@@ -285,10 +288,9 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
       }
       img->image_compressed = dst;
       img->image_compressed_size = compressed_size;
-      printf("comp %4.1f, %d, %d\n", (float)100 * compressed_size / data_size, data_size, compressed_size);
+      printf("comp %4.1f, %d, %d, %s\n", (float)100 * compressed_size / data_size, data_size, compressed_size, filepath);
     }
 
-    memcpy(img->filepath, filepath, FILEPATHLEN);
     // SDL_DestroyTexture(texture);
     images_count++;
     SDL_FreeSurface(surface);
