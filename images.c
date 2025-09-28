@@ -235,7 +235,7 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
   SDL_Surface *surfaceRaw = IMG_Load(filepath);
   SDL_Surface *surface = SDL_ConvertSurfaceFormat(surfaceRaw, SDL_PIXELFORMAT_ARGB8888, 0);
   SDL_FreeSurface(surfaceRaw);
-  
+
   if (surface) {
     images = realloc(images, sizeof(Image) * (images_count + 1));
     Image *img = &images[images_count];
@@ -372,17 +372,15 @@ void images_load_dir(bool show) {  // load all images from directory
         images[i].series_order = series_order_offset;
       }
     }
-    image_calculate_handles(i); //init
+    image_calculate_handles(i);  // init
   }
   cv.selected_imi = images[0].sort_index;
-  if (no_savefile){
+  if (no_savefile) {
     images_arrange_in_grid();
     for (int i = 0; i < images_count; i++) {
-      image_calculate_handles(i); //update handles after moving into grid
+      image_calculate_handles(i);  // update handles after moving into grid
     }
   }
-
-
 }
 
 bool image_point_inside(double px, double py, int si) {
@@ -662,8 +660,7 @@ void image_crop(int imi) {
 
   // how we would apply crop to each side based on mouse
   double crop_top_d = ((taY - mouse_canvas_y) * cos(images[imi].r * M_PI / 180) - (taX - mouse_canvas_x) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
-  double crop_bottom_d =
-      -((tcY - mouse_canvas_y) * cos(images[imi].r * M_PI / 180) - (tcX - mouse_canvas_x) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
+  double crop_bottom_d = -((tcY - mouse_canvas_y) * cos(images[imi].r * M_PI / 180) - (tcX - mouse_canvas_x) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
   double crop_left_d = -((taX - mouse_canvas_x) * cos(images[imi].r * M_PI / 180) + (taY - mouse_canvas_y) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
   double crop_right_d = ((tcX - mouse_canvas_x) * cos(images[imi].r * M_PI / 180) + (tcY - mouse_canvas_y) * sin(images[imi].r * M_PI / 180)) / images[imi].z;
 
@@ -679,13 +676,17 @@ void image_crop(int imi) {
 
   // distance to each corner and side (handle distances)
   double d_t = sqrt((mouse_canvas_x - abX) * (mouse_canvas_x - abX) + (mouse_canvas_y - abY) * (mouse_canvas_y - abY));
-  double d_tr = sqrt((mouse_canvas_x - images[imi].bX) * (mouse_canvas_x - images[imi].bX) + (mouse_canvas_y - images[imi].bY) * (mouse_canvas_y - images[imi].bY));
+  double d_tr =
+      sqrt((mouse_canvas_x - images[imi].bX) * (mouse_canvas_x - images[imi].bX) + (mouse_canvas_y - images[imi].bY) * (mouse_canvas_y - images[imi].bY));
   double d_r = sqrt((mouse_canvas_x - bcX) * (mouse_canvas_x - bcX) + (mouse_canvas_y - bcY) * (mouse_canvas_y - bcY));
-  double d_rb = sqrt((mouse_canvas_x - images[imi].cX) * (mouse_canvas_x - images[imi].cX) + (mouse_canvas_y - images[imi].cY) * (mouse_canvas_y - images[imi].cY));
+  double d_rb =
+      sqrt((mouse_canvas_x - images[imi].cX) * (mouse_canvas_x - images[imi].cX) + (mouse_canvas_y - images[imi].cY) * (mouse_canvas_y - images[imi].cY));
   double d_b = sqrt((mouse_canvas_x - cdX) * (mouse_canvas_x - cdX) + (mouse_canvas_y - cdY) * (mouse_canvas_y - cdY));
-  double d_bl = sqrt((mouse_canvas_x - images[imi].dX) * (mouse_canvas_x - images[imi].dX) + (mouse_canvas_y - images[imi].dY) * (mouse_canvas_y - images[imi].dY));
+  double d_bl =
+      sqrt((mouse_canvas_x - images[imi].dX) * (mouse_canvas_x - images[imi].dX) + (mouse_canvas_y - images[imi].dY) * (mouse_canvas_y - images[imi].dY));
   double d_l = sqrt((mouse_canvas_x - daX) * (mouse_canvas_x - daX) + (mouse_canvas_y - daY) * (mouse_canvas_y - daY));
-  double d_lt = sqrt((mouse_canvas_x - images[imi].aX) * (mouse_canvas_x - images[imi].aX) + (mouse_canvas_y - images[imi].aY) * (mouse_canvas_y - images[imi].aY));
+  double d_lt =
+      sqrt((mouse_canvas_x - images[imi].aX) * (mouse_canvas_x - images[imi].aX) + (mouse_canvas_y - images[imi].aY) * (mouse_canvas_y - images[imi].aY));
 
   // find handle cursor is closest to
   int dimin = 0;
@@ -766,60 +767,6 @@ void images_render() {
   for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
     int si = images[i].sort_index;          // sorted index
 
-    // crop can't be negative
-    if (images[si].crop_left < 0) images[si].crop_left = 0;
-    if (images[si].crop_right < 0) images[si].crop_right = 0;
-    if (images[si].crop_top < 0) images[si].crop_top = 0;
-    if (images[si].crop_bottom < 0) images[si].crop_bottom = 0;
-
-    // rotation from image
-    double lrX = (images[si].rx * images[si].z) * cos(images[si].r * M_PI / 180) - (images[si].ry * images[si].z) * sin(images[si].r * M_PI / 180);
-    double lrY = (images[si].ry * images[si].z) * cos(images[si].r * M_PI / 180) + (images[si].rx * images[si].z) * sin(images[si].r * M_PI / 180);
-
-    double lX = (images[si].x - lrX) * cv.z;
-    double lY = -(images[si].y - lrY) * cv.z;
-    // rotation from crop offset
-    if (images[si].fullres_exists){
-      lX += (images[si].crop_left * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) -
-            (images[si].crop_top * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
-      lY += (images[si].crop_top * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) +
-            (images[si].crop_left * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
-    }else{
-      lX += ((int)(images[si].crop_left/init_small_image_reduction)*init_small_image_reduction * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) -
-            ((int)(images[si].crop_top/init_small_image_reduction)*init_small_image_reduction* cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
-      lY += ((int)(images[si].crop_top/init_small_image_reduction)*init_small_image_reduction * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) +
-            ((int)(images[si].crop_left/init_small_image_reduction)*init_small_image_reduction * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
-    }
-    // rotation from canvas
-    double tX = (lX + (-cv.x + images[si].rx) * cv.z) * cos(-cv.r * M_PI / 180) - (lY + (cv.y - images[si].ry) * cv.z) * sin(-cv.r * M_PI / 180) +
-                (screen_size_x / 2.0f);  // rotate image into place
-    double tY = (lY + (cv.y - images[si].ry) * cv.z) * cos(-cv.r * M_PI / 180) + (lX + (-cv.x + images[si].rx) * cv.z) * sin(-cv.r * M_PI / 180) +
-                (screen_size_y / 2.0f);
-
-    // apply crop
-    SDL_Rect src;
-    src.x = images[si].crop_left;
-    src.y = images[si].crop_top;
-    src.w = images[si].width - images[si].crop_left - images[si].crop_right;
-    src.h = images[si].height - images[si].crop_top - images[si].crop_bottom;
-    if (!images[si].fullres_exists){
-      src.x = images[si].crop_left/init_small_image_reduction;
-      src.y = images[si].crop_top/init_small_image_reduction;
-      src.w = (images[si].width/init_small_image_reduction - images[si].crop_left/init_small_image_reduction - images[si].crop_right/init_small_image_reduction);
-      src.h = (images[si].height/init_small_image_reduction - images[si].crop_top/init_small_image_reduction - images[si].crop_bottom/init_small_image_reduction);
-    }
-
-    SDL_Rect dst;
-    dst.x = (int)(tX);
-    dst.y = (int)(tY);
-    if (images[si].fullres_exists){
-      dst.w = (int)(src.w * cv.z * images[si].z);
-      dst.h = (int)(src.h * cv.z * images[si].z);
-    }else{
-      dst.w = (int)(src.w*init_small_image_reduction * cv.z * images[si].z);
-      dst.h = (int)(src.h*init_small_image_reduction * cv.z * images[si].z);
-    }
-
     bool is_not_offscreen = true;
     // since we already know the image center to the screen center, use it to tell if the image is fully offscreen
     double img_max_from_center =
@@ -849,6 +796,62 @@ void images_render() {
       if (image_point_inside(mouse_canvas_x, mouse_canvas_y, si)) {
         image_restore_fullres(si);
       }
+    }
+
+    // crop can't be negative
+    if (images[si].crop_left < 0) images[si].crop_left = 0;
+    if (images[si].crop_right < 0) images[si].crop_right = 0;
+    if (images[si].crop_top < 0) images[si].crop_top = 0;
+    if (images[si].crop_bottom < 0) images[si].crop_bottom = 0;
+
+    // rotation from image
+    double lrX = (images[si].rx * images[si].z) * cos(images[si].r * M_PI / 180) - (images[si].ry * images[si].z) * sin(images[si].r * M_PI / 180);
+    double lrY = (images[si].ry * images[si].z) * cos(images[si].r * M_PI / 180) + (images[si].rx * images[si].z) * sin(images[si].r * M_PI / 180);
+
+    double lX = (images[si].x - lrX) * cv.z;
+    double lY = -(images[si].y - lrY) * cv.z;
+    // rotation from crop offset
+    if (images[si].fullres_exists) {
+      lX += (images[si].crop_left * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) -
+            (images[si].crop_top * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
+      lY += (images[si].crop_top * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) +
+            (images[si].crop_left * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
+    } else {
+      lX += ((int)(images[si].crop_left / init_small_image_reduction) * init_small_image_reduction * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) -
+            ((int)(images[si].crop_top / init_small_image_reduction) * init_small_image_reduction * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
+      lY += ((int)(images[si].crop_top / init_small_image_reduction) * init_small_image_reduction * cv.z * images[si].z) * cos(-images[si].r * M_PI / 180) +
+            ((int)(images[si].crop_left / init_small_image_reduction) * init_small_image_reduction * cv.z * images[si].z) * sin(-images[si].r * M_PI / 180);
+    }
+    // rotation from canvas
+    double tX = (lX + (-cv.x + images[si].rx) * cv.z) * cos(-cv.r * M_PI / 180) - (lY + (cv.y - images[si].ry) * cv.z) * sin(-cv.r * M_PI / 180) +
+                (screen_size_x / 2.0f);  // rotate image into place
+    double tY = (lY + (cv.y - images[si].ry) * cv.z) * cos(-cv.r * M_PI / 180) + (lX + (-cv.x + images[si].rx) * cv.z) * sin(-cv.r * M_PI / 180) +
+                (screen_size_y / 2.0f);
+
+    // apply crop
+    SDL_Rect src;
+    src.x = images[si].crop_left;
+    src.y = images[si].crop_top;
+    src.w = images[si].width - images[si].crop_left - images[si].crop_right;
+    src.h = images[si].height - images[si].crop_top - images[si].crop_bottom;
+    if (!images[si].fullres_exists) {
+      src.x = images[si].crop_left / init_small_image_reduction;
+      src.y = images[si].crop_top / init_small_image_reduction;
+      src.w = (images[si].width / init_small_image_reduction - images[si].crop_left / init_small_image_reduction -
+               images[si].crop_right / init_small_image_reduction);
+      src.h = (images[si].height / init_small_image_reduction - images[si].crop_top / init_small_image_reduction -
+               images[si].crop_bottom / init_small_image_reduction);
+    }
+
+    SDL_Rect dst;
+    dst.x = (int)(tX);
+    dst.y = (int)(tY);
+    if (images[si].fullres_exists) {
+      dst.w = (int)(src.w * cv.z * images[si].z);
+      dst.h = (int)(src.h * cv.z * images[si].z);
+    } else {
+      dst.w = (int)(src.w * init_small_image_reduction * cv.z * images[si].z);
+      dst.h = (int)(src.h * init_small_image_reduction * cv.z * images[si].z);
     }
 
     if (is_not_offscreen) {
