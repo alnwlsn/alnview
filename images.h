@@ -94,5 +94,7 @@ void image_discard_fullres(int imi);
 void image_discard_fullres_or_auto_hires(int imi);
 void image_auto_hires_restore(bool s);
 
+void image_reload(int imi);
+
 void canvas_use_cvp(int ci);
 void canvas_set_cvp(int ci);

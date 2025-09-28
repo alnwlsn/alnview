@@ -29,4 +29,3 @@ void super_toggle_antialiasing();
 void super_toggle_fullscreen();
 void super_opacity_increase();
 void super_opacity_decrease();
-void super_reload_single_image(int imi);

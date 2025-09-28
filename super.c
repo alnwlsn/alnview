@@ -104,23 +104,3 @@ void super_opacity_decrease() {
     images[cv.selected_imi].opacity = t;
   }
 }
-
-void super_reload_single_image(int imi) {
-  if (imi < 0) return;
-  SDL_DestroyTexture(images[imi].texture_fullres);
-  SDL_Surface *surface = IMG_Load(images[imi].filepath);
-  if (surface) {
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
-    if (texture) {
-      Image *img = &images[imi];
-      img->texture_fullres = texture;
-      img->width = surface->w;
-      img->height = surface->h;
-      img->inited = 1;
-    } else {
-      fprintf(stderr, "Failed to create texture: %s\n", SDL_GetError());
-    }
-    SDL_FreeSurface(surface);
-  }
-}

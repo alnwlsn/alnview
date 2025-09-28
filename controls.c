@@ -295,7 +295,7 @@ bool controls_process(SDL_Event e) {
           cv = gv;
         } break;
         case SDLK_e:
-          super_reload_single_image(mouseover_or_selected_imi());
+          image_reload(mouseover_or_selected_imi());
           break;
         case SDLK_s:
           save_state();

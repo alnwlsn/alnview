@@ -136,7 +136,7 @@ void render_canvas() {
   snprintf(coordText, sizeof(coordText), "gtA: %.1f gtB: %.1f gtC: %.1f gtD: %.1f", global_testA, global_testB, global_testC, global_testD);
   render_text(coordText, 2, 19);
   snprintf(coordText, sizeof(coordText), "cv.x: %.1f cv.y: %.1f cv.z: %.1f cv.r: %.1f", cv.x, cv.y, cv.z, cv.r);
-  render_text(coordText, 2, 48);
+  render_text(coordText, 2, 38);
 
 
   SDL_SetRenderDrawColor(renderer, BGCOLOR_R, BGCOLOR_G, BGCOLOR_B, 255);  // background color
