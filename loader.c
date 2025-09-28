@@ -111,7 +111,7 @@ bool load_state(bool show) {
   }
 
   fread(&draw_len, sizeof(int), 1, f);
-  for (int i = 0; i < draw_len; i++){
+  for (int i = 0; i < draw_len; i++) {
     DrawPoint s;
     fread(&s, sizeof(DrawPoint), 1, f);
     draw_points[i].x = s.x;
@@ -129,6 +129,7 @@ void loader_uni(bool show) {
   if (!load_state(show)) {
     images_load_dir(show);  // load all the images
     canvas_zoom_center_fitall();
+    if (cv.z > 1.0) cv.z = 1.0f; //set inital zoom to actual unless images larger than screen
   } else {
     images_load_dir(show);  // still load extra imgs
   }
