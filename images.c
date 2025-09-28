@@ -206,6 +206,9 @@ void image_discard_fullres(int imi) {
   SDL_DestroyTexture(images[imi].texture_fullres);
   images[imi].fullres_exists = false;
   count_hires_restored -= 1;
+  #ifdef SHOW_RESTORES_DISCARDS
+  printf("discard %d (%d)\n",imi,count_hires_restored);
+  #endif
 }
 void image_discard_fullres_or_auto_hires(int imi) {
   if (auto_hires_discard) {
@@ -239,6 +242,9 @@ void image_restore_fullres(int imi) {
     SDL_SetTextureScaleMode(images[imi].texture_fullres, SDL_ScaleModeNearest);
   }
   count_hires_restored += 1;
+  #ifdef SHOW_RESTORES_DISCARDS
+  printf("restore %d (%d)\n",imi,count_hires_restored);
+  #endif
 }
 
 int image_load(char *filepath) {  // loads image at filepath, inits width and height
@@ -375,6 +381,9 @@ void images_load_dir(bool show) {  // load all images from directory
       images[i].crop_bottom = 0;
       images[i].crop_left = 0;
       images[i].opacity = 255;
+      for (int j = 0; j < MAX_CANVAS; j++){
+        images[i].fullres_in_view[j] = 0;
+      }
       draw_order_offset += 1;
       series_order_offset += 1;
       if (no_savefile) {
@@ -893,4 +902,26 @@ void images_unload() {
 void images_free() {
   images_unload();
   free(images);
+}
+
+void canvas_use_cvp(int ci) {
+  if (ci >= MAX_CANVAS) return;
+  cv = cvp[ci];
+  image_series_set(cv.selected_imi);
+  for (int i = 0; i < images_count; ++i) {
+    if(images[i].fullres_in_view[ci] == 1){
+      image_restore_fullres(i);
+    }
+  }
+}
+void canvas_set_cvp(int ci) {
+  if (ci >= MAX_CANVAS) return;
+  cvp[ci] = cv;
+  for (int i = 0; i < images_count; ++i) {
+    if(images[i].fullres_exists){
+      images[i].fullres_in_view[ci] = 1;
+    }else{
+      images[i].fullres_in_view[ci] = 0;
+    }
+  }
 }

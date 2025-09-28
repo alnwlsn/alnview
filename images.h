@@ -38,6 +38,7 @@ typedef struct {
   int draw_order;
   int sort_index;  // when sorted, this points to images[index] of sorted list
   char filepath[FILEPATHLEN];
+  bool fullres_in_view[MAX_CANVAS];
   bool inited;
   int center_closeness_index;
   double center_closeness;
@@ -92,3 +93,6 @@ void image_restore_fullres(int imi);
 void image_discard_fullres(int imi);
 void image_discard_fullres_or_auto_hires(int imi);
 void image_auto_hires_restore(bool s);
+
+void canvas_use_cvp(int ci);
+void canvas_set_cvp(int ci);

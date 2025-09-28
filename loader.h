@@ -24,6 +24,7 @@ typedef struct {
   int draw_order;
   int sort_index;
   char filepath[FILEPATHLEN];
+  bool fullres_in_view[MAX_CANVAS];
 } ImageSave;
 
 bool load_state(bool show);

@@ -334,34 +334,34 @@ bool controls_process(SDL_Event e) {
             image_rotate_by(cv.selected_imi, -ROTATE_STEP);
             break;
           case SDLK_0:
-            cvp[0] = cv;
+            canvas_set_cvp(0);
             break;
           case SDLK_1:
-            cvp[1] = cv;
+            canvas_set_cvp(1);
             break;
           case SDLK_2:
-            cvp[2] = cv;
+            canvas_set_cvp(2);
             break;
           case SDLK_3:
-            cvp[3] = cv;
+            canvas_set_cvp(3);
             break;
           case SDLK_4:
-            cvp[4] = cv;
+            canvas_set_cvp(4);
             break;
           case SDLK_5:
-            cvp[5] = cv;
+            canvas_set_cvp(5);
             break;
           case SDLK_6:
-            cvp[6] = cv;
+            canvas_set_cvp(6);
             break;
           case SDLK_7:
-            cvp[7] = cv;
+            canvas_set_cvp(7);
             break;
           case SDLK_8:
-            cvp[8] = cv;
+            canvas_set_cvp(8);
             break;
           case SDLK_9:
-            cvp[9] = cv;
+            canvas_set_cvp(9);
             break;
           case SDLK_q:
             quit = 1;
@@ -394,44 +394,34 @@ bool controls_process(SDL_Event e) {
             cv.r -= ROTATE_STEP;
             break;
           case SDLK_0:
-            cv = cvp[0];
-            image_series_set(cv.selected_imi);
+            canvas_use_cvp(0);
             break;
           case SDLK_1:
-            cv = cvp[1];
-            image_series_set(cv.selected_imi);
+            canvas_use_cvp(1);
             break;
           case SDLK_2:
-            cv = cvp[2];
-            image_series_set(cv.selected_imi);
+            canvas_use_cvp(2);
             break;
           case SDLK_3:
-            cv = cvp[3];
-            image_series_set(cv.selected_imi);
+            canvas_use_cvp(3);
             break;
           case SDLK_4:
-            cv = cvp[4];
-            image_series_set(cv.selected_imi);
+            canvas_use_cvp(4);
             break;
           case SDLK_5:
-            cv = cvp[5];
-            image_series_set(cv.selected_imi);
+            canvas_use_cvp(5);
             break;
           case SDLK_6:
-            cv = cvp[6];
-            image_series_set(cv.selected_imi);
+            canvas_use_cvp(6);
             break;
           case SDLK_7:
-            cv = cvp[7];
-            image_series_set(cv.selected_imi);
+            canvas_use_cvp(7);
             break;
           case SDLK_8:
-            cv = cvp[8];
-            image_series_set(cv.selected_imi);
+            canvas_use_cvp(8);
             break;
           case SDLK_9:
-            cv = cvp[9];
-            image_series_set(cv.selected_imi);
+            canvas_use_cvp(9);
             break;
           case SDLK_BACKSPACE:
             draw_back_pen();

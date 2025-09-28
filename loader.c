@@ -39,6 +39,9 @@ void save_state() {
     s.draw_order = images[i].draw_order;
     s.sort_index = images[i].sort_index;
     strncpy(s.filepath, images[i].filepath, FILEPATHLEN);
+    for (int j = 0; j < MAX_CANVAS; j++) {
+      s.fullres_in_view[j] = images[i].fullres_in_view[j];
+    }
 
     fwrite(&s, sizeof(ImageSave), 1, f);
   }
@@ -108,6 +111,9 @@ bool load_state(bool show) {
     images[imi].series_order = s.series_order;
     images[imi].draw_order = s.draw_order;
     images[imi].sort_index = s.sort_index;
+     for (int j = 0; j < MAX_CANVAS; j++) {
+      images[i].fullres_in_view[j] = s.fullres_in_view[j];
+    }
   }
 
   fread(&draw_len, sizeof(int), 1, f);
@@ -129,7 +135,7 @@ void loader_uni(bool show) {
   if (!load_state(show)) {
     images_load_dir(show);  // load all the images
     canvas_zoom_center_fitall();
-    if (cv.z > 1.0) cv.z = 1.0f; //set inital zoom to actual unless images larger than screen
+    if (cv.z > 1.0) cv.z = 1.0f;  // set inital zoom to actual unless images larger than screen
   } else {
     images_load_dir(show);  // still load extra imgs
   }
