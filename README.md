@@ -91,7 +91,7 @@ Alnview is key driven, and has minimal GUI elements to maximize the amount of im
 Operations on images chooses the image to affect in a few ways:
 - **last** - uses the last selected image
 - **mouse** - uses the image under the mouse pointer. After the operation, it will become the last image selected
-- **mouse (temporary)** - temporarily uses the image under the mouse pointer, but does not change the last selected image 
+- **mouseover** - temporarily uses the image under the mouse pointer, but does not change the last selected image 
 - **mouse or last** - uses the image under the mouse, or if it is not on an image, uses the last selection
 - **next** - the last selected image becomes the one that is jumped to after finishing the operation
 
@@ -112,7 +112,7 @@ Operations on images chooses the image to affect in a few ways:
 | ```ctrl``` | show center of screen mark
 | ```ctrl + middle click + drag``` | drag rotate canvas about center of screen
 | ```ctrl + right click + drag``` | move (translate) image | last
-| ```ctrl + scroll wheel``` | zoom image under mouse pointer about mouse pointer | mouse (temporary)
+| ```ctrl + scroll wheel``` | zoom image under mouse pointer about mouse pointer | mouseover
 | ```tab``` | show canvas reference point mark
 | ```tab + left click``` | select reference point for canvas
 | ```tab + middle click + drag``` | drag rotate canvas about canvas reference point
@@ -122,7 +122,7 @@ Operations on images chooses the image to affect in a few ways:
 | ```space``` | select image + show corners | mouse
 | ```O``` | reset canvas rotation to 0
 | ```P``` | reset canvas zoom to 1
-| ```' (single quote)``` | reset image zoom to 1 | mouse (temporary) or last
+| ```' (single quote)``` | reset image zoom to 1 | mouseover or last
 | ```; (semicolon)``` | snap image rotation to nearest 90 | mouse or last
 | ```, (comma)``` | send image to back | last
 | ```. (period)``` | bring image to front | last
@@ -140,8 +140,8 @@ Operations on images chooses the image to affect in a few ways:
 | ```shift + C``` | uncrop image | last
 | ```G``` | use auto-hires mode. Automatically restores images when you mouse over them, and unloads them if offscreen.
 | ```shift + G``` | use manual hires mode. High res versions of images and restored and unloaded with ```B``` and ```N```
-| ```B``` | restore the highres version of the image (manual hires mode only)
-| ```N``` | unload the highres version of the image, and use the reduced version instead (manual hires mode only)
+| ```B``` | restore the highres version of the image (manual hires mode only) | mouseover
+| ```N``` | unload the highres version of the image, and use the reduced version instead. In auto-hires mode, unloads all hires images. | mouseover
 | ```W``` | reload all images from disk
 | ```E``` | reload single image from disk | mouse or last
 | ```S``` | create/update save file (save setup)

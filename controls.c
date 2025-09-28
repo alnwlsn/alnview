@@ -319,7 +319,7 @@ bool controls_process(SDL_Event e) {
           draw_mode = 1;
           break;
         case SDLK_n:
-          image_discard_fullres(mouseover_or_selected_imi());
+          image_discard_fullres_or_auto_hires(mouseover_or_selected_imi());
           break;
         case SDLK_b:
           image_restore_fullres(mouseover_or_selected_imi());

@@ -207,10 +207,19 @@ void image_discard_fullres(int imi) {
   images[imi].fullres_exists = false;
   count_hires_restored -= 1;
 }
+void image_discard_fullres_or_auto_hires(int imi) {
+  if (auto_hires_discard) {
+    for (int i = 0; i < images_count; ++i) {
+      image_discard_fullres(i);
+    }
+  } else {
+    image_discard_fullres(imi);
+  }
+}
 void image_restore_fullres(int imi) {
   if (init_no_compress_images) return;
   if (images[imi].fullres_exists) return;
-  if(count_hires_restored >= init_max_restored_hires) return;
+  if (count_hires_restored >= init_max_restored_hires) return;
   SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, images[imi].width, images[imi].height, SDL_BITSPERPIXEL(images[imi].format), images[imi].format);
   int data_size = surface->h * surface->pitch;
   int decoded = LZ4_decompress_safe(images[imi].image_compressed, (char *)surface->pixels, images[imi].image_compressed_size, data_size);
