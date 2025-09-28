@@ -297,6 +297,9 @@ bool controls_process(SDL_Event e) {
         case SDLK_e:
           image_reload(mouseover_or_selected_imi());
           break;
+        case SDLK_t: //TEST KEY
+          image_reload_if_modified(mouseover_or_selected_imi());
+          break;
         case SDLK_s:
           save_state();
           break;
@@ -322,7 +325,7 @@ bool controls_process(SDL_Event e) {
           image_discard_fullres_or_auto_hires(mouseover_or_selected_imi());
           break;
         case SDLK_b:
-          image_restore_fullres(mouseover_or_selected_imi());
+          image_restore_fullres_or_auto_hires(mouseover_or_selected_imi());
           break;
       }
       if (shift_held) {  // keys + shift key held

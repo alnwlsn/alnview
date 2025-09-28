@@ -5,6 +5,7 @@ bool init_small_image_only = false;
 bool init_no_compress_images = false;
 int init_small_image_reduction = 8;
 int init_max_restored_hires = MAX_IMAGES;
+bool init_monitor_file_changes = false;
 
 bool antialiasing = false;
 Image *images = NULL;
@@ -133,7 +134,7 @@ void images_arrange_in_grid() {  // arranges all images into grid by selection o
   int x = 0, y = 0;
   int max_row_height = 0;
   sort_images_by(compare_series_order);
-  for (int i = 0; i < images_count; ++i) {
+  for (int i = 0; i < images_count; i++) {
     int si = images[i].sort_index;
     images[si].x = x;
     images[si].y = -y;
@@ -212,11 +213,22 @@ void image_discard_fullres(int imi) {
 }
 void image_discard_fullres_or_auto_hires(int imi) {
   if (auto_hires_discard) {
-    for (int i = 0; i < images_count; ++i) {
+    for (int i = 0; i < images_count; i++) {
       image_discard_fullres(i);
     }
   } else {
     image_discard_fullres(imi);
+  }
+}
+void image_restore_fullres_or_auto_hires(int imi) {
+  if (auto_hires_restore) {
+    for (int i = 0; i < images_count; i++) {
+      if (images[i].is_not_offscreen) {  // restore if onscreen
+        image_restore_fullres(i);
+      }
+    }
+  } else {
+    image_restore_fullres(imi);
   }
 }
 void image_restore_fullres(int imi) {
@@ -304,8 +316,15 @@ int image_load(char *filepath) {  // loads image at filepath, inits width and he
       }
       img->image_compressed = dst;
       img->image_compressed_size = compressed_size;
+#ifdef DEBUG_MSG
       printf("comp %4.1f, %d, %d, %s\n", (float)100 * compressed_size / data_size, data_size, compressed_size, filepath);
+#endif
     }
+    if (stat(img->filepath, &img->filestat) == -1) {
+      fprintf(stderr, "file stat error %s\n", img->filepath);
+    }
+    img->file_modtime = img->filestat.st_mtime;
+
     images_count++;
     SDL_FreeSurface(surface);
   } else {
@@ -453,14 +472,35 @@ void image_reload(int imi) {
       }
       images[imi].image_compressed = dst;
       images[imi].image_compressed_size = compressed_size;
+#ifdef DEBUG_MSG
       printf("comp %4.1f, %d, %d, %s\n", (float)100 * compressed_size / data_size, data_size, compressed_size, images[imi].filepath);
+#endif
     }
     SDL_FreeSurface(surface);
   } else {
     fprintf(stderr, "Failed to load %s: %s\n", images[imi].filepath, IMG_GetError());
   }
   if (hires) image_restore_fullres(imi);
+  if (stat(images[imi].filepath, &images[imi].filestat) == -1) {
+    fprintf(stderr, "file stat error %s\n", images[imi].filepath);
+  }
+  images[imi].file_modtime = images[imi].filestat.st_mtime;
+#ifdef DEBUG_MSG
   printf("reloaded %s\n", images[imi].filepath);
+#endif
+}
+
+void image_reload_if_modified(int imi) {
+  if (stat(images[imi].filepath, &images[imi].filestat) == -1) {
+    fprintf(stderr, "file stat error %s\n", images[imi].filepath);
+  }
+  time_t new = images[imi].filestat.st_mtime;
+  if (new != images[imi].file_modtime) {
+#ifdef DEBUG_MSG
+    printf("file_changed %s\n", images[imi].filepath);
+#endif
+    image_reload(imi);
+  }
 }
 
 bool image_point_inside(double px, double py, int si) {
@@ -475,7 +515,7 @@ bool image_point_inside(double px, double py, int si) {
 int image_point_on(double x, double y) {  // tells which image is under the point
   int image_index = -1;
   int c_draw_order = -999999;
-  for (int i = 0; i < images_count; ++i) {
+  for (int i = 0; i < images_count; i++) {
     if (image_point_inside(x, y, i)) {
       if (images[i].draw_order >= c_draw_order) {
         c_draw_order = images[i].draw_order;
@@ -488,7 +528,7 @@ int image_point_on(double x, double y) {  // tells which image is under the poin
 void image_to_on_top(int imi) {
   if (imi < 0) return;
   int max_draw_order = -999999;
-  for (int i = 0; i < images_count; ++i) {
+  for (int i = 0; i < images_count; i++) {
     if (images[i].draw_order >= max_draw_order) {
       max_draw_order = images[i].draw_order;
     }
@@ -498,7 +538,7 @@ void image_to_on_top(int imi) {
 void image_to_on_bottom(int imi) {
   if (imi < 0) return;
   int min_draw_order = 999999;
-  for (int i = 0; i < images_count; ++i) {
+  for (int i = 0; i < images_count; i++) {
     if (images[i].draw_order <= min_draw_order) {
       min_draw_order = images[i].draw_order;
     }
@@ -839,21 +879,28 @@ void image_uncrop(int imi) {
 }
 
 void images_render() {
-  for (int i = 0; i < images_count; ++i) {
+  static int check_change_frameskip = 0;
+
+  for (int i = 0; i < images_count; i++) {
     image_calculate_handles(i);
+    if (init_monitor_file_changes && check_change_frameskip >= FRAMES_CHECK_FILE_CHANGED) {
+      image_reload_if_modified(i);
+    }
   }
+  if (init_monitor_file_changes && check_change_frameskip >= FRAMES_CHECK_FILE_CHANGED) check_change_frameskip = 0;
+  check_change_frameskip++;
 
   sort_images_by(compare_draw_order);
-  for (int i = 0; i < images_count; ++i) {  // render all images onto the canvas
+  for (int i = 0; i < images_count; i++) {  // render all images onto the canvas
     int si = images[i].sort_index;          // sorted index
 
-    bool is_not_offscreen = true;
+    images[si].is_not_offscreen = true;
     // since we already know the image center to the screen center, use it to tell if the image is fully offscreen
     double img_max_from_center =
         sqrt((images[si].width * images[si].width * images[si].z * images[si].z) + (images[si].height * images[si].height * images[si].z * images[si].z)) / 2;
     double screen_max_from_center = sqrt(((screen_size_x * screen_size_x) + (screen_size_y * screen_size_y)) / (cv.z * cv.z * 4));
     if (images[si].center_closeness > img_max_from_center + screen_max_from_center) {
-      is_not_offscreen = false;
+      images[si].is_not_offscreen = false;
     }
 
     bool stop_reload = false;
@@ -861,7 +908,7 @@ void images_render() {
       image_discard_fullres(si);
       stop_reload = true;
     }
-    if (!is_not_offscreen && auto_hires_discard) {  // discard if off screen
+    if (!images[si].is_not_offscreen && auto_hires_discard) {  // discard if off screen
       if (images[si].offscreen_frame_count <= DISCARD_HIRES_IF_OFFSCREEN_FOR) {
         images[si].offscreen_frame_count++;
         if (images[si].offscreen_frame_count >= DISCARD_HIRES_IF_OFFSCREEN_FOR) {
@@ -871,7 +918,7 @@ void images_render() {
       }
     }
 
-    if (!stop_reload && is_not_offscreen && auto_hires_restore) {  // restore if onscreen
+    if (!stop_reload && images[si].is_not_offscreen && auto_hires_restore) {  // restore if onscreen
       if (image_point_inside(mouse_canvas_x, mouse_canvas_y, si)) {
         image_restore_fullres(si);
       }
@@ -933,7 +980,7 @@ void images_render() {
       dst.h = (int)(src.h * init_small_image_reduction * cv.z * images[si].z);
     }
 
-    if (is_not_offscreen) {
+    if (images[si].is_not_offscreen) {
       images[si].offscreen_frame_count = 0;
       SDL_Point rp = {0, 0};
       if (images[si].fullres_exists) {
@@ -948,7 +995,7 @@ void images_render() {
 }
 
 void images_unload() {
-  for (int i = 0; i < images_count; ++i) {
+  for (int i = 0; i < images_count; i++) {
     if (images[i].fullres_exists) {
       SDL_DestroyTexture(images[i].texture_fullres);
       images[i].fullres_exists = false;
@@ -968,7 +1015,7 @@ void canvas_use_cvp(int ci) {
   if (ci >= MAX_CANVAS) return;
   cv = cvp[ci];
   image_series_set(cv.selected_imi);
-  for (int i = 0; i < images_count; ++i) {
+  for (int i = 0; i < images_count; i++) {
     if (images[i].fullres_in_view[ci] == 1) {
       image_restore_fullres(i);
     }
@@ -977,7 +1024,7 @@ void canvas_use_cvp(int ci) {
 void canvas_set_cvp(int ci) {
   if (ci >= MAX_CANVAS) return;
   cvp[ci] = cv;
-  for (int i = 0; i < images_count; ++i) {
+  for (int i = 0; i < images_count; i++) {
     if (images[i].fullres_exists) {
       images[i].fullres_in_view[ci] = 1;
     } else {

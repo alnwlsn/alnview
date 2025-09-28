@@ -77,7 +77,8 @@ make
 | ------------- | -------------
 | ```-s <down_scale_value>``` | If specified, downscales the images loaded. ```-s 12``` reduces the resolution by a factor of 12. If not specified, default is 8. 
 | ```-u``` | Signals that alnview should not compress any hires images in RAM, only what is loaded will be used, and no swap between the two versions will be possible. If ```-s``` is used in conjunction, the reduced-res version will be loaded instead of the full-res, otherwise the full image resolution will be used. Default is to have compressed images.
-| ```-n <count_hires_images>``` | The maximum number of hires images allowed to be restored at one time. Use to help prevent running out of RAM. If not specified, default is MAX_IMAGES. 
+| ```-n <count_hires_images>``` | The maximum number of hires images allowed to be restored at one time. Use to help prevent running out of RAM. If not specified, default is MAX_IMAGES.
+| ```-m``` | Polls all loaded files periodically, and reloads them if they have changed on disk.
 
 It will attempt to load all images in the directory. It does not traverse subfolders. If no directory is specified, then the current directory is used. 
 
@@ -140,8 +141,8 @@ Operations on images chooses the image to affect in a few ways:
 | ```shift + C``` | uncrop image | last
 | ```G``` | use auto-hires mode. Automatically restores images when you mouse over them, and unloads them if offscreen.
 | ```shift + G``` | use manual hires mode. High res versions of images and restored and unloaded with ```B``` and ```N```
-| ```B``` | restore the highres version of the image (manual hires mode only) | mouseover
-| ```N``` | unload the highres version of the image, and use the reduced version instead. In auto-hires mode, unloads all hires images. | mouseover
+| ```B``` | restore the highres version of the image, and use the reduced version instead. In auto-hires mode, restores all images visible on screen. | mouseover
+| ```N``` | discard the highres version of the image, and use the reduced version instead. In auto-hires mode, discards all hires images. | mouseover
 | ```W``` | reload all images from disk
 | ```E``` | reload single image from disk | mouse or last
 | ```S``` | create/update save file (save setup)

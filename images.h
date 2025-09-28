@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <lz4hc.h>
+#include <time.h>
 
 #include "defines.h"
 #include "canvas.h"
@@ -38,6 +39,8 @@ typedef struct {
   int draw_order;
   int sort_index;  // when sorted, this points to images[index] of sorted list
   char filepath[FILEPATHLEN];
+  struct stat filestat;
+  time_t file_modtime;
   bool fullres_in_view[MAX_CANVAS];
   bool inited;
   int center_closeness_index;
@@ -52,12 +55,14 @@ typedef struct {
   double dY;
   double center_x; //center
   double center_y;
+  bool is_not_offscreen;
 } Image;
 
 extern bool init_small_image_only;
 extern bool init_no_compress_images;
 extern int init_small_image_reduction;
 extern int init_max_restored_hires;
+extern bool init_monitor_file_changes;
 
 extern bool antialiasing;
 extern int images_count;
@@ -92,9 +97,11 @@ void image_uncrop(int imi);
 void image_restore_fullres(int imi);
 void image_discard_fullres(int imi);
 void image_discard_fullres_or_auto_hires(int imi);
+void image_restore_fullres_or_auto_hires(int imi);
 void image_auto_hires_restore(bool s);
 
 void image_reload(int imi);
+void image_reload_if_modified(int imi);
 
 void canvas_use_cvp(int ci);
 void canvas_set_cvp(int ci);

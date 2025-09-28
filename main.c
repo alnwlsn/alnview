@@ -13,8 +13,11 @@ extern char* optarg;
 int main(int argc, char *argv[]) {
   render_init();
   int opt;
-  while ((opt = getopt(argc, argv, "us:n:")) != -1) {
+  while ((opt = getopt(argc, argv, "mus:n:")) != -1) {
     switch (opt) {
+      case 'm':
+        init_monitor_file_changes = 1;
+        break;
       case 'u':
         init_no_compress_images = 1;
         break;
